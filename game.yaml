@@ -1,0 +1,8 @@
+server:
+  listenAddr: 192.168.0.42:7777
+  goMaxProcs: 8
+  heartbeatCheckInterval: 30
+  gateTimeout: 10
+
+
+

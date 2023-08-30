@@ -1,0 +1,17 @@
+server:
+  gateID: 1
+  listenAddr: 192.168.0.42:6666
+  goMaxProcs: 8
+  heartbeatCheckInterval: 30
+  clientTimeout: 10
+  needLogin: true
+
+game-dispatcher:
+  - game: elite-star
+    channel-num: 3
+    load-balancer: polling
+
+params:
+  loginServerUrl: http://192.168.1.203:8000/oauth/app/validateToken
+
+
