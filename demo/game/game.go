@@ -2,7 +2,7 @@ package main
 
 import (
 	"go-one/common/context"
-	"go-one/elitestar/game/processor"
+	"go-one/demo/game/processor"
 	"go-one/game"
 )
 
