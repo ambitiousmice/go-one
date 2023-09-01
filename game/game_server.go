@@ -64,8 +64,10 @@ func (gs *GameServer) mainRoutine() {
 	for {
 		select {
 		case pkt := <-gs.gatePacketQueue:
-			gs.handleGatePacket(pkt)
-			pkt.Release()
+			go func() {
+				gs.handleGatePacket(pkt)
+				pkt.Release()
+			}()
 		}
 	}
 }
@@ -96,7 +98,7 @@ func (gs *GameServer) handleClientConnection(conn net.Conn) {
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
 		if time.Now().Sub(cp.heartbeatTime) > gs.gateTimeout {
-			log.Infof("网关:%s 超时", cp)
+			log.Infof("网关:%s 心跳检测超时", cp)
 			cp.CloseAll()
 		}
 	})
@@ -116,6 +118,13 @@ func (gs *GameServer) onClientProxyClose(cp *GateProxy) {
 
 // GetDispatcherClientPacketQueue handles packets received by dispatcher client
 func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recover from panic: %v\n", r)
+		}
+	}()
+
 	cp := pkt.Src.Proxy.(*GateProxy)
 	cp.heartbeatTime = time.Now()
 	//entityID := cp.entityID
@@ -145,9 +154,6 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 
 }
 
-func (gs *GameServer) handleGameCmd(gameReq proto.GameReq) {
-
-}
 func (gs *GameServer) terminate() {
 	gs.status = consts.ServiceTerminating
 

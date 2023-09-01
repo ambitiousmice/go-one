@@ -59,12 +59,11 @@ func (bot *ClientBot) run() {
 	defer bot.conn.Close()
 	bot.crontab.Start()
 
-	bot.crontab.AddFunc("@every 5s", func() {
+	bot.crontab.AddFunc("@every 2s", func() {
 		packet := pktconn.NewPacket()
 		packet.WriteUint16(proto.HeartbeatFromClient)
 		bot.conn.SendAndRelease(packet)
-		log.Infof("==============发送心跳包,packetQueue长度:%d", len(bot.packetQueue))
-		bot.sendGameMsg(1, []byte("hello"))
+		//log.Infof("==============发送心跳包,packetQueue长度:%d", len(bot.packetQueue))
 	})
 	// send handshake packet
 
@@ -152,16 +151,16 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 		loginResp := &proto.LoginResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果:", loginResp.EntityID)
-		/*go func() {
+		go func() {
 			for true {
-				bot.sendGameMsg(1, []byte("hello"))
-				time.Sleep(time.Microsecond * 1)
+				bot.sendGameMsg(1, []byte("1"))
+				//time.Sleep(time.Microsecond * 1)
 			}
-		}()*/
+		}()
 	case proto.GameMethodFromClientAck:
 		gameResp := &proto.GameResp{}
 		packet.ReadData(gameResp)
-		//log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
+		log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
 	}
 
 }

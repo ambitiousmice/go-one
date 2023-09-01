@@ -60,12 +60,12 @@ func (gpc *GameDispatcherChannel) Run() {
 	gpc.PacketConn = pktconn.NewPacketConn(context2.Background(), netConn, gpc)
 
 	gpc.cron.AddFunc("@every 2s", func() {
-		gpc.sendHeart()
+		gpc.sendHeartbeat()
 	})
 
 	gpc.cron.AddFunc("@every 5s", func() {
 		if time.Now().Sub(gpc.heartbeatTime) > 5*time.Second {
-			log.Infof("======================================dispatcher channel status: %d", gpc.status)
+			log.Infof("dispatcher channel status: %d", gpc.status)
 			if gpc.status == consts.DispatcherChannelStatusUnHealth {
 				return
 			}
@@ -75,7 +75,7 @@ func (gpc *GameDispatcherChannel) Run() {
 			}
 
 			gpc.updateStatus(consts.DispatcherChannelStatusUnHealth)
-			log.Infof("%s Heartbeat timeout, updating status to unhealthy ...", gpc)
+			log.Infof("%s heartbeat timeout, updating status to unhealthy ...", gpc)
 
 		}
 	})
@@ -146,7 +146,9 @@ func (gpc *GameDispatcherChannel) connectServer() (net.Conn, error) {
 
 func (gpc *GameDispatcherChannel) receive() {
 	err := gpc.ReceiveChan(gpc.packetQueue)
-	log.Error(err)
+	if err != nil {
+		log.Error(err)
+	}
 
 }
 
@@ -154,8 +156,10 @@ func (gpc *GameDispatcherChannel) handlePacketQueue() {
 	for {
 		select {
 		case pkt := <-gpc.packetQueue:
-			gpc.handleGameMsg(pkt)
-			pkt.Release()
+			go func() {
+				gpc.handleGameMsg(pkt)
+				pkt.Release()
+			}()
 		case <-gpc.ticker:
 			if gpc.status == consts.DispatcherChannelStatusStop {
 				log.Infof("%s handlePacketQueue exit...", gpc)
@@ -200,6 +204,9 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 		gpc.processAck11(packet)
 	case proto.GameDispatcherChannelInfoFromDispatcherAck:
 		Handle3002(packet)
+
+	default:
+		log.Errorf("unknown msgType: %d", msgType)
 	}
 }
 
@@ -215,7 +222,7 @@ func (gpc *GameDispatcherChannel) processAck11(packet *pktconn.Packet) {
 	}
 }
 
-// message handler
+// message handler======================================================================================================
 
 func Handle3002(pkt *pktconn.Packet) {
 	req := &proto.GameDispatcherChannelInfoResp{}
@@ -236,11 +243,10 @@ func (gpc *GameDispatcherChannel) SendMsg(msgType uint16, msg interface{}) {
 	if msg != nil {
 		packet.AppendData(msg)
 	}
-	gpc.Send(packet)
-	packet.Release()
+	gpc.SendAndRelease(packet)
 }
 
-func (gpc *GameDispatcherChannel) sendHeart() {
+func (gpc *GameDispatcherChannel) sendHeartbeat() {
 	gpc.SendMsg(proto.HeartbeatFromDispatcher, nil)
 }
 

@@ -2,12 +2,13 @@ package pktconn
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"go-one/common/log"
 	"io"
 	"net"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -17,10 +18,7 @@ const (
 
 	payloadLengthSize = 4 // payloadLengthSize is the packet size field (uint32) size
 	prePayloadSize    = payloadLengthSize
-)
-
-var (
-	crontab = cron.New(cron.WithSeconds())
+	sendTimeout       = 500 * time.Millisecond
 )
 
 // PacketConn is a connection that send and receive data packets upon a network stream connection
@@ -55,10 +53,6 @@ func NewPacketConn(ctx context.Context, conn net.Conn, proxy interface{}) *Packe
 }
 
 func (pc *PacketConn) flushMessage() {
-	defer pc.Close()
-
-	defer crontab.Stop()
-
 	ctxDone := pc.ctx.Done()
 loop:
 	for {
@@ -106,19 +100,27 @@ func (pc *PacketConn) ReceiveChan(receiveChan chan *Packet) (err error) {
 }
 
 // Send send packets to remote
-func (pc *PacketConn) Send(packet *Packet) {
+func (pc *PacketConn) Send(packet *Packet) error {
 	if atomic.LoadInt64(&packet.refcount) <= 0 {
 		panic(fmt.Errorf("sending packet with refcount=%d", packet.refcount))
 	}
 
 	packet.addRefCount(1)
-	pc.sendChan <- packet
+	select {
+	case pc.sendChan <- packet:
+		return nil
+	case <-time.After(sendTimeout):
+		//packet.addRefCount(-1) // Decrement the refcount since the send failed
+		return errors.New("send operation timed out")
+	}
 }
 
 // SendAndRelease send a packet to remote and then release the packet
-func (pc *PacketConn) SendAndRelease(packet *Packet) {
-	pc.Send(packet)
+func (pc *PacketConn) SendAndRelease(packet *Packet) error {
+	err := pc.Send(packet)
 	packet.Release()
+
+	return err
 }
 
 // Flush connection writes

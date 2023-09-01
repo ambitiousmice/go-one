@@ -52,8 +52,6 @@ func (cp *ClientProxy) serve() {
 		cp.CloseAll()
 		if err := recover(); err != nil {
 			log.Errorf("%s error: %s", cp, err.(error))
-		} else {
-			log.Debugf("%s disconnected", cp)
 		}
 	}()
 
@@ -68,6 +66,7 @@ func (cp *ClientProxy) CloseAll() {
 		if err := recover(); err != nil {
 			log.Errorf("%s CloseAll error: %s", cp, err.(error))
 		}
+		log.Infof("%s disconnected...", cp)
 	}()
 
 	cp.cron.Stop()

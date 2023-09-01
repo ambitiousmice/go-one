@@ -84,11 +84,16 @@ func (gs *GateServer) mainRoutine() {
 	for {
 		select {
 		case pkt := <-gs.clientPacketQueue:
-			gs.handleClientProxyPacket(pkt)
-			pkt.Release()
+			go func() {
+				gs.handleClientProxyPacket(pkt)
+				pkt.Release()
+			}()
+
 		case pkt := <-gs.dispatcherClientPacketQueue:
-			gs.handleDispatcherClientPacket(pkt)
-			pkt.Release()
+			go func() {
+				gs.handleDispatcherPacket(pkt)
+				pkt.Release()
+			}()
 		}
 	}
 }
@@ -197,7 +202,6 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 	msgType := pkt.ReadUint16()
 
 	//log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
-
 	switch msgType {
 	case proto.GameMethodFromClient:
 		cp.ForwardByDispatcher(pkt)
@@ -213,7 +217,7 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 
 }
 
-func (gs *GateServer) handleDispatcherClientPacket(packet *pktconn.Packet) {
+func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 	payload := packet.Payload()
 	length := len(payload)
 	clientID := string(payload[length-consts.ClientIDLength : length])
@@ -221,7 +225,10 @@ func (gs *GateServer) handleDispatcherClientPacket(packet *pktconn.Packet) {
 	clientProxy := gs.getClientProxy(clientID)
 
 	if clientProxy != nil {
-		clientProxy.Send(packet)
+		err := clientProxy.Send(packet)
+		if err != nil {
+			log.Errorf("客户端:%s 发送消息失败:%s", clientProxy, err)
+		}
 	}
 }
 

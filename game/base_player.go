@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
+	"go-one/common/log"
 	"go-one/common/pktconn"
 	"go-one/common/proto"
 )
@@ -69,5 +70,9 @@ func (p *BasePlayer) SendGameMsg(resp *proto.GameResp) {
 
 	packet.AppendClientID(p.clientID)
 
-	p.gateProxy.SendAndRelease(packet)
+	err := p.gateProxy.SendAndRelease(packet)
+
+	if err != nil {
+		log.Errorf("%s send game msg error: %s", p, err)
+	}
 }

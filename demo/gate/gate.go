@@ -17,7 +17,7 @@ func main() {
 	gateServer := gate.NewGateServer()
 
 	if gateServer.NeedLogin {
-		gateServer.LoginManager = NewEliteStarLoginManager(gate.GetGateConfig().Params["loginServerUrl"].(string))
+		gateServer.LoginManager = NewDemoLoginManager(gate.GetGateConfig().Params["loginServerUrl"].(string))
 	}
 
 	gateServer.Run()

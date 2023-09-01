@@ -7,12 +7,12 @@ import (
 	"strconv"
 )
 
-type EliteStarLoginManager struct {
+type DemoLoginManager struct {
 	loginServerUrl string
 }
 
-func NewEliteStarLoginManager(loginServerUrl string) *EliteStarLoginManager {
-	return &EliteStarLoginManager{
+func NewDemoLoginManager(loginServerUrl string) *DemoLoginManager {
+	return &DemoLoginManager{
 		loginServerUrl: loginServerUrl,
 	}
 }
@@ -35,7 +35,7 @@ type ValidateTokenResp struct {
 	RoleId    int    `json:"roleId"`
 }
 
-func (manager *EliteStarLoginManager) TokenLogin(token string) (*gate.LoginResult, error) {
+func (manager *DemoLoginManager) TokenLogin(token string) (*gate.LoginResult, error) {
 	data := &ValidateTokenResp{}
 	result := &resultResp{Data: data}
 

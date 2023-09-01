@@ -75,3 +75,7 @@ const (
 const (
 	TokenLogin = "token"
 )
+
+const (
+	SystemError = "服务器繁忙, 请稍后再试"
+)
