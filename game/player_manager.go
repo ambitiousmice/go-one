@@ -1,23 +1,32 @@
 package game
 
+import "sync"
+
 var playerMap = map[int64]*BasePlayer{}
+var playerMutex sync.RWMutex
 
 func GetPlayer(entityID int64) *BasePlayer {
+	playerMutex.RLock()
+	defer playerMutex.RUnlock()
 	return playerMap[entityID]
 }
 
 func AddPlayer(basePlayer *BasePlayer) {
-	oldPlayer := playerMap[basePlayer.entityID]
+	oldPlayer := GetPlayer(basePlayer.entityID)
 	if oldPlayer != nil && oldPlayer.I != nil {
 		oldPlayer.I.OnDestroy()
 	}
+	playerMutex.Lock()
+	defer playerMutex.Unlock()
 	playerMap[basePlayer.entityID] = basePlayer
 }
 
-func removePlayer(basePlayer *BasePlayer) {
-	player := playerMap[basePlayer.entityID]
+func RemovePlayer(entityID int64) {
+	player := GetPlayer(entityID)
 	if player != nil && player.I != nil {
 		player.I.OnClientDisconnected()
 	}
-	delete(playerMap, basePlayer.entityID)
+	playerMutex.Lock()
+	defer playerMutex.Unlock()
+	delete(playerMap, entityID)
 }

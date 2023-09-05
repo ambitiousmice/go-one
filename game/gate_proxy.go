@@ -115,14 +115,10 @@ func (cp *GateProxy) handle3003(pkt *pktconn.Packet) {
 }
 
 func (cp *GateProxy) handle3004(pkt *pktconn.Packet) {
-	req := &proto.NewPlayerConnectionReq{}
+	req := &proto.PlayerDisconnectedReq{}
 	pkt.ReadData(req)
 
-	basePlayer := NewBasePlayer(req.ClientID, req.EntityID)
-
-	basePlayer.gateProxy = cp
-
-	AddPlayer(basePlayer)
+	RemovePlayer(req.EntityID)
 }
 
 // ============================================================================基础协议

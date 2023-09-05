@@ -164,7 +164,7 @@ func (cp *ClientProxy) HeartbeatTimeout() {
 }
 
 func (cp *ClientProxy) PlayerDisconnected() {
-	if cp.gameID == 0 {
+	if cp.gameID == 0 || cp.entityID == 0 {
 		return
 	}
 	packet := pktconn.NewPacket()
