@@ -69,8 +69,8 @@ func (gd *GameDispatcher) checkChannelHealth() {
 	}
 }
 
-func (gd *GameDispatcher) ForwardMsg(clientID int64, packet *pktconn.Packet) error {
-	packet.WriteInt64(clientID)
+func (gd *GameDispatcher) ForwardMsg(entityID int64, packet *pktconn.Packet) error {
+	packet.WriteInt64(entityID)
 
 	gd.channelsMutex.Lock()
 	gd.pollingIndex++

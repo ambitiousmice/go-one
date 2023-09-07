@@ -4,7 +4,7 @@ import "github.com/IBM/sarama"
 
 type ProducerConfig struct {
 	Brokers  []string `yaml:"brokers"`
-	RetryMax int      `yaml:"retry_max"`
+	RetryMax int      `yaml:"retry-max"`
 	Version  string   `yaml:"version"`
 	Sync     bool     `yaml:"sync"`
 }

@@ -9,6 +9,7 @@ const (
 const (
 	GateServicePacketQueueSize = 10000
 	ClientIDLength             = 19
+	EntityIDLength             = 8
 	ClientProxyWriteBufferSize = 1024 * 1024
 	ClientProxyReadBufferSize  = 1024 * 1024
 
@@ -29,11 +30,12 @@ const (
 
 // DispatcherChannelStatus
 const (
-	DispatcherChannelStatusUnHealth = -1
-	DispatcherChannelStatusInit     = 1
-	DispatcherChannelStatusHealth   = 5
-	DispatcherChannelStatusStop     = 10
-	DispatcherChannelStatusRestart  = 15
+	DispatcherChannelStatusUnHealth      = -1
+	DispatcherChannelStatusInit          = 1
+	DispatcherChannelStatusHealth        = 5
+	DispatcherChannelStatusStop          = 10
+	DispatcherChannelStatusRestart       = 15
+	DispatcherChannelStatusRestartFailed = 20
 )
 
 // game consts
@@ -68,7 +70,7 @@ const (
 
 // cron job name
 const (
-	CheckLogin = "checkLogin" // 检查登录
+	CheckEnterGame = "checkEnterGame" // 检查进入游戏
 )
 
 // loginType

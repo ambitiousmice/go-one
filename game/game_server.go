@@ -19,9 +19,13 @@ var gameServer *GameServer
 // GameServer implements the game service logic
 type GameServer struct {
 	sync.Mutex
-	listenAddr      string
-	cron            *cron.Cron
+	listenAddr string
+	cron       *cron.Cron
+
+	gpMutex         sync.RWMutex
 	gateProxies     map[string]*GateProxy
+	gateNodeProxies map[uint8][]*GateProxy
+
 	gatePacketQueue chan *pktconn.Packet
 
 	status                  uint8
@@ -94,7 +98,7 @@ func (gs *GameServer) handleClientConnection(conn net.Conn) {
 	}
 
 	cp := newClientProxy(conn)
-	gs.gateProxies[cp.proxyID] = cp
+	gs.addGateProxy(cp)
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
 		if time.Now().Sub(cp.heartbeatTime) > gs.gateTimeout {
@@ -107,11 +111,11 @@ func (gs *GameServer) handleClientConnection(conn net.Conn) {
 }
 
 func (gs *GameServer) onClientProxyClose(cp *GateProxy) {
-	clientProxy := gs.gateProxies[cp.proxyID]
+	clientProxy := gs.getGateProxy(cp.proxyID)
 	if clientProxy == nil {
 		return
 	}
-	delete(gs.gateProxies, cp.proxyID)
+	gs.removeGateProxy(cp)
 
 	log.Infof("client %s disconnected", cp)
 }
@@ -125,29 +129,25 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 		}
 	}()
 
-	cp := pkt.Src.Proxy.(*GateProxy)
-	cp.heartbeatTime = time.Now()
-	//entityID := cp.entityID
+	gp := pkt.Src.Proxy.(*GateProxy)
+	gp.heartbeatTime = time.Now()
 	msgType := pkt.ReadUint16()
 
-	//log.Infof("receive msg:%s 消息类型:%d", cp, msgType)
+	//log.Infof("receive msg:%s 消息类型:%d", gp, msgType)
 
 	switch msgType {
 	case proto.GameMethodFromClient:
-		gameReq := &proto.GameReq{}
-		pkt.ReadData(gameReq)
-		entityID := pkt.ReadInt64()
-		gameProcess(entityID, gameReq)
+		gp.handleGameLogic(pkt)
 	case proto.HeartbeatFromDispatcher:
-		cp.SendHeartBeatAck()
+		gp.SendHeartBeatAck()
 	case proto.OfflineFromClient:
-		cp.CloseAll()
+		gp.CloseAll()
 	case proto.GameDispatcherChannelInfoFromDispatcher:
-		cp.handle3002(pkt)
+		gp.handle3002(pkt)
 	case proto.NewPlayerConnectionFromDispatcher:
-		cp.handle3003(pkt)
+		gp.handle3003(pkt)
 	case proto.PlayerDisconnectedFromDispatcher:
-		cp.handle3004(pkt)
+		gp.handle3004(pkt)
 	default:
 		log.Errorf("unknown message type from client: %d", msgType)
 	}
@@ -162,4 +162,41 @@ func (gs *GameServer) terminate() {
 	}
 
 	gs.status = consts.ServiceTerminated
+}
+
+func (gs *GameServer) getGateProxy(proxyID string) *GateProxy {
+	gs.gpMutex.RLock()
+	defer gs.gpMutex.RUnlock()
+	return gs.gateProxies[proxyID]
+}
+
+func (gs *GameServer) addGateProxy(cp *GateProxy) {
+	gs.gpMutex.Lock()
+	defer gs.gpMutex.Unlock()
+	gs.gateProxies[cp.proxyID] = cp
+	nodeProxies := gs.gateNodeProxies[cp.gateID]
+	if nodeProxies == nil {
+		nodeProxies = []*GateProxy{cp}
+		gs.gateNodeProxies[cp.gateID] = nodeProxies
+	} else {
+		nodeProxies = append(nodeProxies, cp)
+		gs.gateNodeProxies[cp.gateID] = nodeProxies
+	}
+}
+
+func (gs *GameServer) removeGateProxy(cp *GateProxy) {
+	gs.gpMutex.Lock()
+	defer gs.gpMutex.Unlock()
+	delete(gs.gateProxies, cp.proxyID)
+
+	nodeProxies := gs.gateNodeProxies[cp.gateID]
+	if nodeProxies == nil {
+		return
+	}
+	for i, proxy := range nodeProxies {
+		if proxy.dispatcherChannelID == cp.dispatcherChannelID {
+			gs.gateNodeProxies[cp.gateID] = append(nodeProxies[:i], nodeProxies[i+1:]...)
+			break
+		}
+	}
 }

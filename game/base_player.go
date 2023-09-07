@@ -10,7 +10,6 @@ import (
 
 type BasePlayer struct {
 	gateProxy *GateProxy
-	clientID  string
 	entityID  int64
 
 	I IPlayer
@@ -20,11 +19,10 @@ type BasePlayer struct {
 	attrMap map[string]interface{}
 }
 
-func NewBasePlayer(clientID string, entityID int64) *BasePlayer {
+func NewBasePlayer(entityID int64) *BasePlayer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	return &BasePlayer{
-		clientID: clientID,
 		entityID: entityID,
 		cron:     crontab,
 		cronMap:  map[string]cron.EntryID{},
@@ -42,7 +40,7 @@ type IPlayer interface {
 }
 
 func (p *BasePlayer) String() string {
-	return fmt.Sprintf("%s<%d><%d>", p.clientID, p.entityID, p.gateProxy.gateID)
+	return fmt.Sprintf("BasePlayer:<%d> gateID:<%d>", p.entityID, p.gateProxy.gateID)
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
@@ -68,7 +66,7 @@ func (p *BasePlayer) SendGameMsg(resp *proto.GameResp) {
 		packet.AppendData(resp)
 	}
 
-	packet.AppendClientID(p.clientID)
+	packet.WriteInt64(p.entityID)
 
 	err := p.gateProxy.SendAndRelease(packet)
 

@@ -142,19 +142,19 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	//log.Infof("handlePacket: %d", msgType)
+	log.Infof("handlePacket: %d", msgType)
 	switch msgType {
-	case proto.NeedLoginFromServer:
+	case proto.EnterGameFromServer:
 		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
 		log.Infof("发送登录消息")
-	case proto.LoginFromClientAck:
+	case proto.EnterGameClientAck:
 		loginResp := &proto.LoginResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果:", loginResp.EntityID)
 		go func() {
 			for true {
 				bot.sendGameMsg(1, []byte("1"))
-				//time.Sleep(time.Microsecond * 1)
+				time.Sleep(time.Microsecond * 100)
 			}
 		}()
 	case proto.GameMethodFromClientAck:
@@ -176,10 +176,10 @@ func (bot *ClientBot) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (bot *ClientBot) login(account string) {
-	bot.SendMsg(proto.LoginFromClient, &proto.LoginReq{
-		LoginType: consts.TokenLogin,
-		Account:   account,
-		Game:      "elite-star",
+	bot.SendMsg(proto.EnterGameFromClient, &proto.EnterGameReq{
+		AccountType: consts.TokenLogin,
+		Account:     account,
+		Game:        "elite-star",
 	})
 }
 

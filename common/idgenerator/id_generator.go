@@ -1,5 +1,6 @@
 package idgenerator
 
 type IDGenerator interface {
-	NextID() string
+	NextIDStr() string
+	NextID() int64
 }

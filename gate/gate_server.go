@@ -1,9 +1,11 @@
 package gate
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"go-one/common/consts"
+	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
@@ -25,7 +27,8 @@ type GateServer struct {
 	sync.RWMutex
 	listenAddr                  string
 	cron                        *cron.Cron
-	clientProxies               map[string]*ClientProxy
+	tempClientProxies           map[string]*ClientProxy
+	clientProxies               map[int64]*ClientProxy
 	clientPacketQueue           chan *pktconn.Packet
 	dispatcherClientPacketQueue chan *pktconn.Packet
 
@@ -49,7 +52,8 @@ func NewGateServer() *GateServer {
 	cron := cron.New(cron.WithSeconds())
 	cron.Start()
 	gateServer = &GateServer{
-		clientProxies:               map[string]*ClientProxy{},
+		tempClientProxies:           map[string]*ClientProxy{},
+		clientProxies:               map[int64]*ClientProxy{},
 		clientPacketQueue:           make(chan *pktconn.Packet, consts.GateServicePacketQueueSize),
 		dispatcherClientPacketQueue: make(chan *pktconn.Packet, consts.GateServicePacketQueueSize),
 		listenAddr:                  gateConfig.Server.ListenAddr,
@@ -155,25 +159,28 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 
 	cp := newClientProxy(conn)
 
-	gs.addClientProxy(cp)
+	gs.addTempClientProxy(cp)
 
-	if gs.NeedLogin {
-		jobID, err := cp.cron.AddFunc("@every 3s", func() {
-			if cp.entityID == 0 {
-				log.Infof("客户端:%s 未登录,主动踢出", cp)
-				cp.CloseAll()
-			}
-		})
+	if !gs.NeedLogin {
+		cp.entityID = context.NextEntityID()
+	}
 
-		if err != nil {
-			log.Errorf("客户端:%s 添加定时任务失败", cp)
+	gs.addTempClientProxy(cp)
+
+	jobID, err := cp.cron.AddFunc("@every 3s", func() {
+		if cp.entityID == 0 {
+			log.Infof("客户端:%s 未登录游戏,主动踢出", cp)
 			cp.CloseAll()
 		}
+	})
 
-		cp.cronMap[consts.CheckLogin] = jobID
-
-		cp.SendNeedLoginFromServer()
+	if err != nil {
+		log.Errorf("客户端:%s 添加定时任务失败", cp)
+		cp.CloseAll()
 	}
+
+	cp.cronMap[consts.CheckEnterGame] = jobID
+	cp.SendEnterGameFromServer()
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
 		if time.Now().Sub(cp.heartbeatTime) > gs.clientTimeout {
@@ -185,11 +192,15 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 }
 
 func (gs *GateServer) onClientProxyClose(cp *ClientProxy) {
-	clientProxy := gs.getClientProxy(cp.clientID)
+	clientProxy := gs.getTempClientProxy(cp.clientID)
 	if clientProxy == nil {
-		return
+		clientProxy = gs.getClientProxy(cp.entityID)
+		if clientProxy == nil {
+			return
+		}
+		gs.removeClientProxy(clientProxy.entityID)
 	}
-	gs.removeClientProxy(clientProxy.clientID)
+	gs.removeTempClientProxy(clientProxy.clientID)
 
 	log.Infof("%s: client %s disconnected", gs, cp)
 }
@@ -207,8 +218,8 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 		cp.ForwardByDispatcher(pkt)
 	case proto.HeartbeatFromClient:
 		cp.SendHeartBeatAck()
-	case proto.LoginFromClient:
-		cp.Login(pkt)
+	case proto.EnterGameFromClient:
+		cp.EnterGame(pkt)
 	case proto.OfflineFromClient:
 		cp.CloseAll()
 	default:
@@ -220,9 +231,9 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 	payload := packet.Payload()
 	length := len(payload)
-	clientID := string(payload[length-consts.ClientIDLength : length])
+	entityID := int64(binary.LittleEndian.Uint64(payload[length-consts.EntityIDLength : length]))
 
-	clientProxy := gs.getClientProxy(clientID)
+	clientProxy := gs.getClientProxy(entityID)
 
 	if clientProxy != nil {
 		err := clientProxy.Send(packet)
@@ -235,6 +246,10 @@ func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 func (gs *GateServer) terminate() {
 	gs.status = consts.ServiceTerminating
 
+	for _, cp := range gs.tempClientProxies {
+		cp.CloseAll()
+	}
+
 	for _, cp := range gs.clientProxies {
 		cp.CloseAll()
 	}
@@ -242,21 +257,40 @@ func (gs *GateServer) terminate() {
 	gs.status = consts.ServiceTerminated
 }
 
-func (gs *GateServer) addClientProxy(cp *ClientProxy) {
+func (gs *GateServer) addTempClientProxy(cp *ClientProxy) {
 	gs.Lock()
-	gs.clientProxies[cp.clientID] = cp
+	gs.tempClientProxies[cp.clientID] = cp
 	gs.Unlock()
 }
 
-func (gs *GateServer) removeClientProxy(clientID string) {
+func (gs *GateServer) removeTempClientProxy(clientID string) {
 	gs.Lock()
-	delete(gs.clientProxies, clientID)
+	delete(gs.tempClientProxies, clientID)
 	gs.Unlock()
 }
 
-func (gs *GateServer) getClientProxy(clientID string) *ClientProxy {
+func (gs *GateServer) getTempClientProxy(clientID string) *ClientProxy {
 	gs.RLock()
 	defer gs.RUnlock()
-	return gs.clientProxies[clientID]
+	return gs.tempClientProxies[clientID]
+
+}
+
+func (gs *GateServer) addClientProxy(cp *ClientProxy) {
+	gs.Lock()
+	gs.clientProxies[cp.entityID] = cp
+	gs.Unlock()
+}
+
+func (gs *GateServer) removeClientProxy(entityID int64) {
+	gs.Lock()
+	delete(gs.clientProxies, entityID)
+	gs.Unlock()
+}
+
+func (gs *GateServer) getClientProxy(entityID int64) *ClientProxy {
+	gs.RLock()
+	defer gs.RUnlock()
+	return gs.clientProxies[entityID]
 
 }

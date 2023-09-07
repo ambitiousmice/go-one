@@ -111,43 +111,80 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 
 var ID int64 = 1
 
-func (cp *ClientProxy) Login(packet *pktconn.Packet) {
+func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 	if cp.entityID != 0 {
 		log.Warnf("ready login, but already login: %s", cp)
-		cp.SendLoginAck()
+		cp.SendEnterGameClientAck()
 		return
 	}
 
-	var param proto.LoginReq
+	var param proto.EnterGameReq
 	packet.ReadData(&param)
 
-	/*loginResult, err := Login(gateServer.LoginManager, param)
-	if err != nil {
-		log.Errorf("Login error: %s", err)
+	if param.Reconnection {
+		oldCP := gateServer.getClientProxy(param.EntityID)
+		if oldCP != nil && oldCP.entityID == param.EntityID && oldCP.clientID == param.ClientID {
+			oldCP.cron.Stop()
+			oldCP.Close()
+			cp.game = param.Game
+			cp.gameID = param.GameID
+			cp.entityID = oldCP.entityID
+		} else {
+			log.Errorf("Reconnection failed: %s", cp)
+			cp.SendError("Reconnection failed")
+			return
+		}
+
+		cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
+		delete(cp.cronMap, consts.CheckEnterGame)
+
+		log.Infof("Reconnection: %s", cp)
+
+		gateServer.removeTempClientProxy(cp.clientID)
+
+		gateServer.addClientProxy(cp)
+
+		cp.NotifyNewPlayerConnection()
+
+		cp.SendEnterGameClientAck()
+
 		return
 	}
 
-	cp.entityID = loginResult.EntityID*/
+	/*loginResult, err := EnterGame(gateServer.LoginManager, param)
+	  if err != nil {
+	  	log.Errorf("EnterGame error: %s", err)
+	  	return
+	  }
+
+	  cp.entityID = loginResult.EntityID*/
 	ID = ID + 1
 	cp.entityID = ID
+
 	cp.game = param.Game
+	if param.GameID != 0 {
+		cp.gameID = param.GameID
+	}
 
-	cp.cron.Remove(cp.cronMap[consts.CheckLogin])
-	delete(cp.cronMap, consts.CheckLogin)
+	cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
+	delete(cp.cronMap, consts.CheckEnterGame)
 
-	cp.NewPlayerConnection()
+	gateServer.removeTempClientProxy(cp.clientID)
 
-	cp.SendLoginAck()
+	gateServer.addClientProxy(cp)
 
-	log.Infof("Login success: %s", cp)
+	cp.NotifyNewPlayerConnection()
+
+	cp.SendEnterGameClientAck()
+
+	log.Infof("EnterGame success: %s", cp)
 }
 
-func (cp *ClientProxy) NewPlayerConnection() {
+func (cp *ClientProxy) NotifyNewPlayerConnection() {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(proto.NewPlayerConnectionFromDispatcher)
 
 	req := proto.NewPlayerConnectionReq{
-		ClientID: cp.clientID,
 		EntityID: cp.entityID,
 	}
 
@@ -171,7 +208,6 @@ func (cp *ClientProxy) PlayerDisconnected() {
 	packet.WriteUint16(proto.PlayerDisconnectedFromDispatcher)
 
 	req := proto.PlayerDisconnectedReq{
-		ClientID: cp.clientID,
 		EntityID: cp.entityID,
 	}
 
@@ -200,8 +236,8 @@ func (cp *ClientProxy) SendError(error string) {
 	})
 }
 
-func (cp *ClientProxy) SendNeedLoginFromServer() {
-	cp.SendMsg(proto.NeedLoginFromServer, nil)
+func (cp *ClientProxy) SendEnterGameFromServer() {
+	cp.SendMsg(proto.EnterGameFromServer, nil)
 }
 
 func (cp *ClientProxy) SendHeartBeatAck() {
@@ -212,8 +248,8 @@ func (cp *ClientProxy) SendOffline() {
 	cp.SendMsg(proto.OfflineFromServer, time.Now().UnixMilli())
 }
 
-func (cp *ClientProxy) SendLoginAck() {
-	cp.SendMsg(proto.LoginFromClientAck, proto.LoginResp{
+func (cp *ClientProxy) SendEnterGameClientAck() {
+	cp.SendMsg(proto.EnterGameClientAck, proto.LoginResp{
 		EntityID: cp.entityID,
 	})
 }

@@ -130,9 +130,14 @@ func NewNode(node int64) (*Node, error) {
 	return &n, nil
 }
 
-func (n *Node) NextID() string {
+func (n *Node) NextIDStr() string {
 
 	return n.Generate().String()
+}
+
+func (n *Node) NextID() int64 {
+
+	return n.Generate().Int64()
 }
 
 // Generate creates and returns a unique snowflake ID

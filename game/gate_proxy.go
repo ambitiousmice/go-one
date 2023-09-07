@@ -41,80 +41,86 @@ func newClientProxy(_conn net.Conn) *GateProxy {
 	return gateProxy
 }
 
-func (cp *GateProxy) String() string {
-	return fmt.Sprintf("GateProxy<gate:%d channel:%d addr:%s>", cp.gateID, cp.dispatcherChannelID, cp.RemoteAddr())
+func (gp *GateProxy) String() string {
+	return fmt.Sprintf("GateProxy<gate:%d channel:%d addr:%s>", gp.gateID, gp.dispatcherChannelID, gp.RemoteAddr())
 }
 
-func (cp *GateProxy) serve() {
+func (gp *GateProxy) serve() {
 	defer func() {
-		cp.CloseAll()
+		gp.CloseAll()
 		if err := recover(); err != nil {
-			log.Errorf("%s error: %s", cp, err.(error))
+			log.Errorf("%s error: %s", gp, err.(error))
 		} else {
-			log.Debugf("%s disconnected", cp)
+			log.Debugf("%s disconnected", gp)
 		}
 	}()
 
-	err := cp.ReceiveChan(gameServer.gatePacketQueue)
+	err := gp.ReceiveChan(gameServer.gatePacketQueue)
 	if err != nil {
 		log.Panic(err)
 	}
 }
 
-func (cp *GateProxy) CloseAll() {
+func (gp *GateProxy) CloseAll() {
 	defer func() {
-		cp.cron.Stop()
-		gameServer.onClientProxyClose(cp)
+		gp.cron.Stop()
+		gameServer.onClientProxyClose(gp)
 	}()
 
-	err := cp.Close()
+	err := gp.Close()
 	if err != nil {
 		log.Errorf("关闭客户端连接失败:%s", err)
 	}
 }
 
 // ============================================================================业务处理
+func (gp *GateProxy) handleGameLogic(pkt *pktconn.Packet) {
+	gameReq := &proto.GameReq{}
+	pkt.ReadData(gameReq)
+	entityID := pkt.ReadInt64()
+	gameProcess(gp, entityID, gameReq)
+}
 
-func (cp *GateProxy) handle3002(pkt *pktconn.Packet) {
+func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 	req := &proto.GameDispatcherChannelInfoReq{}
 	pkt.ReadData(req)
 	if context.GetOneConfig().Nacos.Instance.Service != req.Game {
-		cp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
+		gp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
 			Success: false,
 			Msg:     "game not match",
 		})
-		log.Error("%s game not match", cp)
+		log.Error("%s game not match", gp)
 
-		cp.CloseAll()
+		gp.CloseAll()
 	}
 
 	for _, proxy := range gameServer.gateProxies {
 		if proxy.gateID == req.GateID && proxy.dispatcherChannelID == req.ChannelID {
-			cp.CloseAll()
+			gp.CloseAll()
 			break
 		}
 	}
 
-	cp.gateID = req.GateID
-	cp.dispatcherChannelID = req.ChannelID
+	gp.gateID = req.GateID
+	gp.dispatcherChannelID = req.ChannelID
 
-	cp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
+	gp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
 		Success: true,
 	})
 }
 
-func (cp *GateProxy) handle3003(pkt *pktconn.Packet) {
+func (gp *GateProxy) handle3003(pkt *pktconn.Packet) {
 	req := &proto.NewPlayerConnectionReq{}
 	pkt.ReadData(req)
 
-	basePlayer := NewBasePlayer(req.ClientID, req.EntityID)
+	basePlayer := NewBasePlayer(req.EntityID)
 
-	basePlayer.gateProxy = cp
+	basePlayer.gateProxy = gp
 
 	AddPlayer(basePlayer)
 }
 
-func (cp *GateProxy) handle3004(pkt *pktconn.Packet) {
+func (gp *GateProxy) handle3004(pkt *pktconn.Packet) {
 	req := &proto.PlayerDisconnectedReq{}
 	pkt.ReadData(req)
 
@@ -123,7 +129,7 @@ func (cp *GateProxy) handle3004(pkt *pktconn.Packet) {
 
 // ============================================================================基础协议
 
-func (cp *GateProxy) SendGateMsg(msgType uint16, msg interface{}) {
+func (gp *GateProxy) SendGateMsg(msgType uint16, msg interface{}) {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(msgType)
 
@@ -131,9 +137,9 @@ func (cp *GateProxy) SendGateMsg(msgType uint16, msg interface{}) {
 		packet.AppendData(msg)
 	}
 
-	cp.SendAndRelease(packet)
+	gp.SendAndRelease(packet)
 }
 
-func (cp *GateProxy) SendHeartBeatAck() {
-	cp.SendGateMsg(proto.HeartbeatFromDispatcherAck, nil)
+func (gp *GateProxy) SendHeartBeatAck() {
+	gp.SendGateMsg(proto.HeartbeatFromDispatcherAck, nil)
 }

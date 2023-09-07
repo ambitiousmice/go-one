@@ -96,13 +96,14 @@ func (gpc *GameDispatcherChannel) Run() {
 func (gpc *GameDispatcherChannel) ReRun() {
 	gpc.Lock()
 	defer gpc.Unlock()
-	if gpc.status == consts.DispatcherChannelStatusRestart {
+	if gpc.status == consts.DispatcherChannelStatusRestart || gpc.status == consts.DispatcherChannelStatusRestartFailed {
 		return
 	}
 	gpc.status = consts.DispatcherChannelStatusRestart
 
 	if gpc.tryReconnectedCount >= consts.DispatcherChannelMaxTryReconnectedCount {
 		log.Infof("%s reconnection attempts has reached the maximum limit...", gpc)
+		gpc.status = consts.DispatcherChannelStatusRestartFailed
 		return
 	}
 
@@ -112,6 +113,7 @@ func (gpc *GameDispatcherChannel) ReRun() {
 	netConn, err := gpc.connectServer()
 	if err != nil {
 		log.Errorf("%s reconnect server failed: %s", gpc, err.Error())
+		gpc.status = consts.DispatcherChannelStatusUnHealth
 		return
 	}
 

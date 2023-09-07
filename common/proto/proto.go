@@ -8,7 +8,7 @@ const (
 
 // from server
 const (
-	NeedLoginFromServer = 1001
+	EnterGameFromServer = 1001
 	OfflineFromServer   = 1002
 )
 
@@ -22,8 +22,8 @@ const (
 
 	OfflineFromClient = 2002 //客户端主动下线
 
-	LoginFromClient    = 2003            // 客户端登录
-	LoginFromClientAck = LoginFromClient // 客户端登录应答
+	EnterGameFromClient = 2003                // 客户端登录
+	EnterGameClientAck  = EnterGameFromClient // 客户端登录应答
 )
 
 // game dispatcher

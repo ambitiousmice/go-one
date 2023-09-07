@@ -33,5 +33,9 @@ func InitIDGenerator(config IDGeneratorConfig) {
 }
 
 func NextClientID() string {
+	return idGenerator.NextIDStr()
+}
+
+func NextEntityID() int64 {
 	return idGenerator.NextID()
 }

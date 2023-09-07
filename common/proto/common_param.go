@@ -5,10 +5,14 @@ type ErrorResp struct {
 	Msg  string
 }
 
-type LoginReq struct {
-	LoginType string
-	Account   string
-	Game      string
+type EnterGameReq struct {
+	AccountType  string
+	Account      string
+	Reconnection bool
+	EntityID     int64
+	ClientID     string
+	Game         string
+	GameID       uint8
 }
 
 type LoginResp struct {
@@ -28,12 +32,10 @@ type GameDispatcherChannelInfoResp struct {
 }
 
 type NewPlayerConnectionReq struct {
-	ClientID string
 	EntityID int64
 }
 
 type PlayerDisconnectedReq struct {
-	ClientID string
 	EntityID int64
 }
 
