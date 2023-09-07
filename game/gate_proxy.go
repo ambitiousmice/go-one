@@ -104,6 +104,8 @@ func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 	gp.gateID = req.GateID
 	gp.dispatcherChannelID = req.ChannelID
 
+	gameServer.addGateProxy(gp)
+
 	gp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
 		Success: true,
 	})
@@ -113,9 +115,7 @@ func (gp *GateProxy) handle3003(pkt *pktconn.Packet) {
 	req := &proto.NewPlayerConnectionReq{}
 	pkt.ReadData(req)
 
-	basePlayer := NewBasePlayer(req.EntityID)
-
-	basePlayer.gateProxy = gp
+	basePlayer := NewBasePlayer(req.EntityID, gp.gateID)
 
 	AddPlayer(basePlayer)
 }

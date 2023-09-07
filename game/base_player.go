@@ -9,8 +9,8 @@ import (
 )
 
 type BasePlayer struct {
-	gateProxy *GateProxy
-	entityID  int64
+	entityID int64
+	gateID   uint8
 
 	I IPlayer
 
@@ -19,11 +19,12 @@ type BasePlayer struct {
 	attrMap map[string]interface{}
 }
 
-func NewBasePlayer(entityID int64) *BasePlayer {
+func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	return &BasePlayer{
 		entityID: entityID,
+		gateID:   gateID,
 		cron:     crontab,
 		cronMap:  map[string]cron.EntryID{},
 		attrMap:  map[string]interface{}{},
@@ -40,7 +41,7 @@ type IPlayer interface {
 }
 
 func (p *BasePlayer) String() string {
-	return fmt.Sprintf("BasePlayer:<%d> gateID:<%d>", p.entityID, p.gateProxy.gateID)
+	return fmt.Sprintf("BasePlayer:<%d> gateID:<%d>", p.entityID, p.gateID)
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
@@ -68,7 +69,13 @@ func (p *BasePlayer) SendGameMsg(resp *proto.GameResp) {
 
 	packet.WriteInt64(p.entityID)
 
-	err := p.gateProxy.SendAndRelease(packet)
+	gateProxy := gameServer.getGateProxyByGateID(p.gateID)
+	if gateProxy == nil {
+		log.Errorf("%s not found gate proxy", p)
+		return
+	}
+
+	err := gateProxy.SendAndRelease(packet)
 
 	if err != nil {
 		log.Errorf("%s send game msg error: %s", p, err)

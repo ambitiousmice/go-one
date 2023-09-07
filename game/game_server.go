@@ -25,6 +25,7 @@ type GameServer struct {
 	gpMutex         sync.RWMutex
 	gateProxies     map[string]*GateProxy
 	gateNodeProxies map[uint8][]*GateProxy
+	pollingIndex    uint8
 
 	gatePacketQueue chan *pktconn.Packet
 
@@ -42,6 +43,7 @@ func NewGameServer() *GameServer {
 	cron.Start()
 	gameServer = &GameServer{
 		gateProxies:             map[string]*GateProxy{},
+		gateNodeProxies:         map[uint8][]*GateProxy{},
 		gatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
 		listenAddr:              gameConfig.Server.ListenAddr,
 		cron:                    cron,
@@ -98,7 +100,6 @@ func (gs *GameServer) handleClientConnection(conn net.Conn) {
 	}
 
 	cp := newClientProxy(conn)
-	gs.addGateProxy(cp)
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
 		if time.Now().Sub(cp.heartbeatTime) > gs.gateTimeout {
@@ -199,4 +200,20 @@ func (gs *GameServer) removeGateProxy(cp *GateProxy) {
 			break
 		}
 	}
+}
+
+func (gs *GameServer) getGateProxyByGateID(gateID uint8) *GateProxy {
+	gs.gpMutex.Lock()
+	defer gs.gpMutex.Unlock()
+	nodeProxies := gs.gateNodeProxies[gateID]
+	if nodeProxies == nil {
+		return nil
+	}
+
+	gs.pollingIndex++
+	if gs.pollingIndex >= uint8(len(nodeProxies)) {
+		gs.pollingIndex = 0
+	}
+	gateProxy := nodeProxies[gs.pollingIndex]
+	return gateProxy
 }

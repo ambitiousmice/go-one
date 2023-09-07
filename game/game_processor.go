@@ -20,8 +20,7 @@ func gameProcess(gp *GateProxy, entityID int64, req *proto.GameReq) {
 	basePlayer := GetPlayer(entityID)
 	if basePlayer == nil {
 		log.Warnf("player:<%d> not found", entityID)
-		basePlayer = NewBasePlayer(entityID)
-		basePlayer.gateProxy = gp
+		basePlayer = NewBasePlayer(entityID, gp.gateID)
 		AddPlayer(basePlayer)
 	}
 	processor := processContext[req.Cmd]
