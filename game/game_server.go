@@ -9,6 +9,7 @@ import (
 	"go-one/common/pktconn"
 	"go-one/common/proto"
 	"net"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -27,6 +28,10 @@ type GameServer struct {
 	gateNodeProxies map[uint8][]*GateProxy
 	pollingIndex    uint8
 
+	rmMutex      sync.RWMutex
+	roomManagers map[string]*RoomManager
+	roomTypes    map[string]reflect.Type
+
 	gatePacketQueue chan *pktconn.Packet
 
 	status                  uint8
@@ -39,17 +44,25 @@ func NewGameServer() *GameServer {
 		panic("game server only can be initialized once")
 	}
 
-	cron := cron.New(cron.WithSeconds())
-	cron.Start()
+	crontab := cron.New(cron.WithSeconds())
+	crontab.Start()
 	gameServer = &GameServer{
 		gateProxies:             map[string]*GateProxy{},
 		gateNodeProxies:         map[uint8][]*GateProxy{},
+		roomManagers:            map[string]*RoomManager{},
+		roomTypes:               map[string]reflect.Type{},
 		gatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
 		listenAddr:              gameConfig.Server.ListenAddr,
-		cron:                    cron,
+		cron:                    crontab,
 		checkHeartbeatsInterval: gameConfig.Server.HeartbeatCheckInterval,
 		gateTimeout:             time.Second * time.Duration(gameConfig.Server.GateTimeout),
 	}
+
+	for _, config := range gameConfig.RoomManagerConfigs {
+		gameServer.roomManagers[config.RoomType] = NewRoomManager(config.RoomType, config.RoomMaxPlayerNum, config.RoomIDStart, config.RoomIDEnd, config.MatchStrategy)
+	}
+
+	gameServer.RegisterRoomType(&RoomLobby{})
 
 	return gameServer
 }
@@ -126,7 +139,7 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("Recover from panic: %v\n", r)
+			log.Errorf("handle gate packet error,Recover from panic: %v\n", r)
 		}
 	}()
 
@@ -216,4 +229,52 @@ func (gs *GameServer) getGateProxyByGateID(gateID uint8) *GateProxy {
 	}
 	gateProxy := nodeProxies[gs.pollingIndex]
 	return gateProxy
+}
+
+// RegisterRoomType register a room type
+func (gs *GameServer) RegisterRoomType(room IRoom) {
+	if gs.roomTypes[room.GetRoomType()] != nil {
+		panic("room type already registered, roomType:" + room.GetRoomType())
+	}
+
+	objVal := reflect.ValueOf(room)
+	objType := objVal.Type()
+
+	if objType.Kind() == reflect.Ptr {
+		objType = objType.Elem()
+	}
+
+	gs.roomTypes[room.GetRoomType()] = objType
+}
+
+func (gs *GameServer) getRoomObjType(roomType string) reflect.Type {
+	objType := gs.roomTypes[roomType]
+	if objType == nil {
+		panic("room type not found, roomType:" + roomType)
+	}
+
+	return objType
+}
+
+func (gs *GameServer) GetRoomManager(roomType string) *RoomManager {
+	roomManager := gs.roomManagers[roomType]
+
+	if roomManager == nil {
+		panic("room manager not found, roomType:" + roomType)
+	}
+
+	return roomManager
+}
+
+func (gs *GameServer) JoinRoom(roomType string, player *Player) {
+	gs.rmMutex.Lock()
+	defer gs.rmMutex.Unlock()
+
+	roomManager := gs.GetRoomManager(roomType)
+
+	room := roomManager.GetRoomByStrategy()
+	if room == nil {
+		player.SendCommonErrorMsg(ServerIsFull)
+	}
+	room.Join(player)
 }

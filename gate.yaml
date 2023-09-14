@@ -1,6 +1,6 @@
 server:
   gateID: 1
-  listenAddr: 192.168.0.42:6666
+  listenAddr: 192.168.1.22:6666
   goMaxProcs: 8
   heartbeatCheckInterval: 30
   clientTimeout: 10
@@ -12,6 +12,6 @@ game-dispatcher:
     load-balancer: polling
 
 params:
-  loginServerUrl: http://192.168.1.203:8000/oauth/app/validateToken
+  loginServerUrl: http://192.168.1.213:8000/oauth/app/validateToken
 
 

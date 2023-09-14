@@ -2,8 +2,8 @@ nacos:
   host: 192.168.1.213:8848
   instance:
     ip: 192.168.1.22
-    port: 7777
-    service: elite-star
+    port: 7788
+    service: im
     metadata:
       "clusterId": 1
       "version": 1.0
@@ -22,7 +22,7 @@ kafka-producer:
 kafka-consumer:
   brokers:
     - 47.108.106.231:9092
-  group:
+  group: 
   version: 2.8.0
 
 
@@ -53,7 +53,7 @@ logger: # 日志配置
       nameEncoder: ""
 
   lumberjack-config:
-    filename: game.log # 文件输出目录
+    filename: im.log # 文件输出目录
     maxsize: 100
     maxage: 30
     maxbackups: 200

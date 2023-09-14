@@ -3,7 +3,7 @@ package proto
 // 服务端协议 uint16
 
 const (
-	Error = 0 // 全局异常
+	Error = 1 // 全局异常
 )
 
 // from server

@@ -1,24 +1,46 @@
 package game
 
-import "sync"
+import (
+	"reflect"
+	"sync"
+)
 
-var playerMap = map[int64]*BasePlayer{}
+var playerMap = map[int64]*Player{}
 var playerMutex sync.RWMutex
+var playerType reflect.Type
 
-func GetPlayer(entityID int64) *BasePlayer {
+func SetPlayerType(iPlayer IPlayer) {
+	objVal := reflect.ValueOf(iPlayer)
+	playerType := objVal.Type()
+
+	if playerType.Kind() == reflect.Ptr {
+		playerType = playerType.Elem()
+	}
+}
+
+func GetPlayer(entityID int64) *Player {
 	playerMutex.RLock()
 	defer playerMutex.RUnlock()
 	return playerMap[entityID]
 }
 
-func AddPlayer(basePlayer *BasePlayer) {
-	oldPlayer := GetPlayer(basePlayer.entityID)
-	if oldPlayer != nil && oldPlayer.I != nil {
-		oldPlayer.I.OnDestroy()
+func AddPlayer(entityID int64, gateID uint8) *Player {
+	player := GetPlayer(entityID)
+	if player != nil {
+		return player
 	}
+
+	iPlayerValue := reflect.New(playerType)
+	iPlayer := iPlayerValue.Interface().(IPlayer)
+	player = reflect.Indirect(iPlayerValue).FieldByName("Player").Addr().Interface().(*Player)
+	player.I = iPlayer
+	player.init(entityID, gateID)
+
 	playerMutex.Lock()
 	defer playerMutex.Unlock()
-	playerMap[basePlayer.entityID] = basePlayer
+	playerMap[player.entityID] = player
+
+	return player
 }
 
 func RemovePlayer(entityID int64) {

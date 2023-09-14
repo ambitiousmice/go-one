@@ -94,6 +94,9 @@ func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 		gp.CloseAll()
 	}
 
+	gameServer.gpMutex.RLock()
+	defer gameServer.gpMutex.RUnlock()
+
 	for _, proxy := range gameServer.gateProxies {
 		if proxy.gateID == req.GateID && proxy.dispatcherChannelID == req.ChannelID {
 			gp.CloseAll()
@@ -115,9 +118,15 @@ func (gp *GateProxy) handle3003(pkt *pktconn.Packet) {
 	req := &proto.NewPlayerConnectionReq{}
 	pkt.ReadData(req)
 
-	basePlayer := NewBasePlayer(req.EntityID, gp.gateID)
+	player := GetPlayer(req.EntityID)
+	if player == nil {
+		player = AddPlayer(req.EntityID, gp.gateID)
+		gameServer.JoinRoom(ROOM_LOBBY, player)
+	} else {
+		// TODO
+		log.Warnf("player:<%d> already exists", req.EntityID)
+	}
 
-	AddPlayer(basePlayer)
 }
 
 func (gp *GateProxy) handle3004(pkt *pktconn.Packet) {

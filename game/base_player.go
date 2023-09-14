@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
+	"go-one/common/consts"
 	"go-one/common/log"
 	"go-one/common/pktconn"
 	"go-one/common/proto"
@@ -11,8 +12,7 @@ import (
 type BasePlayer struct {
 	entityID int64
 	gateID   uint8
-
-	I IPlayer
+	room     *BaseRoom
 
 	cron    *cron.Cron
 	cronMap map[string]cron.EntryID
@@ -31,15 +31,6 @@ func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
 	}
 }
 
-type IPlayer interface {
-	OnInit()
-	OnAttrsReady()
-	OnCreated()
-	OnDestroy()
-	OnClientConnected()
-	OnClientDisconnected()
-}
-
 func (p *BasePlayer) String() string {
 	return fmt.Sprintf("BasePlayer:<%d> gateID:<%d>", p.entityID, p.gateID)
 }
@@ -54,7 +45,7 @@ func (p *BasePlayer) SendCommonErrorMsg(error string) {
 func (p *BasePlayer) SendErrorMsg(cmd uint16, error string) {
 	p.SendGameMsg(&proto.GameResp{
 		Cmd:  cmd,
-		Code: proto.Error,
+		Code: consts.ErrorCommon,
 		Data: []byte(error),
 	})
 }

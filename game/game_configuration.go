@@ -18,21 +18,21 @@ func SetYamlFile(yaml string) {
 }
 
 type GameConfig struct {
-	Server ServerConfig
-
-	Params map[string]interface{}
+	Server             ServerConfig           `yaml:"server"`
+	RoomManagerConfigs []RoomManagerConfig    `yaml:"room-manager-configs"`
+	Params             map[string]interface{} `yaml:"params"`
 }
 
-func InitGameConfig() error {
+func InitGameConfig() {
 	yamlFile, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
 		fmt.Println(err.Error())
 	} // 将读取的yaml文件解析为响应的 struct
 	err = yaml.Unmarshal(yamlFile, &gameConfig)
 	if err != nil {
-		return err
+		panic("init game config error: " + err.Error())
 	}
-	return nil
+
 }
 
 type ServerConfig struct {
@@ -40,4 +40,12 @@ type ServerConfig struct {
 	GoMaxProcs             int    `yaml:"goMaxProcs"`
 	HeartbeatCheckInterval int    `yaml:"heartbeatCheckInterval"`
 	GateTimeout            int32  `yaml:"gateTimeout"`
+}
+
+type RoomManagerConfig struct {
+	RoomType         string `yaml:"room-type"`
+	RoomMaxPlayerNum int    `yaml:"room-max-player-num"`
+	RoomIDStart      int64  `yaml:"room-id-start"`
+	RoomIDEnd        int64  `yaml:"room-id-end"`
+	MatchStrategy    string `yaml:"match-strategy"`
 }

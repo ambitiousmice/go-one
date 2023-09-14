@@ -237,7 +237,9 @@ func (cp *ClientProxy) SendError(error string) {
 }
 
 func (cp *ClientProxy) SendEnterGameFromServer() {
-	cp.SendMsg(proto.EnterGameFromServer, nil)
+	cp.SendMsg(proto.EnterGameFromServer, &proto.EnterGameFromServerParam{
+		ClientID: cp.clientID,
+	})
 }
 
 func (cp *ClientProxy) SendHeartBeatAck() {
@@ -249,7 +251,7 @@ func (cp *ClientProxy) SendOffline() {
 }
 
 func (cp *ClientProxy) SendEnterGameClientAck() {
-	cp.SendMsg(proto.EnterGameClientAck, proto.LoginResp{
+	cp.SendMsg(proto.EnterGameClientAck, proto.EnterGameResp{
 		EntityID: cp.entityID,
 	})
 }

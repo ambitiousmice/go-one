@@ -148,7 +148,7 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
 		log.Infof("发送登录消息")
 	case proto.EnterGameClientAck:
-		loginResp := &proto.LoginResp{}
+		loginResp := &proto.EnterGameResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果:", loginResp.EntityID)
 		go func() {

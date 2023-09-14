@@ -4,6 +4,8 @@ import (
 	"go-one/common/log"
 	"go-one/common/mq/kafka"
 	"go-one/common/register"
+	"math/rand"
+	"time"
 )
 
 func Init() {
@@ -11,6 +13,8 @@ func Init() {
 	if err != nil {
 		panic("read yaml error:" + err.Error())
 	}
+
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	log.InitLogger(&oneConfig.Logger)
 

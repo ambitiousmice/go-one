@@ -1,8 +1,19 @@
 server:
-  listenAddr: 192.168.0.42:7777
+  listenAddr: 192.168.1.22:7777
   goMaxProcs: 8
   heartbeatCheckInterval: 30
   gateTimeout: 10
 
 
+room-manager-configs:
+  - room-type: lobby
+    room-max-player-num: 100
+    room-id-start: 1
+    room-id-end: 100
+    match-strategy: order
 
+  - room-type: game
+    room-max-player-num: 100
+    room-id-start: 1
+    room-id-end: 100
+    match-strategy: order

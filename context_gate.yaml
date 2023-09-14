@@ -1,7 +1,7 @@
 nacos:
-  host: 192.168.1.203:8848
+  host: 192.168.1.213:8848
   instance:
-    ip: 192.168.1.202
+    ip: 192.168.1.22
     port: 14001
     service: gate
     metadata:

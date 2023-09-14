@@ -78,6 +78,12 @@ const (
 	TokenLogin = "token"
 )
 
+// error code
+
+const (
+	ErrorCommon = 1
+)
+
 const (
 	SystemError = "服务器繁忙, 请稍后再试"
 )

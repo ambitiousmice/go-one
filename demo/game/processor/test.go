@@ -9,9 +9,9 @@ import (
 type Test struct {
 }
 
-func (t *Test) Process(basePlayer *game.BasePlayer, param []byte) {
+func (t *Test) Process(player *game.Player, param []byte) {
 	log.Infof("test process: %s", string(param))
-	basePlayer.SendGameMsg(&proto.GameResp{
+	player.SendGameMsg(&proto.GameResp{
 		Cmd:  1,
 		Data: []byte("test"),
 	})

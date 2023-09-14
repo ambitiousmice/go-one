@@ -8,7 +8,7 @@ import (
 var processContext = make(map[uint16]Processor)
 
 type Processor interface {
-	Process(basePlayer *BasePlayer, param []byte)
+	Process(basePlayer *Player, param []byte)
 	GetCmd() uint16
 }
 
@@ -17,17 +17,16 @@ func RegisterProcessor(p Processor) {
 }
 
 func gameProcess(gp *GateProxy, entityID int64, req *proto.GameReq) {
-	basePlayer := GetPlayer(entityID)
-	if basePlayer == nil {
+	player := GetPlayer(entityID)
+	if player == nil {
 		log.Warnf("player:<%d> not found", entityID)
-		basePlayer = NewBasePlayer(entityID, gp.gateID)
-		AddPlayer(basePlayer)
+		player = AddPlayer(entityID, gp.gateID)
 	}
 	processor := processContext[req.Cmd]
 	if processor == nil {
 		log.Errorf("player%d send invalid cmd: %d", entityID, req.Cmd)
-		basePlayer.SendCommonErrorMsg("invalid cmd")
+		player.SendCommonErrorMsg("invalid cmd")
 		return
 	}
-	processor.Process(basePlayer, req.Param)
+	processor.Process(player, req.Param)
 }

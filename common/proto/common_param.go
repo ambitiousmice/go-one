@@ -5,6 +5,10 @@ type ErrorResp struct {
 	Msg  string
 }
 
+type EnterGameFromServerParam struct {
+	ClientID string
+}
+
 type EnterGameReq struct {
 	AccountType  string
 	Account      string
@@ -15,7 +19,7 @@ type EnterGameReq struct {
 	GameID       uint8
 }
 
-type LoginResp struct {
+type EnterGameResp struct {
 	EntityID int64 `json:"entityID"`
 }
 
