@@ -11,7 +11,7 @@ var playerType reflect.Type
 
 func SetPlayerType(iPlayer IPlayer) {
 	objVal := reflect.ValueOf(iPlayer)
-	playerType := objVal.Type()
+	playerType = objVal.Type()
 
 	if playerType.Kind() == reflect.Ptr {
 		playerType = playerType.Elem()

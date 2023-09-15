@@ -138,8 +138,6 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
 		delete(cp.cronMap, consts.CheckEnterGame)
 
-		log.Infof("Reconnection: %s", cp)
-
 		gateServer.removeTempClientProxy(cp.clientID)
 
 		gateServer.addClientProxy(cp)
@@ -147,6 +145,8 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		cp.NotifyNewPlayerConnection()
 
 		cp.SendEnterGameClientAck()
+
+		log.Infof("reconnection success: %s", cp)
 
 		return
 	}
@@ -177,7 +177,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 
 	cp.SendEnterGameClientAck()
 
-	log.Infof("EnterGame success: %s", cp)
+	log.Infof("enter game success: %s", cp)
 }
 
 func (cp *ClientProxy) NotifyNewPlayerConnection() {
@@ -236,8 +236,8 @@ func (cp *ClientProxy) SendError(error string) {
 	})
 }
 
-func (cp *ClientProxy) SendEnterGameFromServer() {
-	cp.SendMsg(proto.EnterGameFromServer, &proto.EnterGameFromServerParam{
+func (cp *ClientProxy) SendConnectionSuccessFromServer() {
+	cp.SendMsg(proto.ConnectionSuccessFromServer, &proto.EnterGameFromServerParam{
 		ClientID: cp.clientID,
 	})
 }

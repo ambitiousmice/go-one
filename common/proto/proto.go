@@ -8,8 +8,8 @@ const (
 
 // from server
 const (
-	EnterGameFromServer = 1001
-	OfflineFromServer   = 1002
+	ConnectionSuccessFromServer = 1001
+	OfflineFromServer           = 1002
 )
 
 // from client
@@ -37,4 +37,9 @@ const (
 	NewPlayerConnectionFromDispatcher = 3003 // 新玩家连接
 
 	PlayerDisconnectedFromDispatcher = 3004 // 玩家断开连接
+)
+
+// game
+const (
+	JoinRoomFromGame = 4001 // 加入房间
 )

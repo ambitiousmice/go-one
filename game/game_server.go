@@ -139,7 +139,7 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("handle gate packet error,Recover from panic: %v\n", r)
+			log.Panicf("handle gate packet error,Recover from panic: %v\n", r)
 		}
 	}()
 
@@ -218,6 +218,7 @@ func (gs *GameServer) removeGateProxy(cp *GateProxy) {
 func (gs *GameServer) getGateProxyByGateID(gateID uint8) *GateProxy {
 	gs.gpMutex.Lock()
 	defer gs.gpMutex.Unlock()
+
 	nodeProxies := gs.gateNodeProxies[gateID]
 	if nodeProxies == nil {
 		return nil
@@ -267,9 +268,6 @@ func (gs *GameServer) GetRoomManager(roomType string) *RoomManager {
 }
 
 func (gs *GameServer) JoinRoom(roomType string, player *Player) {
-	gs.rmMutex.Lock()
-	defer gs.rmMutex.Unlock()
-
 	roomManager := gs.GetRoomManager(roomType)
 
 	room := roomManager.GetRoomByStrategy()

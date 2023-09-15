@@ -1,6 +1,9 @@
 package game
 
-import "go-one/common/log"
+import (
+	"go-one/common/log"
+	"go-one/common/proto"
+)
 
 type RoomLobby struct {
 	Room
@@ -20,6 +23,12 @@ func (r *RoomLobby) OnDestroyed() {
 
 func (r *RoomLobby) OnJoined(player *Player) {
 	log.Info("RoomLobby joined")
+	joinRoomResp := &proto.JoinRoomResp{
+		RoomID:   r.ID,
+		RoomType: r.Type,
+	}
+
+	player.SendGameData(proto.JoinRoomFromGame, joinRoomResp)
 }
 
 func (r *RoomLobby) OnLeft(player *Player) {

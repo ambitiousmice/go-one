@@ -53,3 +53,8 @@ type GameResp struct {
 	Code int32
 	Data []byte
 }
+
+type JoinRoomResp struct {
+	RoomType string
+	RoomID   int64
+}

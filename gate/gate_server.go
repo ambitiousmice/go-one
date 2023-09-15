@@ -180,7 +180,7 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 	}
 
 	cp.cronMap[consts.CheckEnterGame] = jobID
-	cp.SendEnterGameFromServer()
+	cp.SendConnectionSuccessFromServer()
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
 		if time.Now().Sub(cp.heartbeatTime) > gs.clientTimeout {

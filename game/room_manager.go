@@ -59,8 +59,6 @@ func (rm *RoomManager) GetRoomByStrategy() *Room {
 }
 
 func (rm *RoomManager) matchRoomByOrder() *Room {
-	rm.mutex.RLock()
-	defer rm.mutex.RUnlock()
 
 	// 遍历房间加入的顺序
 	for _, roomID := range rm.roomJoinOrder {
@@ -75,9 +73,6 @@ func (rm *RoomManager) matchRoomByOrder() *Room {
 }
 
 func (rm *RoomManager) matchRoomRandomly() *Room {
-	rm.mutex.RLock()
-	defer rm.mutex.RUnlock()
-
 	// 随机打乱房间加入顺序
 	rand.Shuffle(len(rm.roomJoinOrder), func(i, j int) {
 		rm.roomJoinOrder[i], rm.roomJoinOrder[j] = rm.roomJoinOrder[j], rm.roomJoinOrder[i]
@@ -87,9 +82,6 @@ func (rm *RoomManager) matchRoomRandomly() *Room {
 }
 
 func (rm *RoomManager) matchRoomBalanced() *Room {
-	rm.mutex.RLock()
-	defer rm.mutex.RUnlock()
-
 	// 寻找最少人数的房间
 	var minRoom *Room
 	minPlayers := 99999 // 初始值设置为一个较大的数

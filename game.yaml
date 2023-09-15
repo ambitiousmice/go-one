@@ -2,7 +2,7 @@ server:
   listenAddr: 192.168.1.22:7777
   goMaxProcs: 8
   heartbeatCheckInterval: 30
-  gateTimeout: 10
+  gateTimeout: 50
 
 
 room-manager-configs:

@@ -95,7 +95,6 @@ func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 	}
 
 	gameServer.gpMutex.RLock()
-	defer gameServer.gpMutex.RUnlock()
 
 	for _, proxy := range gameServer.gateProxies {
 		if proxy.gateID == req.GateID && proxy.dispatcherChannelID == req.ChannelID {
@@ -103,6 +102,7 @@ func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 			break
 		}
 	}
+	gameServer.gpMutex.RUnlock()
 
 	gp.gateID = req.GateID
 	gp.dispatcherChannelID = req.ChannelID

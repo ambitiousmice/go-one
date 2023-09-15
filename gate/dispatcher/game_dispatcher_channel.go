@@ -197,7 +197,9 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	//log.Infof("handleGameMsg: %d", msgType)
+	if msgType == 11 {
+		log.Infof("handleGameMsg: %d", msgType)
+	}
 
 	switch msgType {
 	case proto.HeartbeatFromDispatcherAck:

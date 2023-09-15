@@ -142,24 +142,36 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	log.Infof("handlePacket: %d", msgType)
+	if msgType != 2001 {
+		log.Infof("handlePacket: %d", msgType)
+	}
 	switch msgType {
-	case proto.EnterGameFromServer:
+	case proto.ConnectionSuccessFromServer:
 		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
 		log.Infof("发送登录消息")
 	case proto.EnterGameClientAck:
 		loginResp := &proto.EnterGameResp{}
 		packet.ReadData(loginResp)
-		log.Infof("登录结果:", loginResp.EntityID)
-		go func() {
+		log.Infof("登录结果,EntityID:%d", loginResp.EntityID)
+		/*go func() {
 			for true {
 				bot.sendGameMsg(1, []byte("1"))
 				time.Sleep(time.Microsecond * 100)
 			}
-		}()
+		}()*/
 	case proto.GameMethodFromClientAck:
 		gameResp := &proto.GameResp{}
 		packet.ReadData(gameResp)
+		switch gameResp.Cmd {
+		case proto.JoinRoomFromGame:
+			joinRoomResp := &proto.JoinRoomResp{}
+			pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, joinRoomResp)
+			log.Infof("加入房间结果:%s", joinRoomResp)
+		default:
+			log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
+
+		}
+		pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, gameResp)
 		log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
 	}
 
