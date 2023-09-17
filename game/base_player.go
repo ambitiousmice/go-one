@@ -7,12 +7,15 @@ import (
 	"go-one/common/log"
 	"go-one/common/pktconn"
 	"go-one/common/proto"
+	"sync"
 )
 
 type BasePlayer struct {
+	sync.RWMutex
 	entityID int64
 	gateID   uint8
-	room     *BaseRoom
+	Scene    *Scene
+	status   uint8
 
 	cron    *cron.Cron
 	cronMap map[string]cron.EntryID
@@ -32,7 +35,7 @@ func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
 }
 
 func (p *BasePlayer) String() string {
-	return fmt.Sprintf("BasePlayer:<%d> gateID:<%d>", p.entityID, p.gateID)
+	return fmt.Sprintf("player info: entityID=<%d>, gateID=<%d>", p.entityID, p.gateID)
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
@@ -105,4 +108,10 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 	if err != nil {
 		log.Errorf("%s send game msg error: %s", p, err)
 	}
+}
+
+func (p *BasePlayer) UpdateStatus(status uint8) {
+	p.Lock()
+	defer p.Unlock()
+	p.status = status
 }

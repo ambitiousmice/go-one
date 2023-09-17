@@ -121,7 +121,8 @@ func (gp *GateProxy) handle3003(pkt *pktconn.Packet) {
 	player := GetPlayer(req.EntityID)
 	if player == nil {
 		player = AddPlayer(req.EntityID, gp.gateID)
-		gameServer.JoinRoom(ROOM_LOBBY, player)
+		player.UpdateStatus(PlayerStatusOnline)
+		gameServer.JoinScene(SceneTypeLobby, player)
 	} else {
 		// TODO
 		log.Warnf("player:<%d> already exists", req.EntityID)

@@ -21,6 +21,7 @@ func gameProcess(gp *GateProxy, entityID int64, req *proto.GameReq) {
 	if player == nil {
 		log.Warnf("player:<%d> not found", entityID)
 		player = AddPlayer(entityID, gp.gateID)
+		player.UpdateStatus(PlayerStatusOnline)
 	}
 	processor := processContext[req.Cmd]
 	if processor == nil {

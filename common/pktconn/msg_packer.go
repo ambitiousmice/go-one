@@ -11,3 +11,7 @@ type MsgPacker interface {
 	PackMsg(msg interface{}, buf []byte) ([]byte, error)
 	UnpackMsg(data []byte, msg interface{}) error
 }
+
+func SetMsgPacker(msgPacker MsgPacker) {
+	MSG_PACKER = msgPacker
+}

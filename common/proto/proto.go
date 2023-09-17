@@ -40,6 +40,8 @@ const (
 )
 
 // game
+
 const (
-	JoinRoomFromGame = 4001 // 加入房间
+	JoinScene    = 4001      // 加入场景
+	JoinSceneAck = JoinScene // 加入场景 应答
 )

@@ -28,9 +28,9 @@ type GameServer struct {
 	gateNodeProxies map[uint8][]*GateProxy
 	pollingIndex    uint8
 
-	rmMutex      sync.RWMutex
-	roomManagers map[string]*RoomManager
-	roomTypes    map[string]reflect.Type
+	rmMutex       sync.RWMutex
+	sceneManagers map[string]*SceneManager
+	sceneTypes    map[string]reflect.Type
 
 	gatePacketQueue chan *pktconn.Packet
 
@@ -49,8 +49,8 @@ func NewGameServer() *GameServer {
 	gameServer = &GameServer{
 		gateProxies:             map[string]*GateProxy{},
 		gateNodeProxies:         map[uint8][]*GateProxy{},
-		roomManagers:            map[string]*RoomManager{},
-		roomTypes:               map[string]reflect.Type{},
+		sceneManagers:           map[string]*SceneManager{},
+		sceneTypes:              map[string]reflect.Type{},
 		gatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
 		listenAddr:              gameConfig.Server.ListenAddr,
 		cron:                    crontab,
@@ -59,10 +59,10 @@ func NewGameServer() *GameServer {
 	}
 
 	for _, config := range gameConfig.RoomManagerConfigs {
-		gameServer.roomManagers[config.RoomType] = NewRoomManager(config.RoomType, config.RoomMaxPlayerNum, config.RoomIDStart, config.RoomIDEnd, config.MatchStrategy)
+		gameServer.sceneManagers[config.RoomType] = NewSceneManager(config.RoomType, config.RoomMaxPlayerNum, config.RoomIDStart, config.RoomIDEnd, config.MatchStrategy)
 	}
 
-	gameServer.RegisterRoomType(&RoomLobby{})
+	gameServer.RegisterRoomType(&SceneLobby{})
 
 	return gameServer
 }
@@ -93,6 +93,10 @@ func (gs *GameServer) mainRoutine() {
 
 func (gs *GameServer) String() string {
 	return fmt.Sprintf("GameServer<%s>", gs.listenAddr)
+}
+
+func GetGameServer() *GameServer {
+	return gameServer
 }
 
 // ServeTCPConnection handle TCP connections from clients
@@ -233,9 +237,9 @@ func (gs *GameServer) getGateProxyByGateID(gateID uint8) *GateProxy {
 }
 
 // RegisterRoomType register a room type
-func (gs *GameServer) RegisterRoomType(room IRoom) {
-	if gs.roomTypes[room.GetRoomType()] != nil {
-		panic("room type already registered, roomType:" + room.GetRoomType())
+func (gs *GameServer) RegisterRoomType(room IScene) {
+	if gs.sceneTypes[room.GetSceneType()] != nil {
+		panic("room type already registered, sceneType:" + room.GetSceneType())
 	}
 
 	objVal := reflect.ValueOf(room)
@@ -245,32 +249,32 @@ func (gs *GameServer) RegisterRoomType(room IRoom) {
 		objType = objType.Elem()
 	}
 
-	gs.roomTypes[room.GetRoomType()] = objType
+	gs.sceneTypes[room.GetSceneType()] = objType
 }
 
-func (gs *GameServer) getRoomObjType(roomType string) reflect.Type {
-	objType := gs.roomTypes[roomType]
+func (gs *GameServer) getSceneObjType(sceneType string) reflect.Type {
+	objType := gs.sceneTypes[sceneType]
 	if objType == nil {
-		panic("room type not found, roomType:" + roomType)
+		panic("scene type not found, sceneType:" + sceneType)
 	}
 
 	return objType
 }
 
-func (gs *GameServer) GetRoomManager(roomType string) *RoomManager {
-	roomManager := gs.roomManagers[roomType]
+func (gs *GameServer) GetSceneManager(sceneType string) *SceneManager {
+	sceneManager := gs.sceneManagers[sceneType]
 
-	if roomManager == nil {
-		panic("room manager not found, roomType:" + roomType)
+	if sceneManager == nil {
+		panic("scene manager not found, sceneType:" + sceneType)
 	}
 
-	return roomManager
+	return sceneManager
 }
 
-func (gs *GameServer) JoinRoom(roomType string, player *Player) {
-	roomManager := gs.GetRoomManager(roomType)
+func (gs *GameServer) JoinScene(sceneType string, player *Player) {
+	roomManager := gs.GetSceneManager(sceneType)
 
-	room := roomManager.GetRoomByStrategy()
+	room := roomManager.GetSceneByStrategy()
 	if room == nil {
 		player.SendCommonErrorMsg(ServerIsFull)
 	}

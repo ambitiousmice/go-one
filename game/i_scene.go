@@ -1,7 +1,7 @@
 package game
 
-type IRoom interface {
-	GetRoomType() string
+type IScene interface {
+	GetSceneType() string
 	OnCreated()
 	OnDestroyed()
 	OnJoined(player *Player)

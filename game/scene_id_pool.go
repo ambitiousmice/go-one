@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type RoomIDPool struct {
+type SceneIDPool struct {
 	mu        sync.Mutex
 	start     int64
 	end       int64
@@ -14,7 +14,7 @@ type RoomIDPool struct {
 	used      map[int64]bool
 }
 
-func NewRoomIDPool(start, end int64) (*RoomIDPool, error) {
+func NewSceneIDPool(start, end int64) (*SceneIDPool, error) {
 	if start <= 0 {
 		return nil, errors.New("start id must be greater than 0")
 	}
@@ -22,7 +22,7 @@ func NewRoomIDPool(start, end int64) (*RoomIDPool, error) {
 		return nil, errors.New("start id must be less than end id")
 	}
 
-	pool := &RoomIDPool{
+	pool := &SceneIDPool{
 		start: start,
 		end:   end,
 		used:  make(map[int64]bool),
@@ -35,7 +35,7 @@ func NewRoomIDPool(start, end int64) (*RoomIDPool, error) {
 	return pool, nil
 }
 
-func (p *RoomIDPool) Get() (int64, error) {
+func (p *SceneIDPool) Get() (int64, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -49,7 +49,7 @@ func (p *RoomIDPool) Get() (int64, error) {
 	return id, nil
 }
 
-func (p *RoomIDPool) Put(id int64) {
+func (p *SceneIDPool) Put(id int64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

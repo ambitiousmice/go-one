@@ -163,8 +163,8 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 		gameResp := &proto.GameResp{}
 		packet.ReadData(gameResp)
 		switch gameResp.Cmd {
-		case proto.JoinRoomFromGame:
-			joinRoomResp := &proto.JoinRoomResp{}
+		case proto.JoinScene:
+			joinRoomResp := &proto.JoinSceneResp{}
 			pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, joinRoomResp)
 			log.Infof("加入房间结果:%s", joinRoomResp)
 		default:

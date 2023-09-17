@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type BaseRoom struct {
+type BaseScene struct {
 	mutex        sync.RWMutex
 	ID           int64
 	Name         string
@@ -17,10 +17,10 @@ type BaseRoom struct {
 	cronTaskMap  map[string]cron.EntryID
 }
 
-func NewBaseRoom(id int64, roomType string, maxPlayerNum int) *BaseRoom {
-	return &BaseRoom{
+func NewBaseScene(id int64, sceneType string, maxPlayerNum int) *BaseScene {
+	return &BaseScene{
 		ID:           id,
-		Type:         roomType,
+		Type:         sceneType,
 		MaxPlayerNum: maxPlayerNum,
 		players:      map[int64]*Player{},
 		cron:         cron.New(cron.WithSeconds()),
@@ -28,32 +28,32 @@ func NewBaseRoom(id int64, roomType string, maxPlayerNum int) *BaseRoom {
 	}
 }
 
-func (br *BaseRoom) GetPlayer(entityID int64) *Player {
+func (br *BaseScene) GetPlayer(entityID int64) *Player {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
 	return br.players[entityID]
 }
 
-func (br *BaseRoom) AddPlayer(player *Player) {
+func (br *BaseScene) AddPlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
 	br.players[player.entityID] = player
 }
 
-func (br *BaseRoom) RemovePlayer(player *Player) {
+func (br *BaseScene) RemovePlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
 	delete(br.players, player.entityID)
 }
 
-func (br *BaseRoom) GetPlayerCount() int {
+func (br *BaseScene) GetPlayerCount() int {
 	return len(br.players)
 }
 
-func (br *BaseRoom) AddCronTask(taskName string, spec string, method func()) error {
+func (br *BaseScene) AddCronTask(taskName string, spec string, method func()) error {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
@@ -72,7 +72,7 @@ func (br *BaseRoom) AddCronTask(taskName string, spec string, method func()) err
 	return nil
 }
 
-func (br *BaseRoom) RemoveCronTask(taskName string) {
+func (br *BaseScene) RemoveCronTask(taskName string) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
@@ -82,7 +82,7 @@ func (br *BaseRoom) RemoveCronTask(taskName string) {
 	}
 }
 
-func (br *BaseRoom) PushOne(entityID int64, msg *proto.GameResp) {
+func (br *BaseScene) PushOne(entityID int64, msg *proto.GameResp) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
@@ -94,7 +94,7 @@ func (br *BaseRoom) PushOne(entityID int64, msg *proto.GameResp) {
 	player.SendGameMsg(msg)
 }
 
-func (br *BaseRoom) Broadcast(msg *proto.GameResp) {
+func (br *BaseScene) Broadcast(msg *proto.GameResp) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 

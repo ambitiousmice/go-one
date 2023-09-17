@@ -54,7 +54,22 @@ type GameResp struct {
 	Data []byte
 }
 
-type JoinRoomResp struct {
-	RoomType string
-	RoomID   int64
+type JoinSceneReq struct {
+	SceneType string
+	SceneID   int64
+}
+
+type JoinSceneResp struct {
+	SceneType string
+	SceneID   int64
+}
+
+type LeaveSceneReq struct {
+	SceneType string
+	SceneID   int64
+}
+
+type LeaveSceneResp struct {
+	SceneType string
+	SceneID   int64
 }
