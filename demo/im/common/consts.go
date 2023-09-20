@@ -1,5 +1,10 @@
 package common
 
 const (
-	RoomTypeChat = "chat"
+	SceneTypeChat = "chat"
+)
+
+const (
+	OneRoomID       = 0
+	BroadcastRoomID = -1
 )

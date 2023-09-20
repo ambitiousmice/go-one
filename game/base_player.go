@@ -12,7 +12,7 @@ import (
 
 type BasePlayer struct {
 	sync.RWMutex
-	entityID int64
+	EntityID int64
 	gateID   uint8
 	Scene    *Scene
 	status   uint8
@@ -26,7 +26,7 @@ func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	return &BasePlayer{
-		entityID: entityID,
+		EntityID: entityID,
 		gateID:   gateID,
 		cron:     crontab,
 		cronMap:  map[string]cron.EntryID{},
@@ -35,7 +35,7 @@ func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
 }
 
 func (p *BasePlayer) String() string {
-	return fmt.Sprintf("player info: entityID=<%d>, gateID=<%d>", p.entityID, p.gateID)
+	return fmt.Sprintf("player info: EntityID=<%d>, gateID=<%d>", p.EntityID, p.gateID)
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
@@ -61,7 +61,7 @@ func (p *BasePlayer) SendGameMsg(resp *proto.GameResp) {
 		packet.AppendData(resp)
 	}
 
-	packet.WriteInt64(p.entityID)
+	packet.WriteInt64(p.EntityID)
 
 	gateProxy := gameServer.getGateProxyByGateID(p.gateID)
 	if gateProxy == nil {
@@ -95,7 +95,7 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 		packet.AppendData(resp)
 	}
 
-	packet.WriteInt64(p.entityID)
+	packet.WriteInt64(p.EntityID)
 
 	gateProxy := gameServer.getGateProxyByGateID(p.gateID)
 	if gateProxy == nil {

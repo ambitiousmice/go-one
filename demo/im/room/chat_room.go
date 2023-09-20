@@ -1,38 +1,40 @@
 package room
 
 import (
-	"go-one/common/log"
-	"go-one/common/proto"
-	"go-one/demo/im/common"
+	"go-one/demo/im/proto"
 	"go-one/game"
+	"sync"
 )
 
 type ChatRoom struct {
-	game.Scene
+	ID   int64
+	name string
+
+	pMutex  sync.RWMutex
+	players map[int64]*game.Player
 }
 
-func (r *ChatRoom) GetSceneType() string {
-	return common.RoomTypeChat
+func NewChatRoom(id int64, name string) *ChatRoom {
+	return &ChatRoom{
+		ID:      id,
+		name:    name,
+		players: make(map[int64]*game.Player),
+	}
 }
 
-func (r *ChatRoom) OnCreated() {
-	log.Infof("room created,%s", r.String())
+func (r *ChatRoom) JoinPlayer(player *game.Player) {
+	r.pMutex.Lock()
+	defer r.pMutex.Unlock()
+
+	r.players[player.EntityID] = player
 }
 
-func (r *ChatRoom) OnDestroyed() {
-	log.Infof("room destroyed,%s", r.String())
-}
+func (r *ChatRoom) Broadcast(msg *proto.ChatMessage) {
+	r.pMutex.RLock()
+	defer r.pMutex.RUnlock()
 
-func (r *ChatRoom) OnJoined(player *game.Player) {
-	log.Info("player joined room,%s | %s", player.String(), r.String())
-	joinRoomResp := &proto.JoinSceneResp{
-		SceneID:   r.ID,
-		SceneType: r.Type,
+	for _, player := range r.players {
+		player.SendGameData(proto.MessageAck, msg)
 	}
 
-	player.SendGameData(proto.JoinScene, joinRoomResp)
-}
-
-func (r *ChatRoom) OnLeft(player *game.Player) {
-	r.RemovePlayer(player)
 }

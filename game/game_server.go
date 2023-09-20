@@ -28,8 +28,8 @@ type GameServer struct {
 	gateNodeProxies map[uint8][]*GateProxy
 	pollingIndex    uint8
 
-	rmMutex       sync.RWMutex
-	sceneManagers map[string]*SceneManager
+	smMutex       sync.RWMutex
+	SceneManagers map[string]*SceneManager
 	sceneTypes    map[string]reflect.Type
 
 	gatePacketQueue chan *pktconn.Packet
@@ -49,7 +49,7 @@ func NewGameServer() *GameServer {
 	gameServer = &GameServer{
 		gateProxies:             map[string]*GateProxy{},
 		gateNodeProxies:         map[uint8][]*GateProxy{},
-		sceneManagers:           map[string]*SceneManager{},
+		SceneManagers:           map[string]*SceneManager{},
 		sceneTypes:              map[string]reflect.Type{},
 		gatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
 		listenAddr:              gameConfig.Server.ListenAddr,
@@ -58,8 +58,8 @@ func NewGameServer() *GameServer {
 		gateTimeout:             time.Second * time.Duration(gameConfig.Server.GateTimeout),
 	}
 
-	for _, config := range gameConfig.RoomManagerConfigs {
-		gameServer.sceneManagers[config.RoomType] = NewSceneManager(config.RoomType, config.RoomMaxPlayerNum, config.RoomIDStart, config.RoomIDEnd, config.MatchStrategy)
+	for _, config := range gameConfig.SceneManagerConfigs {
+		gameServer.SceneManagers[config.SceneType] = NewSceneManager(config.SceneType, config.SceneMaxPlayerNum, config.SceneIDStart, config.SceneIDEnd, config.MatchStrategy)
 	}
 
 	gameServer.RegisterRoomType(&SceneLobby{})
@@ -262,7 +262,7 @@ func (gs *GameServer) getSceneObjType(sceneType string) reflect.Type {
 }
 
 func (gs *GameServer) GetSceneManager(sceneType string) *SceneManager {
-	sceneManager := gs.sceneManagers[sceneType]
+	sceneManager := gs.SceneManagers[sceneType]
 
 	if sceneManager == nil {
 		panic("scene manager not found, sceneType:" + sceneType)

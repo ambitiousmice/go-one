@@ -38,7 +38,7 @@ func AddPlayer(entityID int64, gateID uint8) *Player {
 
 	playerMutex.Lock()
 	defer playerMutex.Unlock()
-	playerMap[player.entityID] = player
+	playerMap[player.EntityID] = player
 
 	return player
 }

@@ -5,15 +5,15 @@ server:
   gateTimeout: 50
 
 
-room-manager-configs:
-  - room-type: lobby
-    room-max-player-num: 100
-    room-id-start: 1
-    room-id-end: 100
+scene-manager-configs:
+  - scene-type: lobby
+    scene-max-player-num: 100
+    scene-id-start: 1
+    scene-id-end: 100
     match-strategy: order
 
-  - room-type: game
-    room-max-player-num: 100
-    room-id-start: 1
-    room-id-end: 100
+  - scene-type: game
+    scene-max-player-num: 100
+    scene-id-start: 1
+    scene-id-end: 100
     match-strategy: order

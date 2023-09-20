@@ -1,4 +1,4 @@
-package proccessor
+package processor
 
 import (
 	"go-one/common/consts"

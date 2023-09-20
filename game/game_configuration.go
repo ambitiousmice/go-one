@@ -18,9 +18,9 @@ func SetYamlFile(yaml string) {
 }
 
 type GameConfig struct {
-	Server             ServerConfig           `yaml:"server"`
-	RoomManagerConfigs []RoomManagerConfig    `yaml:"room-manager-configs"`
-	Params             map[string]interface{} `yaml:"params"`
+	Server              ServerConfig           `yaml:"server"`
+	SceneManagerConfigs []SceneManagerConfig   `yaml:"scene-manager-configs"`
+	Params              map[string]interface{} `yaml:"params"`
 }
 
 func InitGameConfig() {
@@ -42,10 +42,10 @@ type ServerConfig struct {
 	GateTimeout            int32  `yaml:"gateTimeout"`
 }
 
-type RoomManagerConfig struct {
-	RoomType         string `yaml:"room-type"`
-	RoomMaxPlayerNum int    `yaml:"room-max-player-num"`
-	RoomIDStart      int64  `yaml:"room-id-start"`
-	RoomIDEnd        int64  `yaml:"room-id-end"`
-	MatchStrategy    string `yaml:"match-strategy"`
+type SceneManagerConfig struct {
+	SceneType         string `yaml:"scene-type"`
+	SceneMaxPlayerNum int    `yaml:"scene-max-player-num"`
+	SceneIDStart      int64  `yaml:"scene-id-start"`
+	SceneIDEnd        int64  `yaml:"scene-id-end"`
+	MatchStrategy     string `yaml:"match-strategy"`
 }

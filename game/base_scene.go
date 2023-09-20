@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/robfig/cron/v3"
-	"go-one/common/proto"
 	"sync"
 )
 
@@ -39,14 +38,14 @@ func (br *BaseScene) AddPlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
-	br.players[player.entityID] = player
+	br.players[player.EntityID] = player
 }
 
 func (br *BaseScene) RemovePlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
-	delete(br.players, player.entityID)
+	delete(br.players, player.EntityID)
 }
 
 func (br *BaseScene) GetPlayerCount() int {
@@ -82,7 +81,7 @@ func (br *BaseScene) RemoveCronTask(taskName string) {
 	}
 }
 
-func (br *BaseScene) PushOne(entityID int64, msg *proto.GameResp) {
+func (br *BaseScene) PushOne(entityID int64, cmd uint16, data interface{}) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
@@ -91,15 +90,15 @@ func (br *BaseScene) PushOne(entityID int64, msg *proto.GameResp) {
 		return
 	}
 
-	player.SendGameMsg(msg)
+	player.SendGameData(cmd, data)
 }
 
-func (br *BaseScene) Broadcast(msg *proto.GameResp) {
+func (br *BaseScene) Broadcast(cmd uint16, data interface{}) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
 	for _, player := range br.players {
-		player.SendGameMsg(msg)
+		player.SendGameData(cmd, data)
 	}
 
 }
