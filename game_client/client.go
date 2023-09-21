@@ -1,4 +1,4 @@
-package main
+package game_client
 
 import (
 	context2 "context"
@@ -19,64 +19,73 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-const _SPACE_ENTITY_TYPE = "__space__"
+var ClientContext = make(map[int64]*Client)
 
-// ClientBot is  a client bot representing a game client
-type ClientBot struct {
+type Client struct {
 	sync.Mutex
 
-	id int
+	id int64
 
 	conn        *pktconn.PacketConn
 	packetQueue chan *pktconn.Packet
 	crontab     *cron.Cron
+
+	I IClient
 }
 
-func newClientBot(id int) *ClientBot {
-	return &ClientBot{
-		id:          id,
+type IClient interface {
+	OnCreated(client *Client)
+	EnterGameParamWrapper(client *Client) *proto.EnterGameReq
+	OnEnterGameSuccess(client *Client, resp *proto.EnterGameResp)
+	OnJoinScene(client *Client, joinSceneResp *proto.JoinSceneResp)
+}
+
+func NewClient(i IClient) *Client {
+
+	return &Client{
 		packetQueue: make(chan *pktconn.Packet),
 		crontab:     cron.New(cron.WithSeconds()),
+		I:           i,
 	}
 }
 
-func (bot *ClientBot) String() string {
-	return fmt.Sprintf("ClientBot<%d>", bot.id)
+func (c *Client) String() string {
+	return fmt.Sprintf("Client<%d>", c.id)
 }
 
-func (bot *ClientBot) run() {
+func (c *Client) Run() {
 
 	var netConn net.Conn
-	netConn, err := bot.connectServer()
+	netConn, err := c.connectServer()
 	if err != nil {
 		panic("connect server failed: " + err.Error())
 	}
 
-	log.Infof("connected: %s", netConn.RemoteAddr())
+	log.Infof("%s connected: %s", c, netConn.RemoteAddr())
 
 	netConn = pktconn.NewBufferedConn(netConn, consts.BufferedReadBufferSize, consts.BufferedWriteBufferSize)
-	bot.conn = pktconn.NewPacketConn(context2.Background(), netConn, bot)
-	defer bot.conn.Close()
-	bot.crontab.Start()
+	c.conn = pktconn.NewPacketConn(context2.Background(), netConn, c)
+	defer c.conn.Close()
+	c.crontab.Start()
 
-	bot.crontab.AddFunc("@every 2s", func() {
+	c.crontab.AddFunc("@every 2s", func() {
 		packet := pktconn.NewPacket()
 		packet.WriteUint16(proto.HeartbeatFromClient)
-		bot.conn.SendAndRelease(packet)
-		//log.Infof("==============发送心跳包,packetQueue长度:%d", len(bot.packetQueue))
+		c.conn.SendAndRelease(packet)
+		//log.Infof("==============发送心跳包,packetQueue长度:%d", len(c.packetQueue))
 	})
 	// send handshake packet
 
-	go bot.recvLoop()
+	go c.recvLoop()
 
-	bot.loop()
+	c.loop()
 }
 
-func (bot *ClientBot) connectServer() (net.Conn, error) {
+func (c *Client) connectServer() (net.Conn, error) {
 	if Config.ServerConfig.Websocket {
-		return bot.connectServerByWebsocket()
+		return c.connectServerByWebsocket()
 	} else if Config.ServerConfig.Kcp {
-		return bot.connectServerByKCP()
+		return c.connectServerByKCP()
 	}
 
 	conn, err := network.ConnectTCP(net.JoinHostPort(Config.ServerConfig.IP, Config.ServerConfig.Port))
@@ -87,7 +96,7 @@ func (bot *ClientBot) connectServer() (net.Conn, error) {
 	return conn, err
 }
 
-func (bot *ClientBot) connectServerByKCP() (net.Conn, error) {
+func (c *Client) connectServerByKCP() (net.Conn, error) {
 
 	serverAddr := net.JoinHostPort(Config.ServerConfig.IP, Config.ServerConfig.Port)
 	conn, err := kcp.DialWithOptions(serverAddr, nil, 0, 0)
@@ -103,7 +112,7 @@ func (bot *ClientBot) connectServerByKCP() (net.Conn, error) {
 	return conn, err
 }
 
-func (bot *ClientBot) connectServerByWebsocket() (net.Conn, error) {
+func (c *Client) connectServerByWebsocket() (net.Conn, error) {
 	originProto := "http"
 	wsProto := "ws"
 
@@ -113,17 +122,17 @@ func (bot *ClientBot) connectServerByWebsocket() (net.Conn, error) {
 	return websocket.Dial(wsaddr, "", origin)
 }
 
-func (bot *ClientBot) recvLoop() {
-	err := bot.conn.ReceiveChan(bot.packetQueue)
+func (c *Client) recvLoop() {
+	err := c.conn.ReceiveChan(c.packetQueue)
 	log.Error(err)
 }
 
-func (bot *ClientBot) loop() {
+func (c *Client) loop() {
 	ticker := time.Tick(time.Millisecond * 100)
 	for {
 		select {
-		case pkt := <-bot.packetQueue:
-			bot.handlePacket(pkt)
+		case pkt := <-c.packetQueue:
+			c.handlePacket(pkt)
 			pkt.Release()
 			//break
 		case <-ticker:
@@ -133,7 +142,7 @@ func (bot *ClientBot) loop() {
 	}
 }
 
-func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
+func (c *Client) handlePacket(packet *pktconn.Packet) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -147,56 +156,45 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 	}
 	switch msgType {
 	case proto.ConnectionSuccessFromServer:
-		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
+		c.enterGame()
 		log.Infof("发送登录消息")
 	case proto.EnterGameClientAck:
 		loginResp := &proto.EnterGameResp{}
 		packet.ReadData(loginResp)
-		log.Infof("登录结果,EntityID:%d", loginResp.EntityID)
-		/*go func() {
-			for true {
-				bot.sendGameMsg(1, []byte("1"))
-				time.Sleep(time.Microsecond * 100)
-			}
-		}()*/
+		log.Infof("登录结果,EntityID:%d,game:%s", loginResp.EntityID, loginResp.Game)
+		c.id = loginResp.EntityID
+		c.I.OnEnterGameSuccess(c, loginResp)
+
+		ClientContext[c.id] = c
+
 	case proto.GameMethodFromClientAck:
 		gameResp := &proto.GameResp{}
 		packet.ReadData(gameResp)
-		switch gameResp.Cmd {
-		case proto.JoinScene:
-			joinRoomResp := &proto.JoinSceneResp{}
-			pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, joinRoomResp)
-			log.Infof("加入房间结果:%s", joinRoomResp)
-		default:
-			log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
-
+		processor := ProcessorContext[gameResp.Cmd]
+		if processor == nil {
+			log.Warnf("未找到处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
 		}
-		pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, gameResp)
-		log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
+		processor.Process(c, gameResp.Data)
 	}
 
 }
 
-func (bot *ClientBot) SendMsg(msgType uint16, msg interface{}) {
+func (c *Client) SendMsg(msgType uint16, msg interface{}) {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(msgType)
 	if msg != nil {
 		packet.AppendData(msg)
 	}
-	bot.conn.Send(packet)
+	c.conn.Send(packet)
 	packet.Release()
 }
 
-func (bot *ClientBot) login(account string) {
-	bot.SendMsg(proto.EnterGameFromClient, &proto.EnterGameReq{
-		AccountType: consts.TokenLogin,
-		Account:     account,
-		Game:        "elite-star",
-	})
+func (c *Client) enterGame() {
+	c.SendMsg(proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
 }
 
-func (bot *ClientBot) sendGameMsg(cmd uint16, data []byte) {
-	bot.SendMsg(proto.GameMethodFromClient, &proto.GameReq{
+func (c *Client) sendGameMsg(cmd uint16, data []byte) {
+	c.SendMsg(proto.GameMethodFromClient, &proto.GameReq{
 		Cmd:   cmd,
 		Param: data,
 	})

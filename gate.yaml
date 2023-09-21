@@ -7,7 +7,7 @@ server:
   needLogin: true
 
 game-dispatcher:
-  - game: elite-star
+  - game: im
     channel-num: 3
     load-balancer: polling
 

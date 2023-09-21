@@ -18,13 +18,13 @@ type TCPServerDelegate interface {
 // ServeTCPForever serves on specified address as TCP server, forever ...
 func ServeTCPForever(listenAddr string, delegate TCPServerDelegate) {
 	for {
-		err := serveTCPForeverOnce(listenAddr, delegate)
+		err := ServeTCPForeverOnce(listenAddr, delegate)
 		log.Errorf("server@%s failed with error: %v, will restart after %s", listenAddr, err, restartTcpServerInterval)
 		time.Sleep(restartTcpServerInterval)
 	}
 }
 
-func serveTCPForeverOnce(listenAddr string, delegate TCPServerDelegate) error {
+func ServeTCPForeverOnce(listenAddr string, delegate TCPServerDelegate) error {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Errorf("serveTCPImpl: panic with error %s", err)

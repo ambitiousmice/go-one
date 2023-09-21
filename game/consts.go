@@ -14,7 +14,7 @@ const (
 	SceneStrategyBalanced = "balanced"
 )
 
-// game error msg
+// Game error msg
 
 const (
 	ServerIsFull = "服务器爆满,请稍后再试"

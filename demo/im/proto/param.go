@@ -8,16 +8,18 @@ type SubscribeRoomResp struct {
 	RoomID int64
 }
 
-type UnSubscribeRoomReq struct {
+type UnsubscribeRoomReq struct {
 	RoomID int64
 }
 
-type UnSubscribeRoomResp struct {
+type UnsubscribeRoomResp struct {
 	RoomID int64
 }
 
 type PushMessageReq struct {
 	RoomID int64
+	From   int64
+	To     int64
 	Msg    string
 }
 

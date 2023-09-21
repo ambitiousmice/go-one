@@ -25,4 +25,5 @@ func Init() {
 	kafka.InitProducer(oneConfig.KafkaProducerConfig)
 	kafka.InitConsumer(oneConfig.KafkaConsumerConfig)
 
+	log.Info("context init success")
 }

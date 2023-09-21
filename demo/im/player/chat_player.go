@@ -7,13 +7,13 @@ import (
 )
 
 type ChatPlayer struct {
-	*game.Player
+	game.Player
 
 	subscribeRooms map[int64]*room.ChatRoom
 }
 
 func (p *ChatPlayer) OnCreated() {
-
+	p.subscribeRooms = make(map[int64]*room.ChatRoom)
 }
 
 func (p *ChatPlayer) OnDestroy() {
@@ -38,7 +38,7 @@ func (p *ChatPlayer) SubscribeRoom(room *room.ChatRoom) {
 
 func (p *ChatPlayer) UnSubscribeRoom(room *room.ChatRoom) {
 	delete(p.subscribeRooms, room.ID)
-	p.SendGameData(proto.UnSubscribeRoomAck, &proto.UnSubscribeRoomResp{
+	p.SendGameData(proto.UnsubscribeRoomAck, &proto.UnsubscribeRoomResp{
 		RoomID: room.ID,
 	})
 }

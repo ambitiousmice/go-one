@@ -1,8 +1,12 @@
 package room
 
-import "sync"
+import (
+	"go-one/demo/im/proto"
+	"go-one/game"
+	"sync"
+)
 
-var CRM *ChatRoomManager
+var CRM = &ChatRoomManager{}
 
 type ChatRoomManager struct {
 	rMutex sync.RWMutex
@@ -29,4 +33,22 @@ func (crm *ChatRoomManager) GetRoom(roomID int64) *ChatRoom {
 	crm.Rooms[roomID] = room
 
 	return room
+}
+
+func (crm *ChatRoomManager) SubscribeRoom(player *game.Player, roomID int64) {
+	room := crm.GetRoom(roomID)
+	room.JoinPlayer(player)
+
+	player.SendGameData(proto.SubscribeRoomAck, &proto.SubscribeRoomResp{
+		RoomID: roomID,
+	})
+}
+
+func (crm *ChatRoomManager) UnsubscribeRoom(player *game.Player, roomID int64) {
+	room := crm.GetRoom(roomID)
+	room.JoinPlayer(player)
+
+	player.SendGameData(proto.UnsubscribeRoomAck, &proto.UnsubscribeRoomResp{
+		RoomID: roomID,
+	})
 }

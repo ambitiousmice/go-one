@@ -27,6 +27,8 @@ func (r *SceneLobby) OnJoined(player *Player) {
 		SceneType: r.Type,
 	}
 
+	log.Infof("SceneLobby joined, player=<%s>", player.String())
+
 	player.SendGameData(proto.JoinSceneAck, joinSceneResp)
 }
 

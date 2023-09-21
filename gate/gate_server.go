@@ -3,6 +3,7 @@ package gate
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/robfig/cron/v3"
 	"go-one/common/consts"
 	"go-one/common/context"
@@ -11,8 +12,8 @@ import (
 	"go-one/common/pktconn"
 	"go-one/common/proto"
 	"go-one/gate/dispatcher"
-	"golang.org/x/net/websocket"
 	"net"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -21,6 +22,12 @@ import (
 )
 
 var gateServer *GateServer
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  consts.ClientProxyReadBufferSize,
+	WriteBufferSize: consts.ClientProxyWriteBufferSize,
+	WriteBufferPool: &sync.Pool{},
+}
 
 // GateServer implements the gate service logic
 type GateServer struct {
@@ -72,6 +79,7 @@ func (gs *GateServer) Run() {
 
 	go network.ServeTCPForever(gs.listenAddr, gs)
 	go gs.serveKCP(gs.listenAddr)
+	go network.ServeWebsocket("192.168.1.22:6668", gs)
 
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
@@ -112,6 +120,18 @@ func (gs *GateServer) ServeTCPConnection(conn net.Conn) {
 	gs.handleClientConnection(conn)
 }
 
+func (gs *GateServer) ServeWebsocketConnection(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Error("websocket upgrade error:", err)
+		return
+	}
+
+	netConn := network.WebSocketConn{Conn: conn}
+
+	go gs.handleClientConnection(netConn)
+}
+
 func (gs *GateServer) serveKCP(addr string) {
 	//kcpListener, err := kcp.ListenWithOptions(addr, nil, 10, 3) // fec 前向纠错
 	kcpListener, err := kcp.ListenWithOptions(addr, nil, 0, 0)
@@ -142,12 +162,6 @@ func (gs *GateServer) handleKCPConn(conn *kcp.UDPSession) {
 	conn.SetACKNoDelay(consts.KCP_SET_ACK_NO_DELAY)
 
 	gs.handleClientConnection(conn)
-}
-
-func (gs *GateServer) handleWebSocketConn(wsConn *websocket.Conn) {
-	log.Infof("WebSocket Connection: %s", wsConn.RemoteAddr())
-	wsConn.PayloadType = websocket.BinaryFrame
-	gs.handleClientConnection(wsConn)
 }
 
 func (gs *GateServer) handleClientConnection(conn net.Conn) {
@@ -232,7 +246,6 @@ func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 	payload := packet.Payload()
 	length := len(payload)
 	entityID := int64(binary.LittleEndian.Uint64(payload[length-consts.EntityIDLength : length]))
-
 	clientProxy := gs.getClientProxy(entityID)
 
 	if clientProxy != nil {

@@ -106,11 +106,21 @@ func SetDispatcherClientPacketQueue(queue chan *pktconn.Packet) {
 }
 
 func ChooseGameDispatcher(game string, entityID int64) *GameDispatcher {
-	return gameLoadBalancerMap[game].Choose(game, entityID)
+	loadBalancer := gameLoadBalancerMap[game]
+	if loadBalancer == nil {
+		log.Warnf("game:< %s > loadBalancer is nil", game)
+		return nil
+	}
+	return loadBalancer.Choose(game, entityID)
 }
 
 func GetGameDispatcher(game string, gameID uint8) *GameDispatcher {
-	return gameLoadBalancerMap[game].FixedChoose(game, gameID)
+	loadBalancer := gameLoadBalancerMap[game]
+	if loadBalancer == nil {
+		log.Warnf("game:< %s > loadBalancer is nil", game)
+		return nil
+	}
+	return loadBalancer.FixedChoose(game, gameID)
 }
 
 type LoadBalancer interface {

@@ -91,7 +91,9 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 		gameDispatcher = dispatcher.GetGameDispatcher(cp.game, cp.gameID)
 	} else {
 		gameDispatcher = dispatcher.ChooseGameDispatcher(cp.game, cp.entityID)
-		cp.gameID = gameDispatcher.GetGameID()
+		if gameDispatcher != nil {
+			cp.gameID = gameDispatcher.GetGameID()
+		}
 	}
 
 	if gameDispatcher == nil {
@@ -143,8 +145,6 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		gateServer.addClientProxy(cp)
 
 		cp.NotifyNewPlayerConnection()
-
-		cp.SendEnterGameClientAck()
 
 		log.Infof("reconnection success: %s", cp)
 
@@ -253,5 +253,6 @@ func (cp *ClientProxy) SendOffline() {
 func (cp *ClientProxy) SendEnterGameClientAck() {
 	cp.SendMsg(proto.EnterGameClientAck, proto.EnterGameResp{
 		EntityID: cp.entityID,
+		Game:     cp.game,
 	})
 }

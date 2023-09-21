@@ -3,6 +3,7 @@ package game
 import (
 	"go-one/common/log"
 	"go-one/common/proto"
+	"strconv"
 )
 
 var processContext = make(map[uint16]Processor)
@@ -13,6 +14,10 @@ type Processor interface {
 }
 
 func RegisterProcessor(p Processor) {
+	processor := processContext[p.GetCmd()]
+	if processor != nil {
+		panic("duplicate processor: " + strconv.Itoa(int(p.GetCmd())))
+	}
 	processContext[p.GetCmd()] = p
 }
 

@@ -21,6 +21,7 @@ type EnterGameReq struct {
 
 type EnterGameResp struct {
 	EntityID int64 `json:"entityID"`
+	Game     string
 }
 
 type GameDispatcherChannelInfoReq struct {

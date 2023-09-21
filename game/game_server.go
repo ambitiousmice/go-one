@@ -17,9 +17,10 @@ import (
 
 var gameServer *GameServer
 
-// GameServer implements the game service logic
+// GameServer implements the Game service logic
 type GameServer struct {
 	sync.Mutex
+	Game       string
 	listenAddr string
 	cron       *cron.Cron
 
@@ -41,7 +42,7 @@ type GameServer struct {
 
 func NewGameServer() *GameServer {
 	if gameServer != nil {
-		panic("game server only can be initialized once")
+		panic("Game server only can be initialized once")
 	}
 
 	crontab := cron.New(cron.WithSeconds())
@@ -52,6 +53,7 @@ func NewGameServer() *GameServer {
 		SceneManagers:           map[string]*SceneManager{},
 		sceneTypes:              map[string]reflect.Type{},
 		gatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
+		Game:                    gameConfig.Server.Game,
 		listenAddr:              gameConfig.Server.ListenAddr,
 		cron:                    crontab,
 		checkHeartbeatsInterval: gameConfig.Server.HeartbeatCheckInterval,
@@ -272,11 +274,11 @@ func (gs *GameServer) GetSceneManager(sceneType string) *SceneManager {
 }
 
 func (gs *GameServer) JoinScene(sceneType string, player *Player) {
-	roomManager := gs.GetSceneManager(sceneType)
+	sceneManager := gs.GetSceneManager(sceneType)
 
-	room := roomManager.GetSceneByStrategy()
-	if room == nil {
+	scene := sceneManager.GetSceneByStrategy()
+	if scene == nil {
 		player.SendCommonErrorMsg(ServerIsFull)
 	}
-	room.Join(player)
+	scene.Join(player)
 }

@@ -72,7 +72,7 @@ func (p *BasePlayer) SendGameMsg(resp *proto.GameResp) {
 	err := gateProxy.SendAndRelease(packet)
 
 	if err != nil {
-		log.Errorf("%s send game msg error: %s", p, err)
+		log.Errorf("%s send Game msg error: %s", p, err)
 	}
 }
 
@@ -106,7 +106,7 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 	err = gateProxy.SendAndRelease(packet)
 
 	if err != nil {
-		log.Errorf("%s send game msg error: %s", p, err)
+		log.Errorf("%s send Game msg error: %s", p, err)
 	}
 }
 

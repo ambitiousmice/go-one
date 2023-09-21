@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	YamlFile = "game.yaml"
+	YamlFile = "Game.yaml"
 )
 
 var yamlFile = YamlFile
@@ -30,12 +30,13 @@ func InitGameConfig() {
 	} // 将读取的yaml文件解析为响应的 struct
 	err = yaml.Unmarshal(yamlFile, &gameConfig)
 	if err != nil {
-		panic("init game config error: " + err.Error())
+		panic("init Game config error: " + err.Error())
 	}
 
 }
 
 type ServerConfig struct {
+	Game                   string `yaml:"Game"`
 	ListenAddr             string `yaml:"listenAddr"`
 	GoMaxProcs             int    `yaml:"goMaxProcs"`
 	HeartbeatCheckInterval int    `yaml:"heartbeatCheckInterval"`

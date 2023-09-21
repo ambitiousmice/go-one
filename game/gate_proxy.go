@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// GateProxy is a game client connections managed by gate
+// GateProxy is a Game client connections managed by gate
 type GateProxy struct {
 	*pktconn.PacketConn
 	proxyID             string
@@ -87,9 +87,9 @@ func (gp *GateProxy) handle3002(pkt *pktconn.Packet) {
 	if context.GetOneConfig().Nacos.Instance.Service != req.Game {
 		gp.SendGateMsg(proto.GameDispatcherChannelInfoFromDispatcherAck, &proto.GameDispatcherChannelInfoResp{
 			Success: false,
-			Msg:     "game not match",
+			Msg:     "Game not match",
 		})
-		log.Error("%s game not match", gp)
+		log.Error("%s Game not match", gp)
 
 		gp.CloseAll()
 	}
