@@ -5,6 +5,8 @@ import (
 	"go-one/common/log"
 	"go-one/demo/game/processor"
 	"go-one/game"
+	"go-one/game/player"
+	"go-one/game/processor_center"
 	"golang.org/x/net/websocket"
 	"net/http"
 	_ "net/http/pprof"
@@ -22,7 +24,7 @@ func main() {
 
 	gameServer := game.NewGameServer()
 
-	game.SetPlayerType(&DemoPlayer{})
+	player.SetPlayerType(&DemoPlayer{})
 
 	go setupHTTPServer("127.0.0.1:8888", nil, "", "")
 
@@ -31,11 +33,11 @@ func main() {
 }
 
 func RegisterProcessor() {
-	game.RegisterProcessor(&processor.Test{})
+	processor_center.GPM.RegisterProcessor(&processor.Test{})
 }
 
 type DemoPlayer struct {
-	game.Player
+	player.Player
 }
 
 func (p *DemoPlayer) OnCreated() {

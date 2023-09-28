@@ -2,8 +2,8 @@ package gate
 
 import (
 	"errors"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
-	"go-one/common/proto"
 )
 
 type LoginManager interface {
@@ -14,7 +14,7 @@ type LoginResult struct {
 	EntityID int64
 }
 
-func Login(manager LoginManager, param proto.EnterGameReq) (*LoginResult, error) {
+func Login(manager LoginManager, param common_proto.EnterGameReq) (*LoginResult, error) {
 	switch param.AccountType {
 	case consts.TokenLogin:
 		return manager.TokenLogin(param.Account)

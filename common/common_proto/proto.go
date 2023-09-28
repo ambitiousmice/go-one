@@ -1,4 +1,4 @@
-package proto
+package common_proto
 
 // 服务端协议 uint16
 
@@ -44,4 +44,7 @@ const (
 const (
 	JoinScene    = 4001      // 加入场景
 	JoinSceneAck = JoinScene // 加入场景 应答
+
+	LeaveScene    = 4002       // 离开场景
+	LeaveSceneAck = LeaveScene // 离开场景 应答
 )

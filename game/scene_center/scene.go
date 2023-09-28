@@ -1,6 +1,9 @@
-package game
+package scene_center
 
-import "fmt"
+import (
+	"fmt"
+	"go-one/game/player"
+)
 
 type Scene struct {
 	*BaseScene
@@ -15,22 +18,23 @@ func (r *Scene) init(id int64, sceneType string, maxPlayerNum int) {
 }
 
 func (r *Scene) String() string {
-	return fmt.Sprintf("scene info: type=<%s>, id=<%d>, playerCount<%d>", r.Type, r.ID, len(r.players))
+	return fmt.Sprintf("scene info: type=<%s>, id=<%d>", r.Type, r.ID)
 }
 
-func (r *Scene) Join(player *Player) {
+func (r *Scene) join(player *player.Player) {
 	r.AddPlayer(player)
 
-	player.Scene = r
+	player.SceneType = r.Type
+	player.SceneID = r.ID
 
 	r.I.OnJoined(player)
-
 }
 
-func (r *Scene) Leave(player *Player) {
+func (r *Scene) leave(player *player.Player) {
 	r.RemovePlayer(player)
 
 	r.I.OnLeft(player)
 
-	player.Scene = nil
+	player.SceneType = ""
+	player.SceneID = 0
 }

@@ -4,12 +4,12 @@ import (
 	context2 "context"
 	"fmt"
 	"github.com/robfig/cron/v3"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
 	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
-	"go-one/common/proto"
 	"go-one/common/utils"
 	"net"
 	"strconv"
@@ -24,11 +24,12 @@ type GameDispatcherChannel struct {
 	channelID uint8
 	status    int8
 
-	packetQueue         chan *pktconn.Packet
-	cron                *cron.Cron
-	ticker              <-chan time.Time
-	heartbeatTime       time.Time
-	tryReconnectedCount uint8
+	packetQueue                       chan *pktconn.Packet
+	cron                              *cron.Cron
+	ticker                            <-chan time.Time
+	heartbeatTime                     time.Time
+	tryReconnectedCount               uint8
+	dispatcherClientPacketQueuesIndex uint64
 }
 
 func (gpc *GameDispatcherChannel) String() string {
@@ -158,10 +159,8 @@ func (gpc *GameDispatcherChannel) handlePacketQueue() {
 	for {
 		select {
 		case pkt := <-gpc.packetQueue:
-			go func() {
-				gpc.handleGameMsg(pkt)
-				pkt.Release()
-			}()
+			gpc.handleGameMsg(pkt)
+			pkt.Release()
 		case <-gpc.ticker:
 			if gpc.status == consts.DispatcherChannelStatusStop {
 				log.Infof("%s handlePacketQueue exit...", gpc)
@@ -197,16 +196,16 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	if msgType == 11 {
+	/*if msgType == 11 {
 		log.Infof("handleGameMsg: %d", msgType)
-	}
+	}*/
 
 	switch msgType {
-	case proto.HeartbeatFromDispatcherAck:
+	case common_proto.HeartbeatFromDispatcherAck:
 		gpc.updateHeartbeatTime()
-	case proto.GameMethodFromClientAck:
+	case common_proto.GameMethodFromClientAck:
 		gpc.processAck11(packet)
-	case proto.GameDispatcherChannelInfoFromDispatcherAck:
+	case common_proto.GameDispatcherChannelInfoFromDispatcherAck:
 		Handle3002(packet)
 
 	default:
@@ -216,20 +215,21 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 
 func (gpc *GameDispatcherChannel) processAck11(packet *pktconn.Packet) {
 	packet.Retain()
+	dispatcherClientPacketQueue := getDispatcherClientPacketQueue()
 	select {
 	case dispatcherClientPacketQueue <- packet:
 		// 数据包成功发送到队列
 	default:
 		// 队列已满或其他原因，不阻塞发送
 		packet.Release() // 释放多余的数据包
-		log.Warnf("dispatcherClientPacketQueue is full, drop packet")
+		log.Warnf("dispatcherClientPacketQueues is full, drop packet")
 	}
 }
 
 // message handler======================================================================================================
 
 func Handle3002(pkt *pktconn.Packet) {
-	req := &proto.GameDispatcherChannelInfoResp{}
+	req := &common_proto.GameDispatcherChannelInfoResp{}
 	pkt.ReadData(req)
 	log.Infof("handle3002: %v", req)
 
@@ -251,14 +251,14 @@ func (gpc *GameDispatcherChannel) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (gpc *GameDispatcherChannel) sendHeartbeat() {
-	gpc.SendMsg(proto.HeartbeatFromDispatcher, nil)
+	gpc.SendMsg(common_proto.HeartbeatFromDispatcher, nil)
 }
 
 func (gpc *GameDispatcherChannel) sendDispatcherInfo() {
 	gateIDStr := context.GetOneConfig().Nacos.Instance.Metadata["clusterId"]
 
 	gateID, _ := strconv.ParseUint(gateIDStr, 10, 8)
-	gpc.SendMsg(proto.GameDispatcherChannelInfoFromDispatcher, &proto.GameDispatcherChannelInfoReq{
+	gpc.SendMsg(common_proto.GameDispatcherChannelInfoFromDispatcher, &common_proto.GameDispatcherChannelInfoReq{
 		GateID:    uint8(gateID),
 		Game:      gpc.gameDispatcher.game,
 		GameID:    gpc.gameDispatcher.gameID,

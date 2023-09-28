@@ -1,4 +1,4 @@
-package game
+package player
 
 type IPlayer interface {
 	OnCreated()

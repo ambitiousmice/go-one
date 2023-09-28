@@ -1,10 +1,12 @@
 server:
   gateID: 1
   listenAddr: 192.168.1.22:6666
+  websocketListenAddr: 192.168.1.22:6668
   goMaxProcs: 8
   heartbeatCheckInterval: 30
   clientTimeout: 50
   needLogin: true
+  dispatcherClientPacketQueuesSize: 8
 
 game-dispatcher:
   - game: im

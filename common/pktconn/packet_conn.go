@@ -13,8 +13,8 @@ import (
 
 const (
 	MaxPayloadLength       = 32 * 1024 * 1024
-	DefaultReceiveChanSize = 64
-	sendChanSize           = 64
+	DefaultReceiveChanSize = 1024
+	sendChanSize           = 1024
 
 	payloadLengthSize = 4 // payloadLengthSize is the packet size field (uint32) size
 	prePayloadSize    = payloadLengthSize
@@ -79,7 +79,8 @@ func (pc *PacketConn) ReceiveChanSize(chanSize uint) <-chan *Packet {
 
 	go func() {
 		defer close(receiveChan)
-		_ = pc.ReceiveChan(receiveChan)
+		err := pc.ReceiveChan(receiveChan)
+		log.Errorf("receive chan error: %s", err.Error())
 	}()
 
 	return receiveChan
@@ -110,8 +111,7 @@ func (pc *PacketConn) Send(packet *Packet) error {
 	case pc.sendChan <- packet:
 		return nil
 	case <-time.After(sendTimeout):
-		//packet.addRefCount(-1) // Decrement the refcount since the send failed
-		return errors.New("send operation timed out")
+		return errors.New("packet conn sendChan is full")
 	}
 }
 

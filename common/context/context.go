@@ -20,10 +20,13 @@ func Init() {
 
 	register.Run(oneConfig.Nacos)
 
-	InitIDGenerator(oneConfig.IDGeneratorConfig)
+	err = InitIDGenerator(oneConfig.IDGeneratorConfig)
+	if err != nil {
+		panic("init id generator error:" + err.Error())
+	}
 
 	kafka.InitProducer(oneConfig.KafkaProducerConfig)
-	kafka.InitConsumer(oneConfig.KafkaConsumerConfig)
+	kafka.InitConsumer(oneConfig.KafkaConsumerConfigs)
 
 	log.Info("context init success")
 }

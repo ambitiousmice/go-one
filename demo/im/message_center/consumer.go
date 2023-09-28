@@ -4,6 +4,7 @@ import (
 	"github.com/IBM/sarama"
 	"go-one/common/log"
 	"go-one/common/pktconn"
+	"go-one/demo/im/proto"
 )
 
 type Consumer struct {
@@ -26,8 +27,8 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				return nil
 			}
 
-			chatMessage := &ChatMessage{}
-			err := pktconn.MSG_PACKER.UnpackMsg(message.Value, chatMessage)
+			m := &proto.PushMessageReq{}
+			err := pktconn.MSG_PACKER.UnpackMsg(message.Value, m)
 			if err != nil {
 				log.Errorf("unpack chat message error(%v)", err)
 				continue
@@ -35,11 +36,11 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 
 			switch message.Topic {
 			case One:
-				OneMessageHandler(chatMessage)
+				OneMessageHandler(m)
 			case Room:
-				RoomMessageHandler(chatMessage)
+				RoomMessageHandler(m)
 			case Broadcast:
-				BroadcastMessageHandler(chatMessage)
+				BroadcastMessageHandler(m)
 			}
 			log.Infof("ChatMessage claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
 			session.MarkMessage(message, "")

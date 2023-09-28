@@ -8,3 +8,5 @@ const (
 	OneRoomID       = 0
 	BroadcastRoomID = -1
 )
+
+const KafkaConsumerHandlerNameChat = "chat"

@@ -3,11 +3,11 @@ package player
 import (
 	"go-one/demo/im/proto"
 	"go-one/demo/im/room"
-	"go-one/game"
+	"go-one/game/player"
 )
 
 type ChatPlayer struct {
-	game.Player
+	player.Player
 
 	subscribeRooms map[int64]*room.ChatRoom
 }
@@ -25,7 +25,9 @@ func (p *ChatPlayer) OnClientConnected() {
 }
 
 func (p *ChatPlayer) OnClientDisconnected() {
-
+	for _, r := range p.subscribeRooms {
+		r.Leave(&p.Player)
+	}
 }
 
 func (p *ChatPlayer) SubscribeRoom(room *room.ChatRoom) {

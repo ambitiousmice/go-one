@@ -1,7 +1,9 @@
-package game
+package scene_center
 
 import (
+	"fmt"
 	"github.com/robfig/cron/v3"
+	"go-one/game/player"
 	"sync"
 )
 
@@ -11,7 +13,7 @@ type BaseScene struct {
 	Name         string
 	Type         string
 	MaxPlayerNum int
-	players      map[int64]*Player
+	players      map[int64]*player.Player
 	cron         *cron.Cron
 	cronTaskMap  map[string]cron.EntryID
 }
@@ -21,27 +23,31 @@ func NewBaseScene(id int64, sceneType string, maxPlayerNum int) *BaseScene {
 		ID:           id,
 		Type:         sceneType,
 		MaxPlayerNum: maxPlayerNum,
-		players:      map[int64]*Player{},
+		players:      map[int64]*player.Player{},
 		cron:         cron.New(cron.WithSeconds()),
 		cronTaskMap:  map[string]cron.EntryID{},
 	}
 }
 
-func (br *BaseScene) GetPlayer(entityID int64) *Player {
+func (br *BaseScene) String() string {
+	return fmt.Sprintf("scene info: type=%s, id=%d", br.Type, br.ID)
+}
+
+func (br *BaseScene) GetPlayer(entityID int64) *player.Player {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
 	return br.players[entityID]
 }
 
-func (br *BaseScene) AddPlayer(player *Player) {
+func (br *BaseScene) AddPlayer(player *player.Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
 	br.players[player.EntityID] = player
 }
 
-func (br *BaseScene) RemovePlayer(player *Player) {
+func (br *BaseScene) RemovePlayer(player *player.Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
@@ -85,20 +91,20 @@ func (br *BaseScene) PushOne(entityID int64, cmd uint16, data interface{}) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
-	player := br.players[entityID]
-	if player == nil {
+	p := br.players[entityID]
+	if p == nil {
 		return
 	}
 
-	player.SendGameData(cmd, data)
+	p.SendGameData(cmd, data)
 }
 
 func (br *BaseScene) Broadcast(cmd uint16, data interface{}) {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
-	for _, player := range br.players {
-		player.SendGameData(cmd, data)
+	for _, p := range br.players {
+		p.SendGameData(cmd, data)
 	}
 
 }

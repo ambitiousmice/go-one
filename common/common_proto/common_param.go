@@ -1,4 +1,4 @@
-package proto
+package common_proto
 
 type ErrorResp struct {
 	Code int32

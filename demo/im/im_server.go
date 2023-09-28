@@ -2,15 +2,24 @@ package main
 
 import (
 	"go-one/common/context"
-	"go-one/demo/game/processor"
+	"go-one/common/mq/kafka"
+	"go-one/demo/im/common"
+	"go-one/demo/im/message_center"
 	"go-one/demo/im/player"
+	"go-one/demo/im/processor"
+	"go-one/demo/im/scene"
 	"go-one/game"
+	player2 "go-one/game/player"
+	"go-one/game/processor_center"
+	"go-one/game/scene_center"
 )
 
 func main() {
 
 	context.SetYamlFile("context_im.yaml")
 	game.SetYamlFile("im.yaml")
+
+	kafka.RegisterConsumerHandler(common.KafkaConsumerHandlerNameChat, &message_center.Consumer{})
 
 	context.Init()
 
@@ -20,12 +29,17 @@ func main() {
 
 	gameServer := game.NewGameServer()
 
-	game.SetPlayerType(&player.ChatPlayer{})
+	player2.SetPlayerType(&player.ChatPlayer{})
+
+	scene_center.RegisterSceneType(&scene.ChatScene{})
 
 	gameServer.Run()
 
 }
 
 func RegisterProcessor() {
-	game.RegisterProcessor(&processor.Test{})
+	processor_center.GPM.RegisterProcessor(&processor.PushOneMessageProcessor{})
+	processor_center.GPM.RegisterProcessor(&processor.PushRoomMessageProcessor{})
+	processor_center.GPM.RegisterProcessor(&processor.SubscribeRoomProcessor{})
+	processor_center.GPM.RegisterProcessor(&processor.UnsubscribeRoomProcessor{})
 }

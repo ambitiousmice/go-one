@@ -3,10 +3,10 @@ package processor
 import (
 	"go-one/common/consts"
 	"go-one/common/pktconn"
-	"go-one/game"
+	"go-one/game/player"
 )
 
-func UnPackMsg(player *game.Player, param []byte, obj any) {
+func UnPackMsg(player *player.Player, param []byte, obj any) {
 	err := pktconn.MSG_PACKER.UnpackMsg(param, obj)
 	if err != nil {
 		player.SendCommonErrorMsg(consts.ParamError)

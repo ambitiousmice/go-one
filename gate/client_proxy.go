@@ -4,11 +4,11 @@ import (
 	context2 "context"
 	"fmt"
 	"github.com/robfig/cron/v3"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
 	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/common/pktconn"
-	"go-one/common/proto"
 	"go-one/gate/dispatcher"
 	"net"
 	"time"
@@ -57,7 +57,7 @@ func (cp *ClientProxy) serve() {
 
 	err := cp.ReceiveChan(gateServer.clientPacketQueue)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
 	}
 }
 
@@ -120,7 +120,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		return
 	}
 
-	var param proto.EnterGameReq
+	var param common_proto.EnterGameReq
 	packet.ReadData(&param)
 
 	if param.Reconnection {
@@ -182,9 +182,9 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 
 func (cp *ClientProxy) NotifyNewPlayerConnection() {
 	packet := pktconn.NewPacket()
-	packet.WriteUint16(proto.NewPlayerConnectionFromDispatcher)
+	packet.WriteUint16(common_proto.NewPlayerConnectionFromDispatcher)
 
-	req := proto.NewPlayerConnectionReq{
+	req := common_proto.NewPlayerConnectionReq{
 		EntityID: cp.entityID,
 	}
 
@@ -205,9 +205,9 @@ func (cp *ClientProxy) PlayerDisconnected() {
 		return
 	}
 	packet := pktconn.NewPacket()
-	packet.WriteUint16(proto.PlayerDisconnectedFromDispatcher)
+	packet.WriteUint16(common_proto.PlayerDisconnectedFromDispatcher)
 
-	req := proto.PlayerDisconnectedReq{
+	req := common_proto.PlayerDisconnectedReq{
 		EntityID: cp.entityID,
 	}
 
@@ -231,27 +231,27 @@ func (cp *ClientProxy) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (cp *ClientProxy) SendError(error string) {
-	cp.SendMsg(proto.Error, &proto.ErrorResp{
+	cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
 		Msg: error,
 	})
 }
 
 func (cp *ClientProxy) SendConnectionSuccessFromServer() {
-	cp.SendMsg(proto.ConnectionSuccessFromServer, &proto.EnterGameFromServerParam{
+	cp.SendMsg(common_proto.ConnectionSuccessFromServer, &common_proto.EnterGameFromServerParam{
 		ClientID: cp.clientID,
 	})
 }
 
 func (cp *ClientProxy) SendHeartBeatAck() {
-	cp.SendMsg(proto.HeartbeatFromClientAck, time.Now().UnixMilli())
+	cp.SendMsg(common_proto.HeartbeatFromClientAck, time.Now().UnixMilli())
 }
 
 func (cp *ClientProxy) SendOffline() {
-	cp.SendMsg(proto.OfflineFromServer, time.Now().UnixMilli())
+	cp.SendMsg(common_proto.OfflineFromServer, time.Now().UnixMilli())
 }
 
 func (cp *ClientProxy) SendEnterGameClientAck() {
-	cp.SendMsg(proto.EnterGameClientAck, proto.EnterGameResp{
+	cp.SendMsg(common_proto.EnterGameClientAck, common_proto.EnterGameResp{
 		EntityID: cp.entityID,
 		Game:     cp.game,
 	})

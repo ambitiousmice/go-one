@@ -1,9 +1,14 @@
 package kafka
 
-import "github.com/IBM/sarama"
+import (
+	"github.com/IBM/sarama"
+	"go-one/common/log"
+	"go-one/common/pktconn"
+	"strings"
+)
 
 type IProducer interface {
-	SendMessage(msg *sarama.ProducerMessage)
+	SendMessage(topic, key string, value any)
 	SendMessages(msg []*sarama.ProducerMessage)
 	Close()
 }
@@ -18,7 +23,7 @@ func NewSyncProducer(producerConfig ProducerConfig) IProducer {
 	config.Producer.Retry.Max = producerConfig.RetryMax
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
-	syncProducer, err := sarama.NewSyncProducer(producerConfig.Brokers, config)
+	syncProducer, err := sarama.NewSyncProducer(strings.Split(producerConfig.Brokers, ","), config)
 	if err != nil {
 		panic(err)
 	}
@@ -28,12 +33,31 @@ func NewSyncProducer(producerConfig ProducerConfig) IProducer {
 	}
 }
 
-func (p *SyncProducer) SendMessage(msg *sarama.ProducerMessage) {
-	p.producer.SendMessage(msg)
+func (p *SyncProducer) SendMessage(topic, key string, value any) {
+	byteValue, err := pktconn.MSG_PACKER.PackMsg(value, nil)
+	if err != nil {
+		log.Warnf("pack message error(%v)", err)
+		return
+	}
+
+	msg := &sarama.ProducerMessage{
+		Key:   sarama.StringEncoder(key),
+		Topic: topic,
+		Value: sarama.ByteEncoder(byteValue),
+	}
+	_, _, err = p.producer.SendMessage(msg)
+	if err != nil {
+		log.Warnf("send message error(%v)", err)
+		return
+	}
 }
 
 func (p *SyncProducer) SendMessages(msg []*sarama.ProducerMessage) {
-	p.producer.SendMessages(msg)
+	err := p.producer.SendMessages(msg)
+	if err != nil {
+		log.Warnf("pack message error(%v)", err)
+		return
+	}
 }
 
 func (p *SyncProducer) Close() {
@@ -49,7 +73,7 @@ func NewAsyncProducer(producerConfig ProducerConfig) IProducer {
 	config.Producer.Retry.Max = producerConfig.RetryMax
 	config.Producer.Return.Successes = false
 	config.Producer.Return.Errors = true
-	syncProducer, err := sarama.NewAsyncProducer(producerConfig.Brokers, config)
+	syncProducer, err := sarama.NewAsyncProducer(strings.Split(producerConfig.Brokers, ","), config)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +83,17 @@ func NewAsyncProducer(producerConfig ProducerConfig) IProducer {
 	}
 }
 
-func (p *AsyncProducer) SendMessage(msg *sarama.ProducerMessage) {
+func (p *AsyncProducer) SendMessage(topic, key string, value any) {
+	byteValue, err := pktconn.MSG_PACKER.PackMsg(value, nil)
+	if err != nil {
+		log.Warnf("pack message error(%v)", err)
+		return
+	}
+	msg := &sarama.ProducerMessage{
+		Key:   sarama.StringEncoder(key),
+		Topic: topic,
+		Value: sarama.ByteEncoder(byteValue),
+	}
 	p.producer.Input() <- msg
 }
 

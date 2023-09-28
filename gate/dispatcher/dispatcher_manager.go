@@ -9,6 +9,7 @@ import (
 	"go-one/common/register"
 	"go-one/common/utils"
 	"strconv"
+	"sync/atomic"
 )
 
 var gameDispatcherMap = make(map[string]map[uint8]*GameDispatcher)
@@ -19,15 +20,17 @@ var crontab = *cron.New(cron.WithSeconds())
 
 var gameDispatcherConfigs []entity.GameDispatcherConfig
 
-var dispatcherClientPacketQueue chan *pktconn.Packet
+var dispatcherClientPacketQueues []chan *pktconn.Packet
+var dispatcherClientPacketQueuesIndex = new(uint64)
 
-func InitGameDispatchers(dispatcherConfigs []entity.GameDispatcherConfig, queue chan *pktconn.Packet) {
+func InitGameDispatchers(dispatcherConfigs []entity.GameDispatcherConfig, queues []chan *pktconn.Packet) {
 	if len(dispatcherConfigs) == 0 {
-		panic("no game dispatcher config")
+		log.Error("no game dispatcher config")
+		return
 	}
 	gameDispatcherConfigs = dispatcherConfigs
 
-	dispatcherClientPacketQueue = queue
+	dispatcherClientPacketQueues = queues
 
 	newGameDispatcher()
 
@@ -101,10 +104,6 @@ func newGameDispatcher() {
 	}
 }
 
-func SetDispatcherClientPacketQueue(queue chan *pktconn.Packet) {
-	dispatcherClientPacketQueue = queue
-}
-
 func ChooseGameDispatcher(game string, entityID int64) *GameDispatcher {
 	loadBalancer := gameLoadBalancerMap[game]
 	if loadBalancer == nil {
@@ -176,4 +175,11 @@ func (l *PollingLoadBalancer) FixedChoose(game string, gameID uint8) *GameDispat
 	}
 
 	return gameDispatchers[gameID]
+}
+
+func getDispatcherClientPacketQueue() chan *pktconn.Packet {
+	index := atomic.AddUint64(dispatcherClientPacketQueuesIndex, 1) % uint64(len(dispatcherClientPacketQueues))
+	dispatcherClientPacketQueue := dispatcherClientPacketQueues[index]
+
+	return dispatcherClientPacketQueue
 }

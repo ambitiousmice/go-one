@@ -1,6 +1,7 @@
 package context
 
 import (
+	"errors"
 	"go-one/common/consts"
 	"go-one/common/idgenerator"
 	"go-one/common/log"
@@ -13,9 +14,9 @@ type IDGeneratorConfig struct {
 	NodeID int64  `yaml:"node_id"`
 }
 
-func InitIDGenerator(config IDGeneratorConfig) {
+func InitIDGenerator(config IDGeneratorConfig) error {
 	if config.Type == "" {
-		return
+		return nil
 	}
 
 	switch config.Type {
@@ -23,13 +24,14 @@ func InitIDGenerator(config IDGeneratorConfig) {
 	case consts.Snowflake:
 		node, err := idgenerator.NewNode(config.NodeID)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		idGenerator = node
 		log.Info("init snowflake id generator success")
 	default:
-		panic("unknown id generator type")
+		return errors.New("unknown id generator type")
 	}
+	return nil
 }
 
 func NextClientID() string {

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/robfig/cron/v3"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
 	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
-	"go-one/common/proto"
 	"go-one/gate/dispatcher"
 	"net"
 	"net/http"
@@ -32,12 +32,13 @@ var upgrader = websocket.Upgrader{
 // GateServer implements the gate service logic
 type GateServer struct {
 	sync.RWMutex
-	listenAddr                  string
-	cron                        *cron.Cron
-	tempClientProxies           map[string]*ClientProxy
-	clientProxies               map[int64]*ClientProxy
-	clientPacketQueue           chan *pktconn.Packet
-	dispatcherClientPacketQueue chan *pktconn.Packet
+	listenAddr                   string
+	websocketListenAddr          string
+	cron                         *cron.Cron
+	tempClientProxies            map[string]*ClientProxy
+	clientProxies                map[int64]*ClientProxy
+	clientPacketQueue            chan *pktconn.Packet
+	dispatcherClientPacketQueues []chan *pktconn.Packet
 
 	status                  uint8
 	checkHeartbeatsInterval int
@@ -56,58 +57,82 @@ func NewGateServer() *GateServer {
 		panic("gate server only can be initialized once")
 	}
 
-	cron := cron.New(cron.WithSeconds())
-	cron.Start()
+	cronTab := cron.New(cron.WithSeconds())
+	cronTab.Start()
 	gateServer = &GateServer{
-		tempClientProxies:           map[string]*ClientProxy{},
-		clientProxies:               map[int64]*ClientProxy{},
-		clientPacketQueue:           make(chan *pktconn.Packet, consts.GateServicePacketQueueSize),
-		dispatcherClientPacketQueue: make(chan *pktconn.Packet, consts.GateServicePacketQueueSize),
-		listenAddr:                  gateConfig.Server.ListenAddr,
-		cron:                        cron,
-		NeedLogin:                   gateConfig.Server.NeedLogin,
-		checkHeartbeatsInterval:     gateConfig.Server.HeartbeatCheckInterval,
-		clientTimeout:               time.Second * time.Duration(gateConfig.Server.ClientTimeout),
+		tempClientProxies:       map[string]*ClientProxy{},
+		clientProxies:           map[int64]*ClientProxy{},
+		clientPacketQueue:       make(chan *pktconn.Packet, consts.GateServicePacketQueueSize),
+		listenAddr:              gateConfig.Server.ListenAddr,
+		websocketListenAddr:     gateConfig.Server.WebsocketListenAddr,
+		cron:                    cronTab,
+		NeedLogin:               gateConfig.Server.NeedLogin,
+		checkHeartbeatsInterval: gateConfig.Server.HeartbeatCheckInterval,
+		clientTimeout:           time.Second * time.Duration(gateConfig.Server.ClientTimeout),
 	}
+
+	dispatcherClientPacketQueues := make([]chan *pktconn.Packet, gateConfig.Server.DispatcherClientPacketQueuesSize)
+
+	for i := 0; i < gateConfig.Server.DispatcherClientPacketQueuesSize; i++ {
+		dispatcherClientPacketQueues[i] = make(chan *pktconn.Packet, consts.GateServicePacketQueueSize)
+	}
+
+	gateServer.dispatcherClientPacketQueues = dispatcherClientPacketQueues
 
 	return gateServer
 }
 
 func (gs *GateServer) Run() {
 
-	dispatcher.InitGameDispatchers(GetGateConfig().GameDispatcherConfigs, gs.dispatcherClientPacketQueue)
+	dispatcher.InitGameDispatchers(GetGateConfig().GameDispatcherConfigs, gs.dispatcherClientPacketQueues)
 
 	go network.ServeTCPForever(gs.listenAddr, gs)
 	go gs.serveKCP(gs.listenAddr)
-	go network.ServeWebsocket("192.168.1.22:6668", gs)
+	go network.ServeWebsocket(gs.websocketListenAddr, gs)
 
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
-	gs.cron.AddFunc("@every 20s", func() {
+	gs.cron.AddFunc("@every 10s", func() {
 		log.Infof("当前在线人数:%d", len(gs.clientProxies))
 		log.Infof("客户端包队列长度:%d", len(gs.clientPacketQueue))
-		log.Infof("分发客户端包长度:%d", len(gs.dispatcherClientPacketQueue))
+
+		dispatcherClientPacketQueueLength := 0
+		for _, queue := range gs.dispatcherClientPacketQueues {
+			dispatcherClientPacketQueueLength = dispatcherClientPacketQueueLength + len(queue)
+		}
+		log.Infof("分发客户端包长度:%d", dispatcherClientPacketQueueLength)
 	})
 
 	gs.mainRoutine()
 }
 
 func (gs *GateServer) mainRoutine() {
-	for {
-		select {
-		case pkt := <-gs.clientPacketQueue:
-			go func() {
+	// 启动goroutine监听clientPacketQueue
+	go func() {
+		for {
+			select {
+			case pkt := <-gs.clientPacketQueue:
 				gs.handleClientProxyPacket(pkt)
 				pkt.Release()
-			}()
-
-		case pkt := <-gs.dispatcherClientPacketQueue:
-			go func() {
-				gs.handleDispatcherPacket(pkt)
-				pkt.Release()
-			}()
+			}
 		}
+	}()
+
+	// 启动goroutine监听dispatcherClientPacketQueues
+	for _, queue := range gs.dispatcherClientPacketQueues {
+		go func(q <-chan *pktconn.Packet) {
+			for {
+				select {
+				case pkt := <-q:
+					gs.handleDispatcherPacket(pkt)
+					pkt.Release()
+				}
+			}
+		}(queue)
 	}
+
+	// 阻塞方法，以防止退出
+	select {}
 }
 
 // ServeTCPConnection handle TCP connections from clients
@@ -136,7 +161,7 @@ func (gs *GateServer) serveKCP(addr string) {
 	//kcpListener, err := kcp.ListenWithOptions(addr, nil, 10, 3) // fec 前向纠错
 	kcpListener, err := kcp.ListenWithOptions(addr, nil, 0, 0)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
 	}
 
 	log.Infof("Listening on KCP: %s ...", addr)
@@ -144,7 +169,7 @@ func (gs *GateServer) serveKCP(addr string) {
 	for {
 		conn, err := kcpListener.AcceptKCP()
 		if err != nil {
-			log.Panic(err)
+			log.Error(err)
 		}
 
 		go gs.handleKCPConn(conn)
@@ -206,15 +231,8 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 }
 
 func (gs *GateServer) onClientProxyClose(cp *ClientProxy) {
-	clientProxy := gs.getTempClientProxy(cp.clientID)
-	if clientProxy == nil {
-		clientProxy = gs.getClientProxy(cp.entityID)
-		if clientProxy == nil {
-			return
-		}
-		gs.removeClientProxy(clientProxy.entityID)
-	}
-	gs.removeTempClientProxy(clientProxy.clientID)
+	gs.removeClientProxy(cp.entityID)
+	gs.removeTempClientProxy(cp.clientID)
 
 	log.Infof("%s: client %s disconnected", gs, cp)
 }
@@ -228,16 +246,16 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 
 	//log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
 	switch msgType {
-	case proto.GameMethodFromClient:
+	case common_proto.GameMethodFromClient:
 		cp.ForwardByDispatcher(pkt)
-	case proto.HeartbeatFromClient:
+	case common_proto.HeartbeatFromClient:
 		cp.SendHeartBeatAck()
-	case proto.EnterGameFromClient:
+	case common_proto.EnterGameFromClient:
 		cp.EnterGame(pkt)
-	case proto.OfflineFromClient:
+	case common_proto.OfflineFromClient:
 		cp.CloseAll()
 	default:
-		log.Panicf("unknown message type from client: %d", msgType)
+		log.Errorf("unknown message type from client: %d", msgType)
 	}
 
 }

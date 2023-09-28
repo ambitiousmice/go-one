@@ -1,4 +1,4 @@
-package game
+package scene_center
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type SceneIDPool struct {
+type IDPool struct {
 	mu        sync.Mutex
 	start     int64
 	end       int64
@@ -14,7 +14,7 @@ type SceneIDPool struct {
 	used      map[int64]bool
 }
 
-func NewSceneIDPool(start, end int64) (*SceneIDPool, error) {
+func NewIDPool(start, end int64) (*IDPool, error) {
 	if start <= 0 {
 		return nil, errors.New("start id must be greater than 0")
 	}
@@ -22,7 +22,7 @@ func NewSceneIDPool(start, end int64) (*SceneIDPool, error) {
 		return nil, errors.New("start id must be less than end id")
 	}
 
-	pool := &SceneIDPool{
+	pool := &IDPool{
 		start: start,
 		end:   end,
 		used:  make(map[int64]bool),
@@ -35,7 +35,7 @@ func NewSceneIDPool(start, end int64) (*SceneIDPool, error) {
 	return pool, nil
 }
 
-func (p *SceneIDPool) Get() (int64, error) {
+func (p *IDPool) Get() (int64, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -49,7 +49,7 @@ func (p *SceneIDPool) Get() (int64, error) {
 	return id, nil
 }
 
-func (p *SceneIDPool) Put(id int64) {
+func (p *IDPool) Put(id int64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

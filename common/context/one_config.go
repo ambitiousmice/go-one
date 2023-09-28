@@ -7,9 +7,9 @@ import (
 )
 
 type OneConfig struct {
-	Nacos               register.NacosConf   `yaml:"nacos"`
-	Logger              log.Config           `yaml:"logger"`
-	IDGeneratorConfig   IDGeneratorConfig    `yaml:"id_generator"`
-	KafkaProducerConfig kafka.ProducerConfig `yaml:"kafka-producer"`
-	KafkaConsumerConfig kafka.ConsumerConfig `yaml:"kafka-consumer"`
+	Nacos                register.NacosConf     `yaml:"nacos"`
+	Logger               log.Config             `yaml:"logger"`
+	IDGeneratorConfig    IDGeneratorConfig      `yaml:"id_generator"`
+	KafkaProducerConfig  kafka.ProducerConfig   `yaml:"kafka-producer"`
+	KafkaConsumerConfigs []kafka.ConsumerConfig `yaml:"kafka-consumers"`
 }

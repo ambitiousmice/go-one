@@ -1,4 +1,4 @@
-package game
+package player
 
 type Player struct {
 	*BasePlayer

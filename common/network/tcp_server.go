@@ -1,6 +1,7 @@
 package network
 
 import (
+	"errors"
 	"go-one/common/log"
 	"net"
 	"time"
@@ -38,7 +39,7 @@ func ServeTCPForeverOnce(listenAddr string, delegate TCPServerDelegate) error {
 // ServeTCP serves on specified address as TCP server
 func ServeTCP(listenAddr string, delegate TCPServerDelegate) error {
 	if len(listenAddr) == 0 {
-		panic("tcp listenAddr is empty")
+		return errors.New("tcp listenAddr is empty")
 	}
 
 	listener, err := net.Listen("tcp", listenAddr)

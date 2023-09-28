@@ -41,9 +41,11 @@ func InitGateConfig() error {
 }
 
 type ServerConfig struct {
-	ListenAddr             string `yaml:"listenAddr"`
-	GoMaxProcs             int    `yaml:"goMaxProcs"`
-	HeartbeatCheckInterval int    `yaml:"heartbeatCheckInterval"`
-	ClientTimeout          int32  `yaml:"clientTimeout"`
-	NeedLogin              bool   `yaml:"needLogin"`
+	ListenAddr                       string `yaml:"listenAddr"`
+	WebsocketListenAddr              string `yaml:"websocketListenAddr"`
+	GoMaxProcs                       int    `yaml:"goMaxProcs"`
+	HeartbeatCheckInterval           int    `yaml:"heartbeatCheckInterval"`
+	ClientTimeout                    int32  `yaml:"clientTimeout"`
+	NeedLogin                        bool   `yaml:"needLogin"`
+	DispatcherClientPacketQueuesSize int    `yaml:"dispatcherClientPacketQueuesSize"`
 }

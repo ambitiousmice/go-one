@@ -3,11 +3,11 @@ package game_client
 import (
 	context2 "context"
 	"github.com/robfig/cron/v3"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
-	"go-one/common/proto"
 	"net"
 	"sync"
 
@@ -24,7 +24,7 @@ var ClientContext = make(map[int64]*Client)
 type Client struct {
 	sync.Mutex
 
-	id int64
+	ID int64
 
 	conn        *pktconn.PacketConn
 	packetQueue chan *pktconn.Packet
@@ -35,9 +35,9 @@ type Client struct {
 
 type IClient interface {
 	OnCreated(client *Client)
-	EnterGameParamWrapper(client *Client) *proto.EnterGameReq
-	OnEnterGameSuccess(client *Client, resp *proto.EnterGameResp)
-	OnJoinScene(client *Client, joinSceneResp *proto.JoinSceneResp)
+	EnterGameParamWrapper(client *Client) *common_proto.EnterGameReq
+	OnEnterGameSuccess(client *Client, resp *common_proto.EnterGameResp)
+	OnJoinScene(client *Client, joinSceneResp *common_proto.JoinSceneResp)
 }
 
 func NewClient(i IClient) *Client {
@@ -50,7 +50,7 @@ func NewClient(i IClient) *Client {
 }
 
 func (c *Client) String() string {
-	return fmt.Sprintf("Client<%d>", c.id)
+	return fmt.Sprintf("Client<%d>", c.ID)
 }
 
 func (c *Client) Run() {
@@ -68,9 +68,9 @@ func (c *Client) Run() {
 	defer c.conn.Close()
 	c.crontab.Start()
 
-	c.crontab.AddFunc("@every 2s", func() {
+	c.crontab.AddFunc("@every 10s", func() {
 		packet := pktconn.NewPacket()
-		packet.WriteUint16(proto.HeartbeatFromClient)
+		packet.WriteUint16(common_proto.HeartbeatFromClient)
 		c.conn.SendAndRelease(packet)
 		//log.Infof("==============发送心跳包,packetQueue长度:%d", len(c.packetQueue))
 	})
@@ -155,20 +155,20 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		log.Infof("handlePacket: %d", msgType)
 	}
 	switch msgType {
-	case proto.ConnectionSuccessFromServer:
+	case common_proto.ConnectionSuccessFromServer:
 		c.enterGame()
 		log.Infof("发送登录消息")
-	case proto.EnterGameClientAck:
-		loginResp := &proto.EnterGameResp{}
+	case common_proto.EnterGameClientAck:
+		loginResp := &common_proto.EnterGameResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果,EntityID:%d,game:%s", loginResp.EntityID, loginResp.Game)
-		c.id = loginResp.EntityID
+		c.ID = loginResp.EntityID
 		c.I.OnEnterGameSuccess(c, loginResp)
 
-		ClientContext[c.id] = c
+		ClientContext[c.ID] = c
 
-	case proto.GameMethodFromClientAck:
-		gameResp := &proto.GameResp{}
+	case common_proto.GameMethodFromClientAck:
+		gameResp := &common_proto.GameResp{}
 		packet.ReadData(gameResp)
 		processor := ProcessorContext[gameResp.Cmd]
 		if processor == nil {
@@ -190,12 +190,12 @@ func (c *Client) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (c *Client) enterGame() {
-	c.SendMsg(proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
+	c.SendMsg(common_proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
 }
 
-func (c *Client) sendGameMsg(cmd uint16, data []byte) {
-	c.SendMsg(proto.GameMethodFromClient, &proto.GameReq{
+func (c *Client) SendGameData(cmd uint16, data any) {
+	c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
 		Cmd:   cmd,
-		Param: data,
+		Param: PackMsg(data),
 	})
 }

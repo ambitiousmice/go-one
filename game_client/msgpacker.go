@@ -11,3 +11,12 @@ func UnPackMsg(param []byte, obj any) {
 		log.Errorf("unpack msg error: %s", err.Error())
 	}
 }
+
+func PackMsg(obj any) []byte {
+	bytes, err := pktconn.MSG_PACKER.PackMsg(obj, nil)
+	if err != nil {
+		log.Errorf("unpack msg error: %s", err.Error())
+	}
+
+	return bytes
+}

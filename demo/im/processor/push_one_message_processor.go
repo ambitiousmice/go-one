@@ -1,19 +1,23 @@
 package processor
 
 import (
+	"go-one/demo/im/message_center"
 	"go-one/demo/im/proto"
-	"go-one/demo/im/room"
-	"go-one/game"
+	"go-one/game/player"
 )
 
 type PushOneMessageProcessor struct {
 }
 
-func (t *PushOneMessageProcessor) Process(player *game.Player, param []byte) {
+func (t *PushOneMessageProcessor) Process(player *player.Player, param []byte) {
 	pushMessageReq := &proto.PushMessageReq{}
 	UnPackMsg(player, param, pushMessageReq)
 
-	room.CRM.SubscribeRoom(player, pushMessageReq.RoomID)
+	pushMessageReq.From = player.EntityID
+
+	message_center.OneMessageHandler(pushMessageReq)
+	//kafka.Producer.SendMessage(message_center.One, utils.ToString(pushMessageReq.To), pushMessageReq)
+
 }
 
 func (t *PushOneMessageProcessor) GetCmd() uint16 {

@@ -3,11 +3,11 @@ package main
 import (
 	context2 "context"
 	"github.com/robfig/cron/v3"
+	"go-one/common/common_proto"
 	"go-one/common/consts"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
-	"go-one/common/proto"
 	"net"
 	"sync"
 
@@ -61,7 +61,7 @@ func (bot *ClientBot) run() {
 
 	bot.crontab.AddFunc("@every 2s", func() {
 		packet := pktconn.NewPacket()
-		packet.WriteUint16(proto.HeartbeatFromClient)
+		packet.WriteUint16(common_proto.HeartbeatFromClient)
 		bot.conn.SendAndRelease(packet)
 		//log.Infof("==============发送心跳包,packetQueue长度:%d", len(bot.packetQueue))
 	})
@@ -146,11 +146,11 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 		log.Infof("handlePacket: %d", msgType)
 	}
 	switch msgType {
-	case proto.ConnectionSuccessFromServer:
+	case common_proto.ConnectionSuccessFromServer:
 		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
 		log.Infof("发送登录消息")
-	case proto.EnterGameClientAck:
-		loginResp := &proto.EnterGameResp{}
+	case common_proto.EnterGameClientAck:
+		loginResp := &common_proto.EnterGameResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果,EntityID:%d", loginResp.EntityID)
 		/*go func() {
@@ -159,12 +159,12 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 				time.Sleep(time.Microsecond * 100)
 			}
 		}()*/
-	case proto.GameMethodFromClientAck:
-		gameResp := &proto.GameResp{}
+	case common_proto.GameMethodFromClientAck:
+		gameResp := &common_proto.GameResp{}
 		packet.ReadData(gameResp)
 		switch gameResp.Cmd {
-		case proto.JoinScene:
-			joinRoomResp := &proto.JoinSceneResp{}
+		case common_proto.JoinScene:
+			joinRoomResp := &common_proto.JoinSceneResp{}
 			pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, joinRoomResp)
 			log.Infof("加入房间结果:%s", joinRoomResp)
 		default:
@@ -188,7 +188,7 @@ func (bot *ClientBot) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (bot *ClientBot) login(account string) {
-	bot.SendMsg(proto.EnterGameFromClient, &proto.EnterGameReq{
+	bot.SendMsg(common_proto.EnterGameFromClient, &common_proto.EnterGameReq{
 		AccountType: consts.TokenLogin,
 		Account:     account,
 		Game:        "elite-star",
@@ -196,7 +196,7 @@ func (bot *ClientBot) login(account string) {
 }
 
 func (bot *ClientBot) sendGameMsg(cmd uint16, data []byte) {
-	bot.SendMsg(proto.GameMethodFromClient, &proto.GameReq{
+	bot.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
 		Cmd:   cmd,
 		Param: data,
 	})

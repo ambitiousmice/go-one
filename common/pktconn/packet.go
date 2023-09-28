@@ -425,7 +425,7 @@ func (p *Packet) ReadMapStringString() map[string]string {
 func (p *Packet) AppendData(msg interface{}) {
 	dataBytes, err := MSG_PACKER.PackMsg(msg, nil)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
 	}
 
 	p.WriteVarBytesI(dataBytes)
@@ -437,7 +437,7 @@ func (p *Packet) ReadData(msg interface{}) {
 	//gwlog.Infof("ReadData: %s", string(b))
 	err := MSG_PACKER.UnpackMsg(b, msg)
 	if err != nil {
-		log.Panic(err)
+		log.Error(err)
 	}
 }
 

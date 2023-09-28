@@ -8,6 +8,7 @@ import (
 	"go-one/common/log"
 	"go-one/common/pktconn"
 	"sync"
+	"sync/atomic"
 )
 
 type GameDispatcher struct {
@@ -19,11 +20,10 @@ type GameDispatcher struct {
 	gamePort      uint64
 	gameOnlineNum int32
 	status        int8
-	pollingIndex  uint8
+	pollingIndex  uint64
 
-	cron          *cron.Cron
-	channels      map[uint8]*GameDispatcherChannel
-	channelsMutex sync.Mutex
+	cron     *cron.Cron
+	channels map[uint8]*GameDispatcherChannel
 }
 
 func NewGameDispatcher(game string, gameID uint8, gameHost string, gamePort uint64) *GameDispatcher {
@@ -72,13 +72,8 @@ func (gd *GameDispatcher) checkChannelHealth() {
 func (gd *GameDispatcher) ForwardMsg(entityID int64, packet *pktconn.Packet) error {
 	packet.WriteInt64(entityID)
 
-	gd.channelsMutex.Lock()
-	gd.pollingIndex++
-	if gd.pollingIndex >= uint8(len(gd.channels)) {
-		gd.pollingIndex = 0
-	}
-	channel := gd.channels[gd.pollingIndex]
-	gd.channelsMutex.Unlock()
+	pollingIndex := uint8(atomic.AddUint64(&gd.pollingIndex, 1) % uint64(len(gd.channels)))
+	channel := gd.channels[pollingIndex]
 
 	if channel == nil {
 		log.Errorf("no available channel,")

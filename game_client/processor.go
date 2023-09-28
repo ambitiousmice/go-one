@@ -12,7 +12,7 @@ type Processor interface {
 func RegisterProcessor(p Processor) {
 	processor := ProcessorContext[p.GetCmd()]
 	if processor != nil {
-		panic("duplicate processor: " + strconv.Itoa(int(p.GetCmd())))
+		panic("duplicate processor_center: " + strconv.Itoa(int(p.GetCmd())))
 	}
 	ProcessorContext[p.GetCmd()] = p
 }

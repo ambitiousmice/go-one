@@ -40,6 +40,7 @@ func Warnf(fmt string, args ...interface{}) {
 
 // Errorf is format error level
 func Errorf(fmt string, args ...interface{}) {
+	Error(string(debug.Stack()))
 	logger.Errorf(fmt, args...)
 }
 

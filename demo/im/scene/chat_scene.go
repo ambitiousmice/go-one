@@ -1,15 +1,16 @@
 package scene
 
 import (
+	"go-one/common/common_proto"
 	"go-one/common/log"
-	"go-one/common/proto"
 	"go-one/demo/im/common"
 	"go-one/demo/im/room"
-	"go-one/game"
+	"go-one/game/player"
+	"go-one/game/scene_center"
 )
 
 type ChatScene struct {
-	game.Scene
+	scene_center.Scene
 
 	RoomManager *room.ChatRoomManager
 }
@@ -19,23 +20,23 @@ func (r *ChatScene) GetSceneType() string {
 }
 
 func (r *ChatScene) OnCreated() {
-	log.Infof("scene created,%s", r.String())
+	r.RoomManager = room.NewChatRoomManager()
 }
 
 func (r *ChatScene) OnDestroyed() {
-	log.Infof("scene destroyed,%s", r.String())
+	log.Infof("%s destroyed", r)
 }
 
-func (r *ChatScene) OnJoined(player *game.Player) {
-	log.Info("player joined scene,%s | %s", player.String(), r.String())
-	joinSceneResp := &proto.JoinSceneResp{
+func (r *ChatScene) OnJoined(p *player.Player) {
+	log.Infof("%s joined %s ", p, r)
+	joinSceneResp := &common_proto.JoinSceneResp{
 		SceneID:   r.ID,
 		SceneType: r.Type,
 	}
 
-	player.SendGameData(proto.JoinScene, joinSceneResp)
+	p.SendGameData(common_proto.JoinScene, joinSceneResp)
 }
 
-func (r *ChatScene) OnLeft(player *game.Player) {
-	r.RemovePlayer(player)
+func (r *ChatScene) OnLeft(p *player.Player) {
+	r.RemovePlayer(p)
 }

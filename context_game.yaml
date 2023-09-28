@@ -13,8 +13,7 @@ id_generator:
   node_id: 1
 
 1kafka-producer:
-  brokers:
-    - 47.108.106.231:9092
+  brokers: 47.108.106.231:9092
   retry-max: 5
   version: 2.8.0
   sync: true

@@ -12,18 +12,19 @@ id_generator:
   type: "snowflake"
   node_id: 1
 
-1kafka-producer:
-  brokers:
-    - 47.108.106.231:9092
+kafka-producer:
+  brokers: 192.168.1.213:9092
   retry-max: 5
   version: 2.8.0
   sync: true
 
-1kafka-consumer:
-  brokers:
-    - 47.108.106.231:9092
-  group: 
-  version: 2.8.0
+kafka-consumers:
+  - topics: one,room,broadcast
+    handler-name: chat
+    group: im_1
+    version: 2.8.0
+    brokers: 192.168.1.213:9092
+
 
 
 logger: # 日志配置
