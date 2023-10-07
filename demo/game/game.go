@@ -18,7 +18,7 @@ func main() {
 
 	context.Init()
 
-	game.InitGameConfig()
+	game.InitConfig()
 
 	RegisterProcessor()
 

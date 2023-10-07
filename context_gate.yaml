@@ -2,11 +2,33 @@ nacos:
   host: 192.168.1.213:8848
   instance:
     ip: 192.168.1.22
-    port: 14001
+    port: 6668
     service: gate
     metadata:
+      "partition": 1
       "clusterId": 1
+      "wsAddr": "192.168.1.22:6668"
+      "tcpAddr": "192.168.1.22:6666"
       "version": 1.0
+      "status": 10
+
+server:
+  gateID: 1
+  listenAddr: 192.168.1.22:6666
+  websocketListenAddr: 192.168.1.22:6668
+  goMaxProcs: 8
+  heartbeatCheckInterval: 30
+  clientTimeout: 50
+  needLogin: true
+  dispatcherClientPacketQueuesSize: 8
+
+game-dispatcher:
+  - game: im
+    channel-num: 3
+    load-balancer: polling
+
+params:
+  loginServerUrl: http://192.168.1.213:8000/oauth/app/validateToken
 
 id_generator:
   type: "snowflake"
@@ -45,5 +67,3 @@ logger: # 日志配置
     maxbackups: 200
     localtime: true
     compress: false
-
-

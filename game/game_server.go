@@ -30,7 +30,7 @@ type GameServer struct {
 	GpMutex         sync.RWMutex
 	gateProxies     map[string]*proxy.GateProxy
 	gateNodeProxies map[uint8][]*proxy.GateProxy
-	pollingIndex    uint8
+	pollingIndex    uint64
 
 	GatePacketQueue chan *pktconn.Packet
 
@@ -240,10 +240,10 @@ func (gs *GameServer) GetGateProxyByGateID(gateID uint8) *proxy.GateProxy {
 	}
 
 	gs.pollingIndex++
-	if gs.pollingIndex >= uint8(len(nodeProxies)) {
-		gs.pollingIndex = 0
-	}
-	gateProxy := nodeProxies[gs.pollingIndex]
+
+	pollingIndex := gs.pollingIndex % uint64(len(nodeProxies))
+
+	gateProxy := nodeProxies[pollingIndex]
 	return gateProxy
 }
 

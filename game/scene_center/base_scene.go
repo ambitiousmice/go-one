@@ -58,6 +58,14 @@ func (br *BaseScene) GetPlayerCount() int {
 	return len(br.players)
 }
 
+func (br *BaseScene) RunCron() {
+	br.cron.Run()
+}
+
+func (br *BaseScene) StopCron() {
+	br.cron.Stop()
+}
+
 func (br *BaseScene) AddCronTask(taskName string, spec string, method func()) error {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()

@@ -4,6 +4,7 @@ import (
 	"go-one/demo/im/proto"
 	"go-one/demo/im/room"
 	"go-one/game/player"
+	"go-one/game/scene_center"
 )
 
 type ChatPlayer struct {
@@ -28,6 +29,7 @@ func (p *ChatPlayer) OnClientDisconnected() {
 	for _, r := range p.subscribeRooms {
 		r.Leave(&p.Player)
 	}
+	scene_center.Leave(&p.Player)
 }
 
 func (p *ChatPlayer) SubscribeRoom(room *room.ChatRoom) {

@@ -10,7 +10,7 @@ func NewClientServer(iClient IClient) *ClientServer {
 
 func (cs *ClientServer) Run() {
 
-	err := ReadClientConfig()
+	err := InitConfig()
 	if err != nil {
 		panic(err)
 	}

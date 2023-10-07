@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/robfig/cron/v3"
+	"go-one/common/consts"
 	"go-one/common/entity"
 	"go-one/common/log"
 	"go-one/common/pktconn"
@@ -51,7 +52,7 @@ func newGameDispatcher() {
 		})
 
 		if err != nil {
-			log.Warnf("select gameDispatcherConfig:< %s > server instances error: ", gameDispatcherConfig, err.Error())
+			log.Warnf("select gameDispatcherConfig:< %s > server instances error: %s", gameDispatcherConfig, err.Error())
 			continue
 		}
 
@@ -79,7 +80,7 @@ func newGameDispatcher() {
 				gameLoadBalancerMap[game] = CreateLoadBalancer(gameDispatcherConfig.LoadBalancer)
 			}
 
-			gameIDStr := instance.Metadata["clusterId"]
+			gameIDStr := instance.Metadata[consts.ClusterId]
 
 			gameID, err := strconv.ParseUint(gameIDStr, 10, 8)
 			if err != nil {
@@ -120,61 +121,6 @@ func GetGameDispatcher(game string, gameID uint8) *GameDispatcher {
 		return nil
 	}
 	return loadBalancer.FixedChoose(game, gameID)
-}
-
-type LoadBalancer interface {
-	Choose(game string, entityID int64) *GameDispatcher
-	FixedChoose(game string, gameID uint8) *GameDispatcher
-}
-
-func CreateLoadBalancer(loadBalancerType string) LoadBalancer {
-	switch loadBalancerType {
-	case "polling":
-		return NewPollingLoadBalancer()
-	default:
-		return nil
-	}
-}
-
-type PollingLoadBalancer struct {
-	pollingIndex int8
-	gameIDs      []uint8
-}
-
-func NewPollingLoadBalancer() *PollingLoadBalancer {
-	return &PollingLoadBalancer{}
-}
-
-func (l *PollingLoadBalancer) Choose(game string, entityID int64) *GameDispatcher {
-	gameDispatchers := gameDispatcherMap[game]
-	if gameDispatchers == nil || len(gameDispatchers) == 0 {
-		return nil
-	}
-
-	if len(gameDispatchers) == len(l.gameIDs) {
-		l.pollingIndex++
-		if l.pollingIndex >= int8(len(l.gameIDs)) {
-			l.pollingIndex = 0
-		}
-		return gameDispatchers[l.gameIDs[l.pollingIndex]]
-	}
-
-	gameIDs := make([]uint8, 0, len(gameDispatchers))
-	for gameID := range gameDispatchers {
-		gameIDs = append(gameIDs, gameID)
-	}
-	l.gameIDs = gameIDs
-
-	return gameDispatchers[l.gameIDs[l.pollingIndex]]
-}
-
-func (l *PollingLoadBalancer) FixedChoose(game string, gameID uint8) *GameDispatcher {
-	gameDispatchers := gameDispatcherMap[game]
-	if gameDispatchers == nil || len(gameDispatchers) == 0 {
-		return nil
-	}
-
-	return gameDispatchers[gameID]
 }
 
 func getDispatcherClientPacketQueue() chan *pktconn.Packet {

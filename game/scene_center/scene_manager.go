@@ -1,6 +1,7 @@
 package scene_center
 
 import (
+	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/game/common"
 	"go-one/game/player"
@@ -11,6 +12,25 @@ import (
 
 var ManagerContext = make(map[string]*Manager)
 var sceneTypes = make(map[string]reflect.Type)
+var playerCountMap = make(map[string]int)
+
+func init() {
+	err := context.AddCronTask("scene_player_count_task", "0 0/1 * * * ?", func() {
+		for _, manager := range ManagerContext {
+			playerCount := 0
+			for _, scene := range manager.scenes {
+				playerCount += scene.GetPlayerCount()
+			}
+			playerCountMap[manager.sceneType] = playerCount
+		}
+		// TODO: 上报监控
+
+	})
+
+	if err != nil {
+		panic("add cron task scene_player_count_task error: " + err.Error())
+	}
+}
 
 type Manager struct {
 	mutex             sync.RWMutex
@@ -29,7 +49,6 @@ func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64
 	if err != nil {
 		panic("init room id pool error: " + err.Error())
 	}
-
 	return &Manager{
 		sceneType:         sceneType,
 		sceneIDStart:      sceneIDStart,

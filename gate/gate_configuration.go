@@ -1,8 +1,8 @@
 package gate
 
 import (
-	"fmt"
 	"go-one/common/entity"
+	"go-one/common/log"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -28,16 +28,15 @@ type GateConfig struct {
 	Params                map[string]interface{}
 }
 
-func InitGateConfig() error {
-	yamlFile, err := ioutil.ReadFile(yamlFile)
+func InitConfig() {
+	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Panic(err.Error())
 	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFile, &gateConfig)
+	err = yaml.Unmarshal(yamlFileBytes, &gateConfig)
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err.Error())
 	}
-	return nil
 }
 
 type ServerConfig struct {

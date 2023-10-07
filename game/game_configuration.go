@@ -23,12 +23,12 @@ type GameConfig struct {
 	Params              map[string]interface{} `yaml:"params"`
 }
 
-func InitGameConfig() {
-	yamlFile, err := ioutil.ReadFile(yamlFile)
+func InitConfig() {
+	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
 		fmt.Println(err.Error())
 	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFile, &gameConfig)
+	err = yaml.Unmarshal(yamlFileBytes, &gameConfig)
 	if err != nil {
 		panic("init Game config error: " + err.Error())
 	}

@@ -30,11 +30,11 @@ type serverConfig struct {
 }
 
 func ReadTestConfig() error {
-	yamlFile, err := ioutil.ReadFile(yamlFile)
+	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
 		fmt.Println(err.Error())
 	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFile, &Config)
+	err = yaml.Unmarshal(yamlFileBytes, &Config)
 	if err != nil {
 		return err
 	}

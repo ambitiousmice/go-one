@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -21,12 +20,12 @@ func GetOneConfig() OneConfig {
 	return oneConfig
 }
 
-func ReadYaml() error {
-	yamlFile, err := ioutil.ReadFile(yamlFile)
+func InitConfig() error {
+	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
-		fmt.Println(err.Error())
+		return err
 	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFile, &oneConfig)
+	err = yaml.Unmarshal(yamlFileBytes, &oneConfig)
 	if err != nil {
 		return err
 	}

@@ -9,10 +9,10 @@ import (
 func main() {
 
 	context.SetYamlFile("context_gate.yaml")
-
 	context.Init()
 
-	gate.InitGateConfig()
+	gate.SetYamlFile("context_gate.yaml")
+	gate.InitConfig()
 
 	gateServer := gate.NewGateServer()
 

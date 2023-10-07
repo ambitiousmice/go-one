@@ -17,13 +17,13 @@ import (
 func main() {
 
 	context.SetYamlFile("context_im.yaml")
-	game.SetYamlFile("im.yaml")
+	game.SetYamlFile("context_im.yaml")
 
 	kafka.RegisterConsumerHandler(common.KafkaConsumerHandlerNameChat, &message_center.Consumer{})
 
 	context.Init()
 
-	game.InitGameConfig()
+	game.InitConfig()
 
 	RegisterProcessor()
 

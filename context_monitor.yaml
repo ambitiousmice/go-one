@@ -2,31 +2,13 @@ nacos:
   host: 192.168.1.213:8848
   instance:
     ip: 192.168.1.22
-    port: 7788
-    service: im
+    port: 9999
+    service: monitor
     metadata:
       "clusterId": 1
       "version": 1.0
 
-id_generator:
-  type: "snowflake"
-  node_id: 1
-
-kafka-producer:
-  brokers: 192.168.1.213:9092
-  retry-max: 5
-  version: 2.8.0
-  sync: true
-
-kafka-consumers:
-  - topics: one,room,broadcast
-    handler-name: chat
-    group: im_1
-    version: 2.8.0
-    brokers: 192.168.1.213:9092
-
-# 日志配置
-logger:
+logger: # 日志配置
   zap-config:
     level: info
     development: false
@@ -53,31 +35,10 @@ logger:
       nameEncoder: ""
 
   lumberjack-config:
-    filename: im.log # 文件输出目录
+    filename: monitor.log # 文件输出目录
     maxsize: 100
     maxage: 30
     maxbackups: 200
     localtime: true
     compress: false
 
-
-server:
-  game: im
-  listenAddr: 192.168.1.22:7788
-  goMaxProcs: 8
-  heartbeatCheckInterval: 10
-  gateTimeout: 25
-
-
-scene-manager-configs:
-  - scene-type: lobby
-    scene-max-player-num: 100
-    scene-id-start: 1
-    scene-id-end: 100
-    match-strategy: order
-
-  - scene-type: chat
-    scene-max-player-num: 100
-    scene-id-start: 1
-    scene-id-end: 100
-    match-strategy: order

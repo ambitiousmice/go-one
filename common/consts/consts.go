@@ -53,8 +53,10 @@ const (
 
 // server status
 const (
+	ServiceOffline     = 0
 	ServiceTerminating = 1
 	ServiceTerminated  = 5
+	ServiceOnline      = 10
 )
 
 const (
@@ -87,4 +89,14 @@ const (
 const (
 	SystemError = "服务器繁忙, 请稍后再试"
 	ParamError  = "param error"
+)
+
+// metadata key
+const (
+	Partition = "partition"
+	ClusterId = "clusterId"
+	WSAddr    = "wsAddr"
+	TCPAddr   = "tcpAddr"
+	Version   = "version"
+	Status    = "status"
 )
