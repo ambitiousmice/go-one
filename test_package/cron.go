@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"go-one/common/json"
 	"log"
 	"net/http"
 	"sync"
@@ -45,14 +46,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	var s = make([]int, 0)
-	s[10] = 1
-	println(s[10])
-	println(s[1])
-	flag.Parse()
-	log.SetFlags(0)
-	http.HandleFunc("/ws", handler)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	var GateInfo http.Request
+	err := json.UnmarshalFromString("", GateInfo)
+	if err == nil {
+
+	}
+	println(GateInfo)
+
 }
 
 type T struct {

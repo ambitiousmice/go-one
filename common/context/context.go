@@ -2,6 +2,8 @@ package context
 
 import (
 	"github.com/robfig/cron/v3"
+	"go-one/common/cache"
+	"go-one/common/db"
 	"go-one/common/log"
 	"go-one/common/mq/kafka"
 	"go-one/common/register"
@@ -36,6 +38,9 @@ func Init() {
 	kafka.InitProducer(oneConfig.KafkaProducerConfig)
 	kafka.InitConsumer(oneConfig.KafkaConsumerConfigs)
 
+	db.InitMongo(&oneConfig.MongoDBConfig)
+
+	cache.InitRedis(&oneConfig.RedisConfig)
 	log.Info("context init success")
 }
 
