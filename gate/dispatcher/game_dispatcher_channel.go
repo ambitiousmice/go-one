@@ -196,7 +196,7 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	/*if msgType == 11 {
+	/*if msgType == common_proto.GameMethodFromClientAck {
 		log.Infof("handleGameMsg: %d", msgType)
 	}*/
 
@@ -204,7 +204,7 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 	case common_proto.HeartbeatFromDispatcherAck:
 		gpc.updateHeartbeatTime()
 	case common_proto.GameMethodFromClientAck:
-		gpc.processAck11(packet)
+		gpc.processAck2000(packet)
 	case common_proto.GameDispatcherChannelInfoFromDispatcherAck:
 		Handle3002(packet)
 
@@ -213,7 +213,7 @@ func (gpc *GameDispatcherChannel) handleGameMsg(packet *pktconn.Packet) {
 	}
 }
 
-func (gpc *GameDispatcherChannel) processAck11(packet *pktconn.Packet) {
+func (gpc *GameDispatcherChannel) processAck2000(packet *pktconn.Packet) {
 	packet.Retain()
 	dispatcherClientPacketQueue := getDispatcherClientPacketQueue()
 	select {

@@ -14,7 +14,7 @@ const (
 
 // from client
 const (
-	GameMethodFromClient    = 11
+	GameMethodFromClient    = 2000
 	GameMethodFromClientAck = GameMethodFromClient
 
 	HeartbeatFromClient    = 2001                // 心跳

@@ -19,7 +19,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 	go func() {
 		pushMessageReq := &proto.PushMessageReq{
 			RoomID: 1001,
-			//Msg:    "{\"test\":1}",
+			//Data:    "{\"test\":1}",
 			Msg: "{\"test\":1}",
 		}
 		for {
@@ -44,7 +44,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 			}
 			client.SendGameData(proto.PushRoomMessage, &proto.PushMessageReq{
 				RoomID: 1001,
-				Msg:    utils.ToString(client.ID),
+				Data:    utils.ToString(client.ID),
 			})
 			randomInt := rand.Intn(3)
 			sleepTime := time.Duration(randomInt) * time.Second
@@ -56,7 +56,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 		for {
 			client.SendGameData(proto.PushOneMessage, &proto.PushMessageReq{
 				To:  5,
-				Msg: "hello world:" + utils.ToString(client.ID),
+				Data: "hello world:" + utils.ToString(client.ID),
 			})
 			randomInt := rand.Intn(3)
 			sleepTime := time.Duration(randomInt) * time.Second

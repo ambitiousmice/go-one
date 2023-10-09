@@ -2,7 +2,7 @@ package common_proto
 
 type ErrorResp struct {
 	Code int32
-	Msg  string
+	Data string
 }
 
 type EnterGameFromServerParam struct {
@@ -10,17 +10,15 @@ type EnterGameFromServerParam struct {
 }
 
 type EnterGameReq struct {
-	AccountType  string
-	Account      string
-	Reconnection bool
-	EntityID     int64
-	ClientID     string
-	Game         string
-	GameID       uint8
+	AccountType string
+	Account     string
+	EntityID    int64
+	ClientID    string
+	Game        string
 }
 
 type EnterGameResp struct {
-	EntityID int64 `json:"entityID"`
+	EntityID int64
 	Game     string
 }
 

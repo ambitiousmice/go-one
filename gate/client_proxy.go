@@ -123,13 +123,13 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 	var param common_proto.EnterGameReq
 	packet.ReadData(&param)
 
-	if param.Reconnection {
+	if param.EntityID != 0 && param.ClientID != "" {
 		oldCP := gateServer.getClientProxy(param.EntityID)
 		if oldCP != nil && oldCP.entityID == param.EntityID && oldCP.clientID == param.ClientID {
 			oldCP.cron.Stop()
 			oldCP.Close()
 			cp.game = param.Game
-			cp.gameID = param.GameID
+			cp.gameID = oldCP.gameID
 			cp.entityID = oldCP.entityID
 		} else {
 			log.Errorf("Reconnection failed: %s", cp)
@@ -162,9 +162,6 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 	cp.entityID = ID
 
 	cp.game = param.Game
-	if param.GameID != 0 {
-		cp.gameID = param.GameID
-	}
 
 	cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
 	delete(cp.cronMap, consts.CheckEnterGame)
@@ -232,7 +229,7 @@ func (cp *ClientProxy) SendMsg(msgType uint16, msg interface{}) {
 
 func (cp *ClientProxy) SendError(error string) {
 	cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
-		Msg: error,
+		Data: error,
 	})
 }
 

@@ -166,7 +166,7 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 		case common_proto.JoinScene:
 			joinRoomResp := &common_proto.JoinSceneResp{}
 			pktconn.MSG_PACKER.UnpackMsg(gameResp.Data, joinRoomResp)
-			log.Infof("加入房间结果:%s", joinRoomResp)
+			log.Infof("加入场景结果:%s", joinRoomResp)
 		default:
 			log.Infof("gameResp:%d,%s", gameResp.Cmd, string(gameResp.Data))
 

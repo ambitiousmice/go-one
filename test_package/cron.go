@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
+	"go-one/common/idgenerator"
 	"go-one/common/json"
 	"log"
 	"net/http"
-	"sync"
-
 	_ "net/http/pprof"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -51,7 +51,9 @@ func main() {
 	if err == nil {
 
 	}
-	println(GateInfo)
+	node, err := idgenerator.NewNode(1)
+
+	println(node.NextIDStr())
 
 }
 
