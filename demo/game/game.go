@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/demo/game/processor"
@@ -14,7 +15,7 @@ import (
 
 func main() {
 
-	context.SetYamlFile("context_game.yaml")
+	flag.Parse()
 
 	context.Init()
 
@@ -26,7 +27,7 @@ func main() {
 
 	player.SetPlayerType(&DemoPlayer{})
 
-	go setupHTTPServer("127.0.0.1:8888", nil, "", "")
+	go setupHTTPServer(":8833", nil, "", "")
 
 	gameServer.Run()
 

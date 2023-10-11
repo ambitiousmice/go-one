@@ -1,8 +1,8 @@
 server:
-  ip: 192.168.1.22
-  port: 6668
-  client_num: 1
+  use-load-balancer: true
+  load-balancer-url: http://192.168.1.213:8888/gate/choose/test
+  partition: 1
+  server-host: 192.168.1.22:6666
+  client_num: 15
   kcp: false
-  websocket: true
-
-
+  websocket: false

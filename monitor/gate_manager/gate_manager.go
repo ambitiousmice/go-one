@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var gateContext = make(map[int64]*GateInfos)
@@ -18,6 +19,7 @@ var crontab = *cron.New(cron.WithSeconds())
 
 func init() {
 	_, err := crontab.AddFunc("@every 10s", func() {
+		start := time.Now().UnixMilli()
 		FreshGateInfo()
 		gatesMutex.RLock()
 		for partition, gateInfos := range gateContext {
@@ -28,7 +30,7 @@ func init() {
 			}
 			gatesMutex.RLock()
 		}
-		log.Infof("fresh gate info success")
+		log.Infof("fresh gate info success, cost: %d ms", time.Now().UnixMilli()-start)
 	})
 	if err != nil {
 		log.Panicf("init gate manager crontab error: ", err.Error())
@@ -171,7 +173,7 @@ func FreshGateInfo() {
 			if clusterIds[info.ClusterId] == false {
 				delete(gateInfos.Gates, info.ClusterId)
 			}
-			var newClusterIds = make([]int64, len(gateInfos.ClusterIds))
+			var newClusterIds = make([]int64, 0)
 			for clusterID, _ := range gateInfos.Gates {
 				newClusterIds = append(newClusterIds, clusterID)
 			}
@@ -184,9 +186,17 @@ func FreshGateInfo() {
 	}
 }
 
-func GetGateInfo(partition int64, entityID int64) *GateInfo {
+func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	gateInfos := GetGateInfos(partition)
 
 	index := entityID % int64(len(gateInfos.ClusterIds))
 	return gateInfos.getGate(gateInfos.ClusterIds[index])
+}
+
+func GetGateInfo(partition int64, clusterID int64) *GateInfo {
+	gateInfos := GetGateInfos(partition)
+	if gateInfos == nil {
+		return nil
+	}
+	return gateInfos.getGate(clusterID)
 }

@@ -1,15 +1,16 @@
 package context
 
 import (
+	"flag"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
-const (
-	contextFile = "context.yaml"
-)
+func init() {
+	flag.StringVar(&yamlFile, "cc", "context.yaml", "set config file path")
+}
 
-var yamlFile = contextFile
+var yamlFile string
 var oneConfig OneConfig
 
 func SetYamlFile(yaml string) {

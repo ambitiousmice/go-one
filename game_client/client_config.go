@@ -22,11 +22,13 @@ type config struct {
 }
 
 type serverConfig struct {
-	Kcp       bool   `yaml:"kcp"`
-	Websocket bool   `yaml:"websocket"`
-	IP        string `yaml:"ip"`
-	Port      string `yaml:"port"`
-	ClientNum int    `yaml:"client_num"`
+	UseLoadBalancer bool   `yaml:"use-load-balancer"`
+	LoadBalancerUrl string `yaml:"load-balancer-url"`
+	Partition       string `yaml:"partition"`
+	Kcp             bool   `yaml:"kcp"`
+	Websocket       bool   `yaml:"websocket"`
+	ServerHost      string `yaml:"server-host"`
+	ClientNum       int    `yaml:"client_num"`
 }
 
 func InitConfig() error {

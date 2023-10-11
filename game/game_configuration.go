@@ -1,16 +1,17 @@
 package game
 
 import (
+	"flag"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
-const (
-	YamlFile = "Game.yaml"
-)
+func init() {
+	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
+}
 
-var yamlFile = YamlFile
+var yamlFile string
 var gameConfig GameConfig
 
 func SetYamlFile(yaml string) {

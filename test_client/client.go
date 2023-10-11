@@ -5,9 +5,11 @@ import (
 	"github.com/robfig/cron/v3"
 	"go-one/common/common_proto"
 	"go-one/common/consts"
+	"go-one/common/json"
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
+	"go-one/common/utils"
 	"net"
 	"sync"
 
@@ -25,19 +27,49 @@ const _SPACE_ENTITY_TYPE = "__space__"
 type ClientBot struct {
 	sync.Mutex
 
-	id int
-
+	id          int
+	ServerHost  string
 	conn        *pktconn.PacketConn
 	packetQueue chan *pktconn.Packet
 	crontab     *cron.Cron
 }
 
+type result struct {
+	code string
+	data chooseGateResp
+}
+type chooseGateResp struct {
+	WsAddr  string
+	TcpAddr string
+	Version string
+}
+
 func newClientBot(id int) *ClientBot {
-	return &ClientBot{
+	c := &ClientBot{
 		id:          id,
 		packetQueue: make(chan *pktconn.Packet),
 		crontab:     cron.New(cron.WithSeconds()),
 	}
+	if Config.ServerConfig.UseLoadBalancer {
+		param := make(map[string]string)
+		param["partition"] = Config.ServerConfig.Partition
+		param["userId"] = utils.ToString(id)
+
+		resp, err := utils.Get(Config.ServerConfig.LoadBalancerUrl, param)
+		if err != nil {
+			panic(err)
+		}
+		var r result
+		json.UnmarshalFromString(resp, r)
+		if Config.ServerConfig.Websocket {
+			c.ServerHost = r.data.WsAddr
+		} else {
+			c.ServerHost = r.data.TcpAddr
+		}
+	} else {
+		c.ServerHost = Config.ServerConfig.ServerHost
+	}
+	return c
 }
 
 func (bot *ClientBot) String() string {
@@ -79,7 +111,7 @@ func (bot *ClientBot) connectServer() (net.Conn, error) {
 		return bot.connectServerByKCP()
 	}
 
-	conn, err := network.ConnectTCP(net.JoinHostPort(Config.ServerConfig.IP, Config.ServerConfig.Port))
+	conn, err := network.ConnectTCP(bot.ServerHost)
 	if err == nil {
 		conn.(*net.TCPConn).SetWriteBuffer(64 * 1024)
 		conn.(*net.TCPConn).SetReadBuffer(64 * 1024)
@@ -89,8 +121,7 @@ func (bot *ClientBot) connectServer() (net.Conn, error) {
 
 func (bot *ClientBot) connectServerByKCP() (net.Conn, error) {
 
-	serverAddr := net.JoinHostPort(Config.ServerConfig.IP, Config.ServerConfig.Port)
-	conn, err := kcp.DialWithOptions(serverAddr, nil, 0, 0)
+	conn, err := kcp.DialWithOptions(bot.ServerHost, nil, 0, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +138,8 @@ func (bot *ClientBot) connectServerByWebsocket() (net.Conn, error) {
 	originProto := "http"
 	wsProto := "ws"
 
-	origin := fmt.Sprintf("%s://%s:%s/", originProto, Config.ServerConfig.IP, Config.ServerConfig.Port)
-	wsaddr := fmt.Sprintf("%s://%s:%s/ws", wsProto, Config.ServerConfig.IP, Config.ServerConfig.Port)
+	origin := fmt.Sprintf("%s://%s/", originProto, bot.ServerHost)
+	wsaddr := fmt.Sprintf("%s://%s/ws", wsProto, bot.ServerHost)
 
 	return websocket.Dial(wsaddr, "", origin)
 }

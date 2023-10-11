@@ -1,16 +1,17 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
-const (
-	YamlFile = "monitor.yaml"
-)
+func init() {
+	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
+}
 
-var yamlFile = YamlFile
+var yamlFile string
 var config Config
 
 func SetYamlFile(yaml string) {

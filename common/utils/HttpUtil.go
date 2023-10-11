@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 // Post 处理post请求
@@ -26,4 +27,31 @@ func Post(url string, param interface{}, respData interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func Get(requestUrl string, queryParams map[string]string) (string, error) {
+	// 创建查询参数字符串
+	query := url.Values{}
+	for key, value := range queryParams {
+		query.Add(key, value)
+	}
+
+	// 将查询参数附加到URL
+	fullURL := requestUrl + "?" + query.Encode()
+
+	// 发起带查询参数的GET请求
+	resp, err := http.Get(fullURL)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// 读取响应体
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// 返回响应内容
+	return string(body), nil
 }

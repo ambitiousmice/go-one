@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/IBM/sarama v1.41.1
+	github.com/gin-contrib/timeout v0.0.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/json-iterator/go v1.1.12

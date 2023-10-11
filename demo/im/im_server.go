@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"go-one/common/context"
 	"go-one/common/mq/kafka"
 	"go-one/demo/im/common"
@@ -15,9 +16,7 @@ import (
 )
 
 func main() {
-
-	context.SetYamlFile("context_im.yaml")
-	game.SetYamlFile("context_im.yaml")
+	flag.Parse()
 
 	kafka.RegisterConsumerHandler(common.KafkaConsumerHandlerNameChat, &message_center.Consumer{})
 

@@ -1,45 +1,42 @@
 package main
 
 import (
+	"flag"
 	"go-one/common/context"
-	"go-one/common/json"
+	"go-one/common/utils"
 	"go-one/monitor/gate_manager"
-	"net/http"
-	"strconv"
+	"time"
 )
 import "github.com/gin-gonic/gin"
+import "github.com/gin-contrib/timeout"
 
 func main() {
-	context.SetYamlFile("context_monitor.yaml")
+	flag.Parse()
 
 	context.Init()
 
 	router := gin.Default()
+
+	gin.SetMode(gin.ReleaseMode)
+
+	router.Use(timeoutMiddleware())
+
 	gateGroup := router.Group("/gate")
 	{
-		gateGroup.GET("/choose/:partition/", chooseGate)
+		gateGroup.GET("/choose/:partition", gate_manager.ChooseGate)
+		gateGroup.GET("/choose/test", gate_manager.ChooseGateTest)
+		gateGroup.GET("/collectData", gate_manager.CollectData)
 	}
 
-	router.Run(":8080")
+	addr := ":" + utils.ToString(context.GetOneConfig().Nacos.Instance.Port)
+	router.Run(addr)
 }
 
-type UserInfo struct {
-	UserId int64
-}
-
-func chooseGate(c *gin.Context) {
-	userInfoStr := c.Request.Header.Get("user_info")
-	userInfo := &UserInfo{}
-	err := json.UnmarshalFromString(userInfoStr, userInfo)
-	if err != nil {
-		return
-	}
-	partitionStr := c.Param("partition")
-	partition, err := strconv.Atoi(partitionStr)
-	gateInfo := gate_manager.GetGateInfo(userInfo.UserId, int64(partition))
-	c.JSON(http.StatusOK, gin.H{
-		"code": "0",
-		"data": gateInfo,
-		"msg":  "success",
-	})
+func timeoutMiddleware() gin.HandlerFunc {
+	return timeout.New(
+		timeout.WithTimeout(3000*time.Millisecond),
+		timeout.WithHandler(func(c *gin.Context) {
+			c.Next()
+		}),
+	)
 }

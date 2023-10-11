@@ -1,17 +1,18 @@
 package gate
 
 import (
+	"flag"
 	"go-one/common/entity"
 	"go-one/common/log"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
-const (
-	YamlFile = "gate.yaml"
-)
+func init() {
+	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
+}
 
-var yamlFile = YamlFile
+var yamlFile string
 var gateConfig GateConfig
 
 func SetYamlFile(yaml string) {

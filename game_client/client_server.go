@@ -17,7 +17,7 @@ func (cs *ClientServer) Run() {
 
 	RegisterProcessor(&JoinSceneProcessor{})
 
-	for i := 0; i < Config.ServerConfig.ClientNum; i++ {
-		go NewClient(cs.iClient).Run()
+	for i := 1; i <= Config.ServerConfig.ClientNum; i++ {
+		go NewClient(int64(i), cs.iClient).Run()
 	}
 }

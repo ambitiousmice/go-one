@@ -11,9 +11,11 @@ import (
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
+	"go-one/common/utils"
 	"go-one/gate/dispatcher"
 	"net"
 	"net/http"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -92,6 +94,10 @@ func (gs *GateServer) Run() {
 
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
+	collectData := make(map[string]string)
+	collectData["partition"] = context.GetOneConfig().Nacos.Instance.Metadata[consts.Partition]
+	collectData["clusterID"] = context.GetOneConfig().Nacos.Instance.Metadata[consts.ClusterId]
+
 	gs.cron.AddFunc("@every 10s", func() {
 		log.Infof("当前在线人数:%d", len(gs.clientProxies))
 		log.Infof("客户端包队列长度:%d", len(gs.clientPacketQueue))
@@ -101,6 +107,18 @@ func (gs *GateServer) Run() {
 			dispatcherClientPacketQueueLength = dispatcherClientPacketQueueLength + len(queue)
 		}
 		log.Infof("分发客户端包长度:%d", dispatcherClientPacketQueueLength)
+		var stats runtime.MemStats
+		runtime.ReadMemStats(&stats)
+		totalMB := float64(stats.Sys) / 1024 / 1024
+		log.Infof("Total Memory: %.2f MB", totalMB)
+		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
+		log.Infof("Memory Usage: %.2f MB", memoryUsageMB)
+
+		collectData["connectionCount"] = strconv.Itoa(len(gs.clientProxies))
+		_, err := utils.Get(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData)
+		if err != nil {
+			log.Warnf("上报数据失败:%s", err)
+		}
 	})
 
 	gs.mainRoutine()

@@ -1,5 +1,7 @@
 package consts
 
+import "time"
+
 const (
 	BufferedReadBufferSize  = 16384
 	BufferedWriteBufferSize = 16384
@@ -18,7 +20,7 @@ const (
 	GameDispatcherReadBufferSize     = 1024 * 1024
 
 	DispatcherChannelMaxTryReconnectedCount = 20
-	ChannelTickInterval                     = 5
+	ChannelTickInterval                     = 5 * time.Second
 )
 
 // DispatcherStatus
