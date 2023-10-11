@@ -23,10 +23,10 @@ type EnterGameResp struct {
 }
 
 type GameDispatcherChannelInfoReq struct {
-	GateID    uint8
-	Game      string
-	GameID    uint8
-	ChannelID uint8
+	GateClusterID uint8
+	Game          string
+	GameClusterID uint8
+	ChannelID     uint8
 }
 
 type GameDispatcherChannelInfoResp struct {

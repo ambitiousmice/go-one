@@ -15,7 +15,7 @@ func init() {
 
 type LoadBalancer interface {
 	Choose(game string, param any) *GameDispatcher
-	FixedChoose(game string, gameID uint8) *GameDispatcher
+	FixedChoose(game string, gameClusterID uint8) *GameDispatcher
 	Init()
 }
 
@@ -52,8 +52,8 @@ func CreateLoadBalancer(loadBalancerType string) LoadBalancer {
 }
 
 type PollingLoadBalancer struct {
-	pollingIndex uint64
-	gameIDs      []uint8
+	pollingIndex   uint64
+	gameClusterIDs []uint8
 }
 
 func NewPollingLoadBalancer() *PollingLoadBalancer {
@@ -66,30 +66,30 @@ func (l *PollingLoadBalancer) Choose(game string, param any) *GameDispatcher {
 		return nil
 	}
 
-	if len(gameDispatchers) == len(l.gameIDs) {
-		pollingIndex := uint8(atomic.AddUint64(&l.pollingIndex, 1) % uint64(len(l.gameIDs)))
+	if len(gameDispatchers) == len(l.gameClusterIDs) {
+		pollingIndex := uint8(atomic.AddUint64(&l.pollingIndex, 1) % uint64(len(l.gameClusterIDs)))
 
-		return gameDispatchers[l.gameIDs[pollingIndex]]
+		return gameDispatchers[l.gameClusterIDs[pollingIndex]]
 	}
 
-	gameIDs := make([]uint8, 0, len(gameDispatchers))
-	for gameID := range gameDispatchers {
-		gameIDs = append(gameIDs, gameID)
+	gameClusterIDs := make([]uint8, 0, len(gameDispatchers))
+	for gameClusterID := range gameDispatchers {
+		gameClusterIDs = append(gameClusterIDs, gameClusterID)
 	}
-	l.gameIDs = gameIDs
+	l.gameClusterIDs = gameClusterIDs
 
-	pollingIndex := uint8(atomic.AddUint64(&l.pollingIndex, 1) % uint64(len(l.gameIDs)))
+	pollingIndex := uint8(atomic.AddUint64(&l.pollingIndex, 1) % uint64(len(l.gameClusterIDs)))
 
-	return gameDispatchers[l.gameIDs[pollingIndex]]
+	return gameDispatchers[l.gameClusterIDs[pollingIndex]]
 }
 
-func (l *PollingLoadBalancer) FixedChoose(game string, gameID uint8) *GameDispatcher {
+func (l *PollingLoadBalancer) FixedChoose(game string, gameClusterID uint8) *GameDispatcher {
 	gameDispatchers := gameDispatcherMap[game]
 	if gameDispatchers == nil || len(gameDispatchers) == 0 {
 		return nil
 	}
 
-	return gameDispatchers[gameID]
+	return gameDispatchers[gameClusterID]
 }
 
 func (l *PollingLoadBalancer) Init() {
@@ -97,7 +97,7 @@ func (l *PollingLoadBalancer) Init() {
 }
 
 type HashLoadBalancer struct {
-	gameIDs []uint8
+	gameClusterIDs []uint8
 }
 
 func NewHashLoadBalancer() *HashLoadBalancer {
@@ -110,30 +110,30 @@ func (l *HashLoadBalancer) Choose(game string, entityID any) *GameDispatcher {
 		return nil
 	}
 
-	if len(gameDispatchers) == len(l.gameIDs) {
-		index := entityID.(uint64) % uint64(len(l.gameIDs))
+	if len(gameDispatchers) == len(l.gameClusterIDs) {
+		index := entityID.(uint64) % uint64(len(l.gameClusterIDs))
 
-		return gameDispatchers[l.gameIDs[index]]
+		return gameDispatchers[l.gameClusterIDs[index]]
 	}
 
-	gameIDs := make([]uint8, 0, len(gameDispatchers))
-	for gameID := range gameDispatchers {
-		gameIDs = append(gameIDs, gameID)
+	gameClusterIDs := make([]uint8, 0, len(gameDispatchers))
+	for gameClusterID := range gameDispatchers {
+		gameClusterIDs = append(gameClusterIDs, gameClusterID)
 	}
-	l.gameIDs = gameIDs
+	l.gameClusterIDs = gameClusterIDs
 
-	index := entityID.(uint64) % uint64(len(l.gameIDs))
+	index := entityID.(uint64) % uint64(len(l.gameClusterIDs))
 
-	return gameDispatchers[l.gameIDs[index]]
+	return gameDispatchers[l.gameClusterIDs[index]]
 }
 
-func (l *HashLoadBalancer) FixedChoose(game string, gameID uint8) *GameDispatcher {
+func (l *HashLoadBalancer) FixedChoose(game string, gameClusterID uint8) *GameDispatcher {
 	gameDispatchers := gameDispatcherMap[game]
 	if gameDispatchers == nil || len(gameDispatchers) == 0 {
 		return nil
 	}
 
-	return gameDispatchers[gameID]
+	return gameDispatchers[gameClusterID]
 }
 
 func (l *HashLoadBalancer) Init() {

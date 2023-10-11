@@ -1,12 +1,17 @@
 nacos:
   host: 192.168.1.213:8848
   instance:
-    ip: 192.168.1.213
+    ip: 192.168.1.22
     port: 8888
     service: monitor
     metadata:
       "clusterId": 1
       "version": 1.0
+
+gate:
+  name: gate
+  groupNames:
+    - 1
 
 logger: # 日志配置
   zap-config:

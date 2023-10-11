@@ -17,10 +17,10 @@ import (
 // ClientProxy is a game client connections managed by gate
 type ClientProxy struct {
 	*pktconn.PacketConn
-	clientID string
-	entityID int64
-	game     string
-	gameID   uint8
+	clientID  string
+	entityID  int64
+	game      string
+	clusterID uint8
 
 	heartbeatTime time.Time
 	cron          *cron.Cron
@@ -87,12 +87,12 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 	}()
 
 	var gameDispatcher *dispatcher.GameDispatcher
-	if cp.gameID != 0 {
-		gameDispatcher = dispatcher.GetGameDispatcher(cp.game, cp.gameID)
+	if cp.clusterID != 0 {
+		gameDispatcher = dispatcher.GetGameDispatcher(cp.game, cp.clusterID)
 	} else {
 		gameDispatcher = dispatcher.ChooseGameDispatcher(cp.game, cp.entityID)
 		if gameDispatcher != nil {
-			cp.gameID = gameDispatcher.GetGameID()
+			cp.clusterID = gameDispatcher.GetGameClusterID()
 		}
 	}
 
@@ -129,7 +129,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 			oldCP.cron.Stop()
 			oldCP.Close()
 			cp.game = param.Game
-			cp.gameID = oldCP.gameID
+			cp.clusterID = oldCP.clusterID
 			cp.entityID = oldCP.entityID
 		} else {
 			log.Errorf("Reconnection failed: %s", cp)
@@ -151,15 +151,12 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		return
 	}
 
-	/*loginResult, err := EnterGame(gateServer.LoginManager, param)
-	  if err != nil {
-	  	log.Errorf("EnterGame error: %s", err)
-	  	return
-	  }
-
-	  cp.entityID = loginResult.EntityID*/
-	ID = ID + 1
-	cp.entityID = ID
+	loginResult, err := Login(gateServer.LoginManager, param)
+	if err != nil {
+		log.Errorf("EnterGame error: %s", err)
+		return
+	}
+	cp.entityID = loginResult.EntityID
 
 	cp.game = param.Game
 
@@ -198,7 +195,7 @@ func (cp *ClientProxy) HeartbeatTimeout() {
 }
 
 func (cp *ClientProxy) PlayerDisconnected() {
-	if cp.gameID == 0 || cp.entityID == 0 {
+	if cp.clusterID == 0 || cp.entityID == 0 {
 		return
 	}
 	packet := pktconn.NewPacket()

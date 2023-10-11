@@ -48,7 +48,7 @@ func ChooseGateTest(c *gin.Context) {
 	partitionStr := c.Query("partition")
 	partition, _ := strconv.Atoi(partitionStr)
 
-	userIdStr := c.Query("userId")
+	userIdStr := c.Query("entityID")
 	userId, _ := strconv.Atoi(userIdStr)
 
 	gateInfo := ChooseGateInfo(int64(partition), int64(userId))

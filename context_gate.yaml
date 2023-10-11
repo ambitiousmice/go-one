@@ -4,9 +4,9 @@ nacos:
     ip: 192.168.1.22
     port: 6668
     service: gate
+    groupName: 1
+    clusterName: 1
     metadata:
-      "partition": 1
-      "clusterId": 1
       "wsAddr": "192.168.1.22:6668"
       "tcpAddr": "192.168.1.22:6666"
       "version": 1.0
@@ -23,6 +23,7 @@ server:
 
 game-dispatcher:
   - game: im
+    group-name: partition_1
     channel-num: 3
     load-balancer: polling
 

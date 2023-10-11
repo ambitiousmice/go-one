@@ -11,7 +11,7 @@ import (
 )
 
 type IGameServer interface {
-	SendAndRelease(gateID uint8, packet *pktconn.Packet)
+	SendAndRelease(gateClusterID uint8, packet *pktconn.Packet)
 }
 
 var gameServer IGameServer
@@ -26,31 +26,31 @@ type IScene interface {
 
 type BasePlayer struct {
 	sync.RWMutex
-	EntityID  int64
-	gateID    uint8
-	SceneType string
-	SceneID   int64
-	status    uint8
+	EntityID      int64
+	gateClusterID uint8
+	SceneType     string
+	SceneID       int64
+	status        uint8
 
 	cron    *cron.Cron
 	cronMap map[string]cron.EntryID
 	attrMap map[string]interface{}
 }
 
-func NewBasePlayer(entityID int64, gateID uint8) *BasePlayer {
+func NewBasePlayer(entityID int64, gateClusterID uint8) *BasePlayer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	return &BasePlayer{
-		EntityID: entityID,
-		gateID:   gateID,
-		cron:     crontab,
-		cronMap:  map[string]cron.EntryID{},
-		attrMap:  map[string]interface{}{},
+		EntityID:      entityID,
+		gateClusterID: gateClusterID,
+		cron:          crontab,
+		cronMap:       map[string]cron.EntryID{},
+		attrMap:       map[string]interface{}{},
 	}
 }
 
 func (p *BasePlayer) String() string {
-	return fmt.Sprintf("player info: EntityID=<%d>, gateID=<%d>", p.EntityID, p.gateID)
+	return fmt.Sprintf("player info: EntityID=<%d>, gateClusterID=<%d>", p.EntityID, p.gateClusterID)
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
@@ -78,7 +78,7 @@ func (p *BasePlayer) SendGameMsg(resp *common_proto.GameResp) {
 
 	packet.WriteInt64(p.EntityID)
 
-	gameServer.SendAndRelease(p.gateID, packet)
+	gameServer.SendAndRelease(p.gateClusterID, packet)
 }
 
 func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
@@ -102,7 +102,7 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 
 	packet.WriteInt64(p.EntityID)
 
-	gameServer.SendAndRelease(p.gateID, packet)
+	gameServer.SendAndRelease(p.gateClusterID, packet)
 }
 
 func (p *BasePlayer) UpdateStatus(status uint8) {

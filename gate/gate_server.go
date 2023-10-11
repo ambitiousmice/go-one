@@ -95,8 +95,8 @@ func (gs *GateServer) Run() {
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
 	collectData := make(map[string]string)
-	collectData["partition"] = context.GetOneConfig().Nacos.Instance.Metadata[consts.Partition]
-	collectData["clusterID"] = context.GetOneConfig().Nacos.Instance.Metadata[consts.ClusterId]
+	collectData[consts.Partition] = context.GetOneConfig().Nacos.Instance.GroupName
+	collectData[consts.ClusterId] = context.GetOneConfig().Nacos.Instance.ClusterName
 
 	gs.cron.AddFunc("@every 10s", func() {
 		log.Infof("当前在线人数:%d", len(gs.clientProxies))

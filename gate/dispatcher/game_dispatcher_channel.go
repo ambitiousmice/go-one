@@ -255,13 +255,13 @@ func (gpc *GameDispatcherChannel) sendHeartbeat() {
 }
 
 func (gpc *GameDispatcherChannel) sendDispatcherInfo() {
-	gateIDStr := context.GetOneConfig().Nacos.Instance.Metadata["clusterId"]
+	clusterIDStr := context.GetOneConfig().Nacos.Instance.ClusterName
 
-	gateID, _ := strconv.ParseUint(gateIDStr, 10, 8)
+	clusterID, _ := strconv.ParseUint(clusterIDStr, 10, 8)
 	gpc.SendMsg(common_proto.GameDispatcherChannelInfoFromDispatcher, &common_proto.GameDispatcherChannelInfoReq{
-		GateID:    uint8(gateID),
-		Game:      gpc.gameDispatcher.game,
-		GameID:    gpc.gameDispatcher.gameID,
-		ChannelID: gpc.channelID,
+		GateClusterID: uint8(clusterID),
+		Game:          gpc.gameDispatcher.game,
+		GameClusterID: gpc.gameDispatcher.gameClusterID,
+		ChannelID:     gpc.channelID,
 	})
 }

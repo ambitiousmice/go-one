@@ -96,7 +96,7 @@ const (
 // metadata key
 const (
 	Partition = "partition"
-	ClusterId = "clusterId"
+	ClusterId = "clusterID"
 	WSAddr    = "wsAddr"
 	TCPAddr   = "tcpAddr"
 	Version   = "version"

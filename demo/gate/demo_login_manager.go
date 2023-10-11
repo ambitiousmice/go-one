@@ -1,10 +1,8 @@
 package main
 
 import (
-	"errors"
-	"go-one/common/utils"
+	"go-one/common/context"
 	"go-one/gate"
-	"strconv"
 )
 
 type DemoLoginManager struct {
@@ -36,7 +34,7 @@ type ValidateTokenResp struct {
 }
 
 func (manager *DemoLoginManager) TokenLogin(token string) (*gate.LoginResult, error) {
-	data := &ValidateTokenResp{}
+	/*data := &ValidateTokenResp{}
 	result := &resultResp{Data: data}
 
 	err := utils.Post(manager.loginServerUrl, validateTokenReq{AccessToken: token}, &result)
@@ -57,5 +55,9 @@ func (manager *DemoLoginManager) TokenLogin(token string) (*gate.LoginResult, er
 
 	return &gate.LoginResult{
 		EntityID: EntityID,
+	}, nil*/
+
+	return &gate.LoginResult{
+		EntityID: context.NextEntityID(),
 	}, nil
 }

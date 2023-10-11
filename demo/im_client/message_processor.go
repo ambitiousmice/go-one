@@ -4,7 +4,6 @@ import (
 	"go-one/common/log"
 	"go-one/demo/im/proto"
 	"go-one/game_client"
-	"time"
 )
 
 type SubscribeRoomProcessor struct {
@@ -16,7 +15,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 
 	log.Infof("subscribe room success: %d", subscribeRoomResp.RoomID)
 
-	go func() {
+	/*go func() {
 		pushMessageReq := &proto.PushMessageReq{
 			RoomID: 1001,
 			//Data:    "{\"test\":1}",
@@ -35,19 +34,20 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 			}
 			time.Sleep(1 * time.Second)
 		}
-	}()
+	}()*/
 
 	/*go func() {
 		for {
-			for i := 0; i < 40; i++ {
+			currentTime := time.Now()
 
+			// 将时间转换为字符串，使用指定的格式
+			formattedTime := currentTime.Format("2006-01-02 15:04:05")
+			for i := 0; i < 40; i++ {
+				client.SendGameData(proto.PushRoomMessage, &proto.PushMessageReq{
+					RoomID: 1001,
+					Msg:    formattedTime,
+				})
 			}
-			client.SendGameData(proto.PushRoomMessage, &proto.PushMessageReq{
-				RoomID: 1001,
-				Data:    utils.ToString(client.ID),
-			})
-			randomInt := rand.Intn(3)
-			sleepTime := time.Duration(randomInt) * time.Second
 			time.Sleep(1 * time.Second)
 		}
 	}()*/

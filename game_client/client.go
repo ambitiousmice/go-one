@@ -54,7 +54,7 @@ func NewClient(ID int64, i IClient) *Client {
 	if Config.ServerConfig.UseLoadBalancer {
 		param := make(map[string]string)
 		param["partition"] = Config.ServerConfig.Partition
-		param["userId"] = utils.ToString(ID)
+		param["entityID"] = utils.ToString(ID)
 
 		resp, err := utils.Get(Config.ServerConfig.LoadBalancerUrl, param)
 		if err != nil {

@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -18,6 +17,10 @@ func SetYamlFile(yaml string) {
 	yamlFile = yaml
 }
 
+func GetConfig() Config {
+	return config
+}
+
 type Config struct {
 	Gate Gate `yaml:"gate"`
 }
@@ -25,7 +28,7 @@ type Config struct {
 func InitConfig() {
 	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
 	if err != nil {
-		fmt.Println(err.Error())
+		panic("init monitor config error: " + err.Error())
 	} // 将读取的yaml文件解析为响应的 struct
 	err = yaml.Unmarshal(yamlFileBytes, &config)
 	if err != nil {
@@ -34,5 +37,6 @@ func InitConfig() {
 }
 
 type Gate struct {
-	Name string `yaml:"name"`
+	Name       string   `yaml:"name"`
+	GroupNames []string `yaml:"groupNames"`
 }

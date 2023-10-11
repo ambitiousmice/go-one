@@ -32,7 +32,7 @@ type GateProxy struct {
 	gameProcessor       IGameProcessor
 	ProxyID             string
 	DispatcherChannelID uint8
-	GateID              uint8
+	GateClusterID       uint8
 
 	HeartbeatTime time.Time
 	Cron          *cron.Cron
@@ -57,7 +57,7 @@ func NewClientProxy(_conn net.Conn, gameServer IGameServer, gameProcessor IGameP
 }
 
 func (gp *GateProxy) String() string {
-	return fmt.Sprintf("GateProxy<gate:%d channel:%d addr:%s>", gp.GateID, gp.DispatcherChannelID, gp.RemoteAddr())
+	return fmt.Sprintf("GateProxy<gate:%d channel:%d addr:%s>", gp.GateClusterID, gp.DispatcherChannelID, gp.RemoteAddr())
 }
 
 func (gp *GateProxy) Serve(gatePacketQueue chan *pktconn.Packet) {
@@ -110,7 +110,7 @@ func (gp *GateProxy) Handle3002(pkt *pktconn.Packet) {
 		gp.CloseAll()
 	}
 
-	gp.GateID = req.GateID
+	gp.GateClusterID = req.GateClusterID
 	gp.DispatcherChannelID = req.ChannelID
 
 	gp.gameServer.AddGateProxy(gp)
@@ -126,7 +126,7 @@ func (gp *GateProxy) Handle3003(pkt *pktconn.Packet) {
 
 	p := player.GetPlayer(req.EntityID)
 	if p == nil {
-		p = player.AddPlayer(req.EntityID, gp.GateID)
+		p = player.AddPlayer(req.EntityID, gp.GateClusterID)
 		p.UpdateStatus(common.PlayerStatusOnline)
 		scene_center.JoinScene(common.SceneTypeLobby, 0, p)
 	} else {

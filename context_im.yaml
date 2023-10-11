@@ -4,8 +4,9 @@ nacos:
     ip: 192.168.1.22
     port: 7788
     service: im
+    groupName: 1
+    clusterName: 1
     metadata:
-      "clusterId": 1
       "version": 1.0
 
 id_generator:

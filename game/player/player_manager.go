@@ -24,7 +24,7 @@ func GetPlayer(entityID int64) *Player {
 	return playerMap[entityID]
 }
 
-func AddPlayer(entityID int64, gateID uint8) *Player {
+func AddPlayer(entityID int64, gateClusterID uint8) *Player {
 	player := GetPlayer(entityID)
 	if player != nil {
 		return player
@@ -34,7 +34,7 @@ func AddPlayer(entityID int64, gateID uint8) *Player {
 	iPlayer := iPlayerValue.Interface().(IPlayer)
 	player = reflect.Indirect(iPlayerValue).FieldByName("Player").Addr().Interface().(*Player)
 	player.I = iPlayer
-	player.init(entityID, gateID)
+	player.init(entityID, gateClusterID)
 
 	playerMutex.Lock()
 	defer playerMutex.Unlock()

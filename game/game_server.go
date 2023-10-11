@@ -197,19 +197,19 @@ func (gs *GameServer) AddGateProxy(gp *proxy.GateProxy) {
 	defer gs.GpMutex.Unlock()
 
 	for _, p := range gs.gateProxies {
-		if p.GateID == gp.GateID && p.DispatcherChannelID == gp.DispatcherChannelID {
+		if p.GateClusterID == gp.GateClusterID && p.DispatcherChannelID == gp.DispatcherChannelID {
 			gp.CloseAll()
 			break
 		}
 	}
 	gs.gateProxies[gp.ProxyID] = gp
-	nodeProxies := gs.gateNodeProxies[gp.GateID]
+	nodeProxies := gs.gateNodeProxies[gp.GateClusterID]
 	if nodeProxies == nil {
 		nodeProxies = []*proxy.GateProxy{gp}
-		gs.gateNodeProxies[gp.GateID] = nodeProxies
+		gs.gateNodeProxies[gp.GateClusterID] = nodeProxies
 	} else {
 		nodeProxies = append(nodeProxies, gp)
-		gs.gateNodeProxies[gp.GateID] = nodeProxies
+		gs.gateNodeProxies[gp.GateClusterID] = nodeProxies
 	}
 }
 
@@ -218,23 +218,23 @@ func (gs *GameServer) removeGateProxy(cp *proxy.GateProxy) {
 	defer gs.GpMutex.Unlock()
 	delete(gs.gateProxies, cp.ProxyID)
 
-	nodeProxies := gs.gateNodeProxies[cp.GateID]
+	nodeProxies := gs.gateNodeProxies[cp.GateClusterID]
 	if nodeProxies == nil {
 		return
 	}
 	for i, proxy := range nodeProxies {
 		if proxy.DispatcherChannelID == cp.DispatcherChannelID {
-			gs.gateNodeProxies[cp.GateID] = append(nodeProxies[:i], nodeProxies[i+1:]...)
+			gs.gateNodeProxies[cp.GateClusterID] = append(nodeProxies[:i], nodeProxies[i+1:]...)
 			break
 		}
 	}
 }
 
-func (gs *GameServer) GetGateProxyByGateID(gateID uint8) *proxy.GateProxy {
+func (gs *GameServer) GetGateProxyByGateClusterID(gateClusterID uint8) *proxy.GateProxy {
 	gs.GpMutex.Lock()
 	defer gs.GpMutex.Unlock()
 
-	nodeProxies := gs.gateNodeProxies[gateID]
+	nodeProxies := gs.gateNodeProxies[gateClusterID]
 	if nodeProxies == nil {
 		return nil
 	}
@@ -247,10 +247,10 @@ func (gs *GameServer) GetGateProxyByGateID(gateID uint8) *proxy.GateProxy {
 	return gateProxy
 }
 
-func (gs *GameServer) SendAndRelease(gateID uint8, packet *pktconn.Packet) {
-	gateProxy := gs.GetGateProxyByGateID(gateID)
+func (gs *GameServer) SendAndRelease(gateClusterID uint8, packet *pktconn.Packet) {
+	gateProxy := gs.GetGateProxyByGateClusterID(gateClusterID)
 	if gateProxy == nil {
-		log.Errorf("not found gate proxy:%d", gateID)
+		log.Errorf("not found gate proxy:%d", gateClusterID)
 		return
 	}
 

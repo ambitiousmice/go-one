@@ -4,6 +4,7 @@ import (
 	"flag"
 	"go-one/common/context"
 	"go-one/common/utils"
+	"go-one/monitor/config"
 	"go-one/monitor/gate_manager"
 	"time"
 )
@@ -14,6 +15,8 @@ func main() {
 	flag.Parse()
 
 	context.Init()
+
+	config.InitConfig()
 
 	router := gin.Default()
 

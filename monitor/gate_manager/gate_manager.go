@@ -6,6 +6,7 @@ import (
 	"go-one/common/consts"
 	"go-one/common/log"
 	"go-one/common/register"
+	"go-one/monitor/config"
 	"sort"
 	"strconv"
 	"sync"
@@ -20,16 +21,19 @@ var crontab = *cron.New(cron.WithSeconds())
 func init() {
 	_, err := crontab.AddFunc("@every 10s", func() {
 		start := time.Now().UnixMilli()
-		FreshGateInfo()
+		for _, groupName := range config.GetConfig().Gate.GroupNames {
+			FreshGateInfo(config.GetConfig().Gate.Name, groupName)
+		}
 		gatesMutex.RLock()
 		for partition, gateInfos := range gateContext {
-			gatesMutex.RUnlock()
+			gateInfos.RLock()
 			for _, gateInfo := range gateInfos.Gates {
 				log.Infof("partition: %d, clusterId: %d, wsAddr: %s, tcpAddr: %s, version: %s, status: %d, connectionCount: %d",
 					partition, gateInfo.ClusterId, gateInfo.WsAddr, gateInfo.TcpAddr, gateInfo.Version, gateInfo.Status, gateInfo.ConnectionCount)
 			}
-			gatesMutex.RLock()
+			gateInfos.RUnlock()
 		}
+		gatesMutex.RUnlock()
 		log.Infof("fresh gate info success, cost: %d ms", time.Now().UnixMilli()-start)
 	})
 	if err != nil {
@@ -91,43 +95,57 @@ func GetGateInfos(partition int64) *GateInfos {
 	return gateInfos
 }
 
-func FreshGateInfo() {
+func FreshGateInfo(gateName, groupName string) {
 	instances, err := register.NacosClient.SelectInstances(vo.SelectInstancesParam{
-		ServiceName: "gate",
+		ServiceName: gateName,
+		GroupName:   groupName,
 		HealthyOnly: true,
 	})
 
 	if err != nil {
-		log.Warnf("select gate server instances error: %s", err.Error())
+		log.Warnf("select %s|%s server error:%s", groupName, gateName, err.Error())
+	}
+
+	partition, err := strconv.ParseInt(groupName, 10, 64)
+	if err != nil {
+		log.Errorf("gate partition is not int: %s", groupName)
 		return
 	}
 
-	if len(instances) == 0 {
-		log.Warn("select gate server instances is empty")
-		return
+	var existingInstances = make(map[int64]bool)
+
+	gateInfos := GetGateInfos(partition)
+	for _, info := range gateInfos.Gates {
+		existingInstances[info.ClusterId] = true
 	}
 
-	var instancesMap = make(map[int64]map[int64]bool)
+	for clusterID := range existingInstances {
+		exist := false
+		for _, instance := range instances {
+			clusterIDStr := instance.Metadata[consts.ClusterId]
+			clusterId, _ := strconv.ParseInt(clusterIDStr, 10, 64)
+			if clusterId == clusterID {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			delete(gateInfos.Gates, clusterID)
+		}
+	}
 
 	for _, instance := range instances {
-		partitionStr := instance.Metadata[consts.Partition]
 		clusterIdStr := instance.Metadata[consts.ClusterId]
+		clusterId, err := strconv.ParseInt(clusterIdStr, 10, 64)
+		if err != nil {
+			log.Errorf("gate clusterId is not int,instance info:%s:%s|%s", instance.Ip, instance.Port, clusterIdStr)
+			continue
+		}
+
 		wsAddr := instance.Metadata[consts.WSAddr]
 		tcpAddr := instance.Metadata[consts.TCPAddr]
 		version := instance.Metadata[consts.Version]
 		statusStr := instance.Metadata[consts.Status]
-
-		partition, err := strconv.ParseInt(partitionStr, 10, 64)
-		if err != nil {
-			log.Errorf("gate partition is not int: %s", partitionStr)
-			continue
-		}
-
-		clusterId, err := strconv.ParseInt(clusterIdStr, 10, 64)
-		if err != nil {
-			log.Errorf("gate clusterId is not int: %s", clusterIdStr)
-			continue
-		}
 
 		status, err := strconv.ParseInt(statusStr, 10, 64)
 		if err != nil {
@@ -137,15 +155,6 @@ func FreshGateInfo() {
 		if status != consts.ServiceOnline {
 			continue
 		}
-
-		instanceClusterIds := instancesMap[partition]
-		if instanceClusterIds == nil {
-			instanceClusterIds = make(map[int64]bool)
-			instancesMap[partition] = instanceClusterIds
-		}
-		instanceClusterIds[clusterId] = true
-
-		gateInfos := GetGateInfos(partition)
 
 		gateInfo := gateInfos.getGate(clusterId)
 		if gateInfo == nil {
@@ -166,24 +175,16 @@ func FreshGateInfo() {
 		}
 	}
 
-	for partition, clusterIds := range instancesMap {
-		gateInfos := GetGateInfos(partition)
-		gateInfos.Lock()
-		for _, info := range gateInfos.Gates {
-			if clusterIds[info.ClusterId] == false {
-				delete(gateInfos.Gates, info.ClusterId)
-			}
-			var newClusterIds = make([]int64, 0)
-			for clusterID, _ := range gateInfos.Gates {
-				newClusterIds = append(newClusterIds, clusterID)
-			}
-			sort.Slice(newClusterIds, func(i, j int) bool {
-				return newClusterIds[i] < newClusterIds[j]
-			})
-			gateInfos.ClusterIds = newClusterIds
-		}
-		gateInfos.Unlock()
+	gateInfos.Lock()
+	var newClusterIds = make([]int64, 0)
+	for clusterID, _ := range gateInfos.Gates {
+		newClusterIds = append(newClusterIds, clusterID)
 	}
+	sort.Slice(newClusterIds, func(i, j int) bool {
+		return newClusterIds[i] < newClusterIds[j]
+	})
+	gateInfos.ClusterIds = newClusterIds
+	gateInfos.Unlock()
 }
 
 func ChooseGateInfo(partition int64, entityID int64) *GateInfo {

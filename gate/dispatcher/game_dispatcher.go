@@ -15,7 +15,7 @@ type GameDispatcher struct {
 	*pktconn.PacketConn
 	sync.Mutex
 	game          string
-	gameID        uint8
+	gameClusterID uint8
 	gameHost      string
 	gamePort      uint64
 	gameOnlineNum int32
@@ -26,13 +26,13 @@ type GameDispatcher struct {
 	channels map[uint8]*GameDispatcherChannel
 }
 
-func NewGameDispatcher(game string, gameID uint8, gameHost string, gamePort uint64) *GameDispatcher {
+func NewGameDispatcher(game string, gameClusterID uint8, gameHost string, gamePort uint64) *GameDispatcher {
 	return &GameDispatcher{
-		game:     game,
-		gameID:   gameID,
-		gameHost: gameHost,
-		gamePort: gamePort,
-		status:   consts.DispatcherStatusInit,
+		game:          game,
+		gameClusterID: gameClusterID,
+		gameHost:      gameHost,
+		gamePort:      gamePort,
+		status:        consts.DispatcherStatusInit,
 
 		cron:     cron.New(cron.WithSeconds()),
 		channels: make(map[uint8]*GameDispatcherChannel),
@@ -40,7 +40,7 @@ func NewGameDispatcher(game string, gameID uint8, gameHost string, gamePort uint
 }
 
 func (gd *GameDispatcher) String() string {
-	return fmt.Sprintf("GameDispatcher<%s><%d>", gd.game, gd.gameID)
+	return fmt.Sprintf("GameDispatcher<%s><%d>", gd.game, gd.gameClusterID)
 }
 
 func (gd *GameDispatcher) Run() {
@@ -56,7 +56,7 @@ func (gd *GameDispatcher) Run() {
 
 	gd.status = consts.DispatcherStatusHealth
 
-	log.Infof("GameDispatcher<%s><%d> started", gd.game, gd.gameID)
+	log.Infof("GameDispatcher<%s><%d> started", gd.game, gd.gameClusterID)
 }
 
 func (gd *GameDispatcher) checkChannelHealth() {
@@ -110,6 +110,6 @@ func (gd *GameDispatcher) CloseOne(channelID uint8) {
 	delete(gd.channels, channelID)
 }
 
-func (gd *GameDispatcher) GetGameID() uint8 {
-	return gd.gameID
+func (gd *GameDispatcher) GetGameClusterID() uint8 {
+	return gd.gameClusterID
 }

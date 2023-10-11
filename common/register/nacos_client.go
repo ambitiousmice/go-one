@@ -5,6 +5,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"go-one/common/consts"
 	"go-one/common/log"
 	"strconv"
 	"strings"
@@ -13,17 +14,19 @@ import (
 var NacosClient naming_client.INamingClient
 
 type NacosConf struct {
-	Host      string
-	Instance  Instance
-	Namespace string
-	LogLevel  string
+	Host      string   `yaml:"host"`
+	Instance  Instance `yaml:"instance"`
+	Namespace string   `yaml:"namespace"`
+	LogLevel  string   `yaml:"logLevel"`
 }
 
 type Instance struct {
-	Ip       string
-	Port     uint64
-	Service  string
-	Metadata map[string]string
+	Ip          string            `yaml:"ip"`
+	Port        uint64            `yaml:"port"`
+	Service     string            `yaml:"service"`
+	Metadata    map[string]string `yaml:"metadata"`
+	GroupName   string            `yaml:"groupName"`
+	ClusterName string            `yaml:"clusterName"`
 }
 
 func Run(config NacosConf) {
@@ -52,6 +55,7 @@ func Run(config NacosConf) {
 	//create ClientConfig
 	cc := *constant.NewClientConfig(
 		constant.WithNamespaceId(config.Namespace),
+		constant.WithUpdateCacheWhenEmpty(true),
 		constant.WithTimeoutMs(5000),
 		constant.WithNotLoadCacheAtStart(true),
 		constant.WithLogDir("/tmp/nacos/log"),
@@ -72,18 +76,23 @@ func Run(config NacosConf) {
 	}
 
 	instance := config.Instance
+
+	if len(instance.GroupName) != 0 {
+		instance.Metadata[consts.Partition] = instance.GroupName
+		instance.Metadata[consts.ClusterId] = instance.ClusterName
+	}
 	//Register
 	registerServiceInstance(client, vo.RegisterInstanceParam{
 		Ip:          instance.Ip,
 		Port:        instance.Port,
 		ServiceName: instance.Service,
-		/*GroupName:   "",
-		ClusterName: "",*/
-		Weight:    10,
-		Enable:    true,
-		Healthy:   true,
-		Ephemeral: true,
-		Metadata:  instance.Metadata,
+		GroupName:   instance.GroupName,
+		ClusterName: instance.ClusterName,
+		Weight:      10,
+		Enable:      true,
+		Healthy:     true,
+		Ephemeral:   true,
+		Metadata:    instance.Metadata,
 	})
 	NacosClient = client
 }

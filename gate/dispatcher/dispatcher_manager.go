@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/robfig/cron/v3"
-	"go-one/common/consts"
 	"go-one/common/entity"
 	"go-one/common/log"
 	"go-one/common/pktconn"
@@ -45,9 +44,11 @@ func InitGameDispatchers(dispatcherConfigs []entity.GameDispatcherConfig, queues
 func newGameDispatcher() {
 	for _, gameDispatcherConfig := range gameDispatcherConfigs {
 		game := gameDispatcherConfig.Game
+		groupName := gameDispatcherConfig.GroupName
 		channelNum := gameDispatcherConfig.ChannelNum
 		instances, err := register.NacosClient.SelectInstances(vo.SelectInstancesParam{
 			ServiceName: game,
+			GroupName:   groupName,
 			HealthyOnly: true,
 		})
 
@@ -63,14 +64,14 @@ func newGameDispatcher() {
 
 		checkMap := make(map[string]bool)
 		for _, instance := range instances {
-			gameIDStr := instance.Metadata["clusterId"]
+			clusterIDStr := instance.ClusterName
 
-			if len(gameIDStr) == 0 {
+			if len(clusterIDStr) == 0 {
 				panic("gameDispatcherConfig dispatcher instance clusterId is empty")
 			}
 
-			if checkMap[gameIDStr] {
-				panic("gameDispatcherConfig dispatcher instance clusterId is duplicate,ip:" + instance.Ip + ",port:" + utils.ToString(instance.Port))
+			if checkMap[clusterIDStr] {
+				panic("gameDispatcherConfig dispatcher instance gameClusterID is duplicate,ip:" + instance.Ip + ",port:" + utils.ToString(instance.Port))
 			}
 		}
 
@@ -80,25 +81,25 @@ func newGameDispatcher() {
 				gameLoadBalancerMap[game] = CreateLoadBalancer(gameDispatcherConfig.LoadBalancer)
 			}
 
-			gameIDStr := instance.Metadata[consts.ClusterId]
+			clusterIDStr := instance.ClusterName
 
-			gameID, err := strconv.ParseUint(gameIDStr, 10, 8)
+			clusterID, err := strconv.ParseUint(clusterIDStr, 10, 8)
 			if err != nil {
 				panic("gameDispatcherConfig dispatcher instance clusterId is not int")
 			}
 
-			gameDispatcher := gameDispatcherMap[game][uint8(gameID)]
+			gameDispatcher := gameDispatcherMap[game][uint8(clusterID)]
 			if gameDispatcher != nil {
 				continue
 			}
 
-			gameDispatcher = NewGameDispatcher(game, uint8(gameID), instance.Ip, instance.Port)
+			gameDispatcher = NewGameDispatcher(game, uint8(clusterID), instance.Ip, instance.Port)
 
 			for i := uint8(0); i < channelNum; i++ {
 				gameDispatcher.channels[i] = NewDispatcherChannel(i, gameDispatcher)
 			}
 
-			gameDispatcherMap[game][uint8(gameID)] = gameDispatcher
+			gameDispatcherMap[game][uint8(clusterID)] = gameDispatcher
 
 			gameDispatcher.Run()
 		}
@@ -114,13 +115,13 @@ func ChooseGameDispatcher(game string, entityID int64) *GameDispatcher {
 	return loadBalancer.Choose(game, entityID)
 }
 
-func GetGameDispatcher(game string, gameID uint8) *GameDispatcher {
+func GetGameDispatcher(game string, gameClusterID uint8) *GameDispatcher {
 	loadBalancer := gameLoadBalancerMap[game]
 	if loadBalancer == nil {
 		log.Warnf("game:< %s > loadBalancer is nil", game)
 		return nil
 	}
-	return loadBalancer.FixedChoose(game, gameID)
+	return loadBalancer.FixedChoose(game, gameClusterID)
 }
 
 func getDispatcherClientPacketQueue() chan *pktconn.Packet {

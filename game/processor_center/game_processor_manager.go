@@ -34,7 +34,7 @@ func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req 
 	p := player.GetPlayer(entityID)
 	if p == nil {
 		log.Warnf("p:<%d> not found", entityID)
-		/*p = game.AddPlayer(entityID, gp.gateID)
+		/*p = game.AddPlayer(entityID, gp.gateClusterID)
 		p.UpdateStatus(game.PlayerStatusOnline)*/
 	}
 	processor := gpm.processContext[req.Cmd]
