@@ -257,6 +257,12 @@ func (gs *GateServer) onClientProxyClose(cp *ClientProxy) {
 
 // GetDispatcherClientPacketQueue handles packets received by dispatcher client
 func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("handle ClientProxy Packet error:%s", err)
+		}
+	}()
+
 	cp := pkt.Src.Proxy.(*ClientProxy)
 	cp.heartbeatTime = time.Now()
 	//entityID := cp.entityID
@@ -279,6 +285,12 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 }
 
 func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("handle Dispatcher Packet error:%s", err)
+		}
+	}()
+
 	payload := packet.Payload()
 	length := len(payload)
 	entityID := int64(binary.LittleEndian.Uint64(payload[length-consts.EntityIDLength : length]))

@@ -1,7 +1,6 @@
-package room
+package chat
 
 import (
-	"go-one/demo/im/proto"
 	"go-one/game/player"
 	"sync"
 )
@@ -46,20 +45,13 @@ func (crm *ChatRoomManager) GetRoomNotNil(roomID int64) *ChatRoom {
 	return room
 }
 
-func (crm *ChatRoomManager) SubscribeRoom(player *player.Player, roomID int64) {
+func (crm *ChatRoomManager) SubscribeRoom(player *player.Player, roomID int64) *ChatRoom {
 	room := crm.GetRoomNotNil(roomID)
 	room.Join(player)
-
-	player.SendGameData(proto.SubscribeRoomAck, &proto.SubscribeRoomResp{
-		RoomID: roomID,
-	})
+	return room
 }
 
 func (crm *ChatRoomManager) UnsubscribeRoom(player *player.Player, roomID int64) {
 	room := crm.GetRoomNotNil(roomID)
 	room.Leave(player)
-
-	player.SendGameData(proto.UnsubscribeRoomAck, &proto.UnsubscribeRoomResp{
-		RoomID: roomID,
-	})
 }

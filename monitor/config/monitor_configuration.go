@@ -1,21 +1,12 @@
 package config
 
 import (
-	"flag"
+	"go-one/common/context"
+	"go-one/common/log"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 )
 
-func init() {
-	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
-}
-
-var yamlFile string
 var config Config
-
-func SetYamlFile(yaml string) {
-	yamlFile = yaml
-}
 
 func GetConfig() Config {
 	return config
@@ -26,13 +17,11 @@ type Config struct {
 }
 
 func InitConfig() {
-	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
+	configFromNacos := context.GetConfigFromNacos()
+	configByte := []byte(configFromNacos)
+	err := yaml.Unmarshal(configByte, &config)
 	if err != nil {
-		panic("init monitor config error: " + err.Error())
-	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFileBytes, &config)
-	if err != nil {
-		panic("init monitor config error: " + err.Error())
+		log.Panic(err.Error())
 	}
 }
 

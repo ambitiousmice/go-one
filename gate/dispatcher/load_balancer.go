@@ -111,7 +111,7 @@ func (l *HashLoadBalancer) Choose(game string, entityID any) *GameDispatcher {
 	}
 
 	if len(gameDispatchers) == len(l.gameClusterIDs) {
-		index := entityID.(uint64) % uint64(len(l.gameClusterIDs))
+		index := uint64(entityID.(int64)) % uint64(len(l.gameClusterIDs))
 
 		return gameDispatchers[l.gameClusterIDs[index]]
 	}
@@ -122,7 +122,7 @@ func (l *HashLoadBalancer) Choose(game string, entityID any) *GameDispatcher {
 	}
 	l.gameClusterIDs = gameClusterIDs
 
-	index := entityID.(uint64) % uint64(len(l.gameClusterIDs))
+	index := uint64(entityID.(int64)) % uint64(len(l.gameClusterIDs))
 
 	return gameDispatchers[l.gameClusterIDs[index]]
 }

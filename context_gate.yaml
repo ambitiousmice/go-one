@@ -2,69 +2,12 @@ nacos:
   host: 192.168.1.213:8848
   instance:
     ip: 192.168.1.22
-    port: 6668
+    port: 6665
     service: gate
     groupName: 1
-    clusterName: 1
+    clusterName: 4
     metadata:
-      "wsAddr": "192.168.1.22:6668"
+      "wsAddr": "192.168.1.22:6665"
       "tcpAddr": "192.168.1.22:6666"
       "version": 1.0
       "status": 10
-
-server:
-  listenAddr: 192.168.1.22:6666
-  websocketListenAddr: 192.168.1.22:6668
-  goMaxProcs: 8
-  heartbeatCheckInterval: 30
-  clientTimeout: 50
-  needLogin: true
-  dispatcherClientPacketQueuesSize: 8
-
-game-dispatcher:
-  - game: im
-    group-name: partition_1
-    channel-num: 3
-    load-balancer: polling
-
-params:
-  loginServerUrl: http://192.168.1.213:8000/oauth/app/validateToken
-  monitorServerCollectDataUrl: http://192.168.1.213:8888/gate/collectData
-
-id_generator:
-  type: "snowflake"
-  node_id: 1
-
-logger: # 日志配置
-  zap-config:
-    level: info
-    development: false
-    disableCaller: false
-    disableStacktrace: false
-    sampling:
-    encoding: "console"
-    outputPaths:
-      - "stderr"
-    errorOutputPaths:
-      - "stderr"
-    encoderConfig:
-      messageKey: "message"
-      levelKey: "level"
-      timeKey: "time"
-      nameKey: "logger"
-      callerKey: "caller"
-      stacktraceKey: "stacktrace"
-      lineEnding: ""
-      levelEncoder: "capitalColor"
-      timeEncoder: "iso8601"
-      durationEncoder: "seconds"
-      callerEncoder: "short"
-      nameEncoder: ""
-
-  lumberjack-config:
-    filename: gate.log # 文件输出目录
-    maxsize: 100
-    maxage: 30
-    maxbackups: 200
-    localtime: true
-    compress: false

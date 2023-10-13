@@ -12,7 +12,6 @@ import (
 )
 
 type GameDispatcher struct {
-	*pktconn.PacketConn
 	sync.Mutex
 	game          string
 	gameClusterID uint8
@@ -48,24 +47,28 @@ func (gd *GameDispatcher) Run() {
 		go channel.Run()
 	}
 
-	gd.cron.AddFunc("@every 10s", func() {
+	gd.cron.AddFunc("@every 5s", func() {
 		gd.checkChannelHealth()
 	})
 
 	gd.cron.Start()
 
-	gd.status = consts.DispatcherStatusHealth
-
 	log.Infof("GameDispatcher<%s><%d> started", gd.game, gd.gameClusterID)
 }
 
 func (gd *GameDispatcher) checkChannelHealth() {
+	var healthCount = 0
 	for _, channel := range gd.channels {
 		if channel.getStatus() == consts.DispatcherChannelStatusHealth {
+			healthCount++
 			continue
 		}
 
 		channel.ReRun()
+	}
+
+	if healthCount == 0 {
+		gd.status = consts.DispatcherStatusUnHealth
 	}
 }
 
@@ -92,10 +95,7 @@ func (gd *GameDispatcher) ForwardMsg(entityID int64, packet *pktconn.Packet) err
 func (gd *GameDispatcher) closeAll() {
 	gd.cron.Stop()
 	for key, channel := range gd.channels {
-		channel.cron.Stop()
-		channel.updateStatus(consts.DispatcherChannelStatusStop)
-		err := channel.Close()
-		log.Warnf("close channel<%d> failed: %s", channel.channelID, err.Error())
+		channel.stop()
 		delete(gd.channels, key)
 	}
 }

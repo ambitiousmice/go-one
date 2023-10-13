@@ -43,14 +43,11 @@ type IClient interface {
 	OnJoinScene(client *Client, joinSceneResp *common_proto.JoinSceneResp)
 }
 
-func NewClient(ID int64, i IClient) *Client {
-	c := &Client{
-		ID:          ID,
-		packetQueue: make(chan *pktconn.Packet),
-		crontab:     cron.New(cron.WithSeconds()),
-		I:           i,
-	}
-
+func (c *Client) Init(ID int64) *Client {
+	c.ID = ID
+	c.packetQueue = make(chan *pktconn.Packet)
+	c.crontab = cron.New(cron.WithSeconds())
+	c.I.OnCreated(c)
 	if Config.ServerConfig.UseLoadBalancer {
 		param := make(map[string]string)
 		param["partition"] = Config.ServerConfig.Partition
@@ -193,7 +190,6 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	switch msgType {
 	case common_proto.ConnectionSuccessFromServer:
 		c.enterGame()
-		log.Infof("发送登录消息")
 	case common_proto.EnterGameClientAck:
 		loginResp := &common_proto.EnterGameResp{}
 		packet.ReadData(loginResp)
@@ -227,6 +223,7 @@ func (c *Client) SendMsg(msgType uint16, msg interface{}) {
 
 func (c *Client) enterGame() {
 	c.SendMsg(common_proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
+	log.Infof("发送登录消息:%s", c)
 }
 
 func (c *Client) SendGameData(cmd uint16, data any) {

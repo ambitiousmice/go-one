@@ -50,11 +50,17 @@ func NewDispatcherChannel(channelID uint8, dispatcher *GameDispatcher) *GameDisp
 }
 
 func (gpc *GameDispatcherChannel) Run() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Game Dispatcher Channel Run, panic with error %s", err)
+		}
+	}()
 
 	var netConn net.Conn
 	netConn, err := gpc.connectServer()
 	if err != nil {
 		log.Errorf("connect server failed: " + err.Error())
+		return
 	}
 
 	netConn = pktconn.NewBufferedConn(netConn, consts.BufferedReadBufferSize, consts.BufferedWriteBufferSize)
@@ -89,9 +95,10 @@ func (gpc *GameDispatcherChannel) Run() {
 
 	gpc.updateStatus(consts.DispatcherChannelStatusHealth)
 
+	log.Infof("game<%s> dispatcher channel<%d> connect to server: %s", gpc.gameDispatcher.game, gpc.channelID, netConn.RemoteAddr().String())
+
 	gpc.handlePacketQueue()
 
-	log.Infof("game<%s> dispatcher channel<%d> connect to server: %s", gpc.gameDispatcher.game, gpc.channelID, netConn.RemoteAddr().String())
 }
 
 func (gpc *GameDispatcherChannel) ReRun() {
@@ -128,15 +135,20 @@ func (gpc *GameDispatcherChannel) ReRun() {
 
 	gpc.status = consts.DispatcherChannelStatusHealth
 
-	log.Infof("game<%s> dispatcher channel<%d> reconnect to server: %s", gpc.gameDispatcher.game, gpc.channelID, netConn.RemoteAddr().String())
+	log.Infof("game<%s> dispatcher channel<%d> reconnect to server: %s", gpc.gameDispatcher.game, gpc.channelID, gpc.RemoteAddr().String())
 }
 
 func (gpc *GameDispatcherChannel) stop() {
 	gpc.updateStatus(consts.DispatcherChannelStatusStop)
 	gpc.cron.Stop()
 	gpc.Close()
+	close(gpc.packetQueue)
 
+	log.Warnf("game<%s> dispatcher channel<%d> closed: %s", gpc.gameDispatcher.game, gpc.channelID, gpc.RemoteAddr().String())
+
+	gpc.gameDispatcher = nil
 }
+
 func (gpc *GameDispatcherChannel) connectServer() (net.Conn, error) {
 
 	conn, err := network.ConnectTCP(net.JoinHostPort(gpc.gameDispatcher.gameHost, utils.ToString(gpc.gameDispatcher.gamePort)))
@@ -158,7 +170,10 @@ func (gpc *GameDispatcherChannel) receive() {
 func (gpc *GameDispatcherChannel) handlePacketQueue() {
 	for {
 		select {
-		case pkt := <-gpc.packetQueue:
+		case pkt, ok := <-gpc.packetQueue:
+			if !ok {
+				return
+			}
 			gpc.handleGameMsg(pkt)
 			pkt.Release()
 		case <-gpc.ticker:

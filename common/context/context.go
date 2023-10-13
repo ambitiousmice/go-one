@@ -8,11 +8,13 @@ import (
 	"go-one/common/mq/kafka"
 	"go-one/common/register"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
 var cronTab = cron.New(cron.WithSeconds())
 var cronTaskMap = make(map[string]cron.EntryID)
+var configFromNacos string
 
 func init() {
 	cronTab.Start()
@@ -23,12 +25,13 @@ func Init() {
 	if err != nil {
 		panic("read yaml error:" + err.Error())
 	}
-
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	log.InitLogger(&oneConfig.Logger)
 
 	register.Run(oneConfig.Nacos)
+
+	InitConfigFromNacos()
 
 	err = InitIDGenerator(oneConfig.IDGeneratorConfig)
 	if err != nil {
@@ -41,7 +44,17 @@ func Init() {
 	db.InitMongo(&oneConfig.MongoDBConfig)
 
 	cache.InitRedis(&oneConfig.RedisConfig)
+
+	if len(oneConfig.PprofHost) != 0 {
+		log.Infof("run pprofServer ...")
+		go setupPprofServer(oneConfig.PprofHost)
+	}
+
 	log.Info("context init success")
+}
+
+func GetConfigFromNacos() string {
+	return configFromNacos
 }
 
 func AddCronTask(taskName string, spec string, method func()) error {
@@ -65,4 +78,18 @@ func RemoveCronTask(taskName string) {
 	if taskID != 0 {
 		cronTab.Remove(taskID)
 	}
+}
+
+func setupPprofServer(listenAddr string) {
+	log.Infof("http server listening on %s", listenAddr)
+	log.Infof("pprof http://%s/debug/pprof/ ... available commands: ", listenAddr)
+	log.Infof("    go tool pprof http://%s/debug/pprof/heap", listenAddr)
+	log.Infof("    go tool pprof http://%s/debug/pprof/profile", listenAddr)
+
+	go func() {
+		err := http.ListenAndServe(listenAddr, nil)
+		if err != nil {
+			log.Errorf("run pprofServer error:%s", err.Error())
+		}
+	}()
 }

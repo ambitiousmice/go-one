@@ -1,4 +1,4 @@
-package room
+package chat
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ var cronTab = cron.New(cron.WithSeconds())
 func init() {
 	cronTab.Start()
 	cronTab.AddFunc("@every 1s", func() {
-		log.Infof("message count: %d", atomic.LoadUint64(&messageCount))
+		//log.Infof("message count: %d", atomic.LoadUint64(&messageCount))
 		atomic.StoreUint64(&messageCount, 0)
 	})
 }
@@ -59,14 +59,19 @@ func (r *ChatRoom) Join(player *player.Player) {
 
 	r.players[player.EntityID] = player
 
+	player.I.(*ChatPlayer).SubscribeRoom(r)
 	log.Infof("%s join %s", player, r)
 }
 
-func (r *ChatRoom) Leave(p *player.Player) {
+func (r *ChatRoom) Leave(player *player.Player) {
 	r.pMutex.Lock()
 	defer r.pMutex.Unlock()
 
-	delete(r.players, p.EntityID)
+	delete(r.players, player.EntityID)
+
+	player.I.(*ChatPlayer).UnSubscribeRoom(r)
+
+	log.Infof("%s leave %s", player, r)
 }
 
 func (r *ChatRoom) Broadcast(msg *proto.ChatMessage) {
@@ -77,7 +82,6 @@ func (r *ChatRoom) Broadcast(msg *proto.ChatMessage) {
 	if len(r.msgBuffer) >= r.msgBufferMaxLen {
 		r.sendMessages()
 	}
-
 }
 
 func (r *ChatRoom) broadcastTask() {

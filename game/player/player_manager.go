@@ -1,6 +1,7 @@
 package player
 
 import (
+	"go-one/common/log"
 	"reflect"
 	"sync"
 )
@@ -25,6 +26,7 @@ func GetPlayer(entityID int64) *Player {
 }
 
 func AddPlayer(entityID int64, gateClusterID uint8) *Player {
+	log.Infof("添加用户:%d", entityID)
 	player := GetPlayer(entityID)
 	if player != nil {
 		return player
@@ -44,9 +46,13 @@ func AddPlayer(entityID int64, gateClusterID uint8) *Player {
 }
 
 func RemovePlayer(entityID int64) {
+	log.Infof("删除用户:%d", entityID)
+
 	player := GetPlayer(entityID)
 	if player != nil && player.I != nil {
 		player.I.OnClientDisconnected()
+	} else {
+		log.Infof("删除用户:%d,不存在", entityID)
 	}
 	playerMutex.Lock()
 	defer playerMutex.Unlock()

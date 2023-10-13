@@ -16,4 +16,5 @@ type OneConfig struct {
 	KafkaConsumerConfigs []kafka.ConsumerConfig `yaml:"kafka-consumers"`
 	MongoDBConfig        db.MongoDBConfig       `yaml:"mongodb"`
 	RedisConfig          cache.RedisConfig      `yaml:"redis"`
+	PprofHost            string                 `yaml:"pprof-host"`
 }

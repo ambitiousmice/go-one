@@ -1,23 +1,13 @@
 package gate
 
 import (
-	"flag"
+	"go-one/common/context"
 	"go-one/common/entity"
 	"go-one/common/log"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 )
 
-func init() {
-	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
-}
-
-var yamlFile string
 var gateConfig GateConfig
-
-func SetYamlFile(yaml string) {
-	yamlFile = yaml
-}
 
 func GetGateConfig() GateConfig {
 	return gateConfig
@@ -29,14 +19,23 @@ type GateConfig struct {
 	Params                map[string]interface{}
 }
 
-func InitConfig() {
-	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
+func InitConfig(localConfigs ...any) {
+	configFromNacos := context.GetConfigFromNacos()
+	configFromNacosBytes := []byte(configFromNacos)
+	err := yaml.Unmarshal(configFromNacosBytes, &gateConfig)
 	if err != nil {
 		log.Panic(err.Error())
-	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFileBytes, &gateConfig)
-	if err != nil {
-		log.Panic(err.Error())
+	}
+
+	if len(localConfigs) == 0 {
+		return
+	}
+
+	for _, config := range localConfigs {
+		err = yaml.Unmarshal(configFromNacosBytes, config)
+		if err != nil {
+			log.Panic(err.Error())
+		}
 	}
 }
 

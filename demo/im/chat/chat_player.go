@@ -1,8 +1,7 @@
-package player
+package chat
 
 import (
 	"go-one/demo/im/proto"
-	"go-one/demo/im/room"
 	"go-one/game/player"
 	"go-one/game/scene_center"
 )
@@ -10,11 +9,11 @@ import (
 type ChatPlayer struct {
 	player.Player
 
-	subscribeRooms map[int64]*room.ChatRoom
+	subscribeRooms map[int64]*ChatRoom
 }
 
 func (p *ChatPlayer) OnCreated() {
-	p.subscribeRooms = make(map[int64]*room.ChatRoom)
+	p.subscribeRooms = make(map[int64]*ChatRoom)
 }
 
 func (p *ChatPlayer) OnDestroy() {
@@ -32,7 +31,7 @@ func (p *ChatPlayer) OnClientDisconnected() {
 	scene_center.Leave(&p.Player)
 }
 
-func (p *ChatPlayer) SubscribeRoom(room *room.ChatRoom) {
+func (p *ChatPlayer) SubscribeRoom(room *ChatRoom) {
 	p.subscribeRooms[room.ID] = room
 
 	p.SendGameData(proto.SubscribeRoomAck, &proto.SubscribeRoomResp{
@@ -40,7 +39,7 @@ func (p *ChatPlayer) SubscribeRoom(room *room.ChatRoom) {
 	})
 }
 
-func (p *ChatPlayer) UnSubscribeRoom(room *room.ChatRoom) {
+func (p *ChatPlayer) UnSubscribeRoom(room *ChatRoom) {
 	delete(p.subscribeRooms, room.ID)
 	p.SendGameData(proto.UnsubscribeRoomAck, &proto.UnsubscribeRoomResp{
 		RoomID: room.ID,

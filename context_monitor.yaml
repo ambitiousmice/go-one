@@ -4,8 +4,8 @@ nacos:
     ip: 192.168.1.22
     port: 8888
     service: monitor
+    clusterName: 1
     metadata:
-      "clusterId": 1
       "version": 1.0
 
 gate:

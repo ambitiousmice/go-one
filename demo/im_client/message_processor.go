@@ -13,7 +13,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 	subscribeRoomResp := &proto.SubscribeRoomResp{}
 	game_client.UnPackMsg(param, subscribeRoomResp)
 
-	log.Infof("subscribe room success: %d", subscribeRoomResp.RoomID)
+	log.Infof(" %s subscribe room success: %d", client, subscribeRoomResp.RoomID)
 
 	/*go func() {
 		pushMessageReq := &proto.PushMessageReq{

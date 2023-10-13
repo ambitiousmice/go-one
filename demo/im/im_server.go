@@ -4,9 +4,9 @@ import (
 	"flag"
 	"go-one/common/context"
 	"go-one/common/mq/kafka"
+	"go-one/demo/im/chat"
 	"go-one/demo/im/common"
 	"go-one/demo/im/message_center"
-	"go-one/demo/im/player"
 	"go-one/demo/im/processor"
 	"go-one/demo/im/scene"
 	"go-one/game"
@@ -28,7 +28,7 @@ func main() {
 
 	gameServer := game.NewGameServer()
 
-	player2.SetPlayerType(&player.ChatPlayer{})
+	player2.SetPlayerType(&chat.ChatPlayer{})
 
 	scene_center.RegisterSceneType(&scene.ChatScene{})
 

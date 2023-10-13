@@ -3,8 +3,8 @@ package scene
 import (
 	"go-one/common/common_proto"
 	"go-one/common/log"
+	"go-one/demo/im/chat"
 	"go-one/demo/im/common"
-	"go-one/demo/im/room"
 	"go-one/game/player"
 	"go-one/game/scene_center"
 )
@@ -12,7 +12,7 @@ import (
 type ChatScene struct {
 	scene_center.Scene
 
-	RoomManager *room.ChatRoomManager
+	RoomManager *chat.ChatRoomManager
 }
 
 func (r *ChatScene) GetSceneType() string {
@@ -20,7 +20,7 @@ func (r *ChatScene) GetSceneType() string {
 }
 
 func (r *ChatScene) OnCreated() {
-	r.RoomManager = room.NewChatRoomManager()
+	r.RoomManager = chat.NewChatRoomManager()
 }
 
 func (r *ChatScene) OnDestroyed() {

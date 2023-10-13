@@ -1,21 +1,16 @@
 package game
 
 import (
-	"flag"
-	"fmt"
+	"go-one/common/context"
+	"go-one/common/log"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 )
 
-func init() {
-	flag.StringVar(&yamlFile, "gc", "context.yaml", "set config file path")
-}
-
-var yamlFile string
 var gameConfig GameConfig
+var LocalConfig any
 
-func SetYamlFile(yaml string) {
-	yamlFile = yaml
+func SetLocalConfig(c any) {
+	LocalConfig = c
 }
 
 type GameConfig struct {
@@ -24,16 +19,24 @@ type GameConfig struct {
 	Params              map[string]interface{} `yaml:"params"`
 }
 
-func InitConfig() {
-	yamlFileBytes, err := ioutil.ReadFile(yamlFile)
+func InitConfig(localConfigs ...any) {
+	configFromNacos := context.GetConfigFromNacos()
+	configByte := []byte(configFromNacos)
+	err := yaml.Unmarshal(configByte, &gameConfig)
 	if err != nil {
-		fmt.Println(err.Error())
-	} // 将读取的yaml文件解析为响应的 struct
-	err = yaml.Unmarshal(yamlFileBytes, &gameConfig)
-	if err != nil {
-		panic("init Game config error: " + err.Error())
+		log.Panic(err.Error())
 	}
 
+	if len(localConfigs) == 0 {
+		return
+	}
+
+	for _, config := range localConfigs {
+		err = yaml.Unmarshal(configByte, config)
+		if err != nil {
+			log.Panic(err.Error())
+		}
+	}
 }
 
 type ServerConfig struct {

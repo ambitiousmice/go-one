@@ -1,11 +1,19 @@
 package game_client
 
+import "reflect"
+
 type ClientServer struct {
-	iClient IClient
+	iClientType reflect.Type
 }
 
 func NewClientServer(iClient IClient) *ClientServer {
-	return &ClientServer{iClient: iClient}
+	objVal := reflect.ValueOf(iClient)
+	iClientType := objVal.Type()
+
+	if iClientType.Kind() == reflect.Ptr {
+		iClientType = iClientType.Elem()
+	}
+	return &ClientServer{iClientType: iClientType}
 }
 
 func (cs *ClientServer) Run() {
@@ -18,6 +26,11 @@ func (cs *ClientServer) Run() {
 	RegisterProcessor(&JoinSceneProcessor{})
 
 	for i := 1; i <= Config.ServerConfig.ClientNum; i++ {
-		go NewClient(int64(i), cs.iClient).Run()
+		iClientValue := reflect.New(cs.iClientType)
+		iClient := iClientValue.Interface().(IClient)
+
+		client := reflect.Indirect(iClientValue).FieldByName("Client").Addr().Interface().(*Client)
+		client.I = iClient
+		go client.Init(int64(i)).Run()
 	}
 }

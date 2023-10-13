@@ -1,6 +1,7 @@
 package dispatcher
 
 import (
+	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/robfig/cron/v3"
 	"go-one/common/entity"
@@ -43,9 +44,13 @@ func InitGameDispatchers(dispatcherConfigs []entity.GameDispatcherConfig, queues
 
 func newGameDispatcher() {
 	for _, gameDispatcherConfig := range gameDispatcherConfigs {
+
 		game := gameDispatcherConfig.Game
 		groupName := gameDispatcherConfig.GroupName
 		channelNum := gameDispatcherConfig.ChannelNum
+
+		existDispatchers := gameDispatcherMap[game]
+
 		instances, err := register.NacosClient.SelectInstances(vo.SelectInstancesParam{
 			ServiceName: game,
 			GroupName:   groupName,
@@ -53,53 +58,71 @@ func newGameDispatcher() {
 		})
 
 		if err != nil {
-			log.Warnf("select gameDispatcherConfig:< %s > server instances error: %s", gameDispatcherConfig, err.Error())
-			continue
+			log.Warnf("select gameDispatcherConfig:< %v > server instances error: %s", gameDispatcherConfig, err.Error())
+			if err.Error() == "instance list is empty!" {
+				if len(existDispatchers) != 0 {
+					for clusterID, dispatcher := range existDispatchers {
+						dispatcher.closeAll()
+						delete(existDispatchers, clusterID)
+					}
+				}
+			} else {
+				continue
+			}
 		}
 
-		if len(instances) == 0 {
-			log.Warnf("select gameDispatcherConfig:< %s > server instances is empty", gameDispatcherConfig)
-			continue
-		}
-
-		checkMap := make(map[string]bool)
+		checkMap := make(map[uint8]model.Instance)
 		for _, instance := range instances {
 			clusterIDStr := instance.ClusterName
-
-			if len(clusterIDStr) == 0 {
-				panic("gameDispatcherConfig dispatcher instance clusterId is empty")
+			clusterID, err := strconv.ParseInt(clusterIDStr, 10, 8)
+			if err != nil {
+				log.Error("gameDispatcherConfig dispatcher instance clusterId is empty,ip:" + instance.Ip + ",port:" + utils.ToString(instance.Port))
+				continue
 			}
+			clusterId := uint8(clusterID)
+			_, exists := checkMap[clusterId]
+			if exists {
+				log.Error("gameDispatcherConfig dispatcher instance gameClusterID is duplicate,ip:" + instance.Ip + ",port:" + utils.ToString(instance.Port))
+				continue
+			}
+			checkMap[clusterId] = instance
+		}
 
-			if checkMap[clusterIDStr] {
-				panic("gameDispatcherConfig dispatcher instance gameClusterID is duplicate,ip:" + instance.Ip + ",port:" + utils.ToString(instance.Port))
+		if len(existDispatchers) != 0 {
+			for clusterID, dispatcher := range existDispatchers {
+				exist := false
+				for clusterId, _ := range checkMap {
+					if clusterId == clusterID {
+						exist = true
+						delete(checkMap, clusterId)
+						break
+					}
+				}
+				if !exist {
+					dispatcher.closeAll()
+					delete(existDispatchers, clusterID)
+				}
 			}
 		}
 
-		for _, instance := range instances {
+		for clusterID, instance := range checkMap {
 			if gameDispatcherMap[game] == nil {
 				gameDispatcherMap[game] = make(map[uint8]*GameDispatcher)
 				gameLoadBalancerMap[game] = CreateLoadBalancer(gameDispatcherConfig.LoadBalancer)
 			}
 
-			clusterIDStr := instance.ClusterName
-
-			clusterID, err := strconv.ParseUint(clusterIDStr, 10, 8)
-			if err != nil {
-				panic("gameDispatcherConfig dispatcher instance clusterId is not int")
-			}
-
-			gameDispatcher := gameDispatcherMap[game][uint8(clusterID)]
+			gameDispatcher := gameDispatcherMap[game][clusterID]
 			if gameDispatcher != nil {
 				continue
 			}
 
-			gameDispatcher = NewGameDispatcher(game, uint8(clusterID), instance.Ip, instance.Port)
+			gameDispatcher = NewGameDispatcher(game, clusterID, instance.Ip, instance.Port)
 
 			for i := uint8(0); i < channelNum; i++ {
 				gameDispatcher.channels[i] = NewDispatcherChannel(i, gameDispatcher)
 			}
 
-			gameDispatcherMap[game][uint8(clusterID)] = gameDispatcher
+			gameDispatcherMap[game][clusterID] = gameDispatcher
 
 			gameDispatcher.Run()
 		}

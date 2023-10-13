@@ -2,6 +2,7 @@ package register
 
 import (
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
+	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
@@ -12,12 +13,14 @@ import (
 )
 
 var NacosClient naming_client.INamingClient
+var ConfigClient config_client.IConfigClient
 
 type NacosConf struct {
 	Host      string   `yaml:"host"`
 	Instance  Instance `yaml:"instance"`
 	Namespace string   `yaml:"namespace"`
 	LogLevel  string   `yaml:"logLevel"`
+	DataID    string   `yaml:"dataID"`
 }
 
 type Instance struct {
@@ -63,8 +66,8 @@ func Run(config NacosConf) {
 		constant.WithLogLevel(config.LogLevel),
 	)
 
-	// create naming client
-	client, err := clients.NewNamingClient(
+	// create naming namingClient
+	namingClient, err := clients.NewNamingClient(
 		vo.NacosClientParam{
 			ClientConfig:  &cc,
 			ServerConfigs: sc,
@@ -82,7 +85,7 @@ func Run(config NacosConf) {
 		instance.Metadata[consts.ClusterId] = instance.ClusterName
 	}
 	//Register
-	registerServiceInstance(client, vo.RegisterInstanceParam{
+	registerServiceInstance(namingClient, vo.RegisterInstanceParam{
 		Ip:          instance.Ip,
 		Port:        instance.Port,
 		ServiceName: instance.Service,
@@ -94,7 +97,17 @@ func Run(config NacosConf) {
 		Ephemeral:   true,
 		Metadata:    instance.Metadata,
 	})
-	NacosClient = client
+	NacosClient = namingClient
+
+	ConfigClient, err = clients.CreateConfigClient(map[string]interface{}{
+		"serverConfigs": sc,
+		"clientConfig":  cc,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func registerServiceInstance(client naming_client.INamingClient, param vo.RegisterInstanceParam) {

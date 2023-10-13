@@ -89,6 +89,12 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 	var gameDispatcher *dispatcher.GameDispatcher
 	if cp.clusterID != 0 {
 		gameDispatcher = dispatcher.GetGameDispatcher(cp.game, cp.clusterID)
+		if gameDispatcher == nil {
+			gameDispatcher = dispatcher.ChooseGameDispatcher(cp.game, cp.entityID)
+			if gameDispatcher != nil {
+				cp.clusterID = gameDispatcher.GetGameClusterID()
+			}
+		}
 	} else {
 		gameDispatcher = dispatcher.ChooseGameDispatcher(cp.game, cp.entityID)
 		if gameDispatcher != nil {

@@ -2,6 +2,8 @@ package context
 
 import (
 	"flag"
+	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"go-one/common/register"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -31,4 +33,30 @@ func InitConfig() error {
 		return err
 	}
 	return nil
+}
+
+func InitConfigFromNacos() {
+	var DataId string
+	if len(oneConfig.Nacos.DataID) == 0 {
+		DataId = oneConfig.Nacos.Instance.Service + "-" + oneConfig.Nacos.Instance.ClusterName + ".yaml"
+	} else {
+		DataId = oneConfig.Nacos.DataID
+	}
+	content, err := register.ConfigClient.GetConfig(vo.ConfigParam{
+		DataId: DataId,
+		Group:  oneConfig.Nacos.Instance.GroupName,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = yaml.Unmarshal([]byte(content), &oneConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	configFromNacos = content
+
 }
