@@ -5,12 +5,11 @@ import (
 	"go-one/common/log"
 	"go-one/demo/im/chat"
 	"go-one/demo/im/common"
-	"go-one/game/player"
-	"go-one/game/scene_center"
+	"go-one/game/entity"
 )
 
 type ChatScene struct {
-	scene_center.Scene
+	entity.Scene
 
 	RoomManager *chat.ChatRoomManager
 }
@@ -27,7 +26,7 @@ func (r *ChatScene) OnDestroyed() {
 	log.Infof("%s destroyed", r)
 }
 
-func (r *ChatScene) OnJoined(p *player.Player) {
+func (r *ChatScene) OnJoined(p *entity.Player) {
 	log.Infof("%s joined %s ", p, r)
 	joinSceneResp := &common_proto.JoinSceneResp{
 		SceneID:   r.ID,
@@ -37,6 +36,6 @@ func (r *ChatScene) OnJoined(p *player.Player) {
 	p.SendGameData(common_proto.JoinScene, joinSceneResp)
 }
 
-func (r *ChatScene) OnLeft(p *player.Player) {
+func (r *ChatScene) OnLeft(p *entity.Player) {
 	r.RemovePlayer(p)
 }

@@ -5,22 +5,22 @@ import (
 	"go-one/common/consts"
 	"go-one/common/pktconn"
 	"go-one/game/common"
-	"go-one/game/player"
-	"go-one/game/scene_center"
+	"go-one/game/entity"
 )
 
 type LeaveSceneProcessor struct {
 }
 
-func (p *LeaveSceneProcessor) Process(player *player.Player, param []byte) {
+func (p *LeaveSceneProcessor) Process(player *entity.Player, param []byte) {
 	leaveSceneReq := &common_proto.LeaveSceneReq{}
 	err := pktconn.MSG_PACKER.UnpackMsg(param, leaveSceneReq)
 	if err != nil {
 		player.SendCommonErrorMsg(consts.ParamError)
+		return
 	}
 
-	sceneManager := scene_center.GetSceneManager(leaveSceneReq.SceneType)
-	var room *scene_center.Scene
+	sceneManager := entity.GetSceneManager(leaveSceneReq.SceneType)
+	var room *entity.Scene
 	if leaveSceneReq.SceneID == 0 {
 		room = sceneManager.GetSceneByStrategy()
 	} else {
@@ -30,7 +30,7 @@ func (p *LeaveSceneProcessor) Process(player *player.Player, param []byte) {
 	if room == nil {
 		player.SendCommonErrorMsg(common.ServerIsFull)
 	}
-	scene_center.Leave(player)
+	player.LeaveScene()
 }
 
 func (p *LeaveSceneProcessor) GetCmd() uint16 {

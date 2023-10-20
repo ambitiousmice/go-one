@@ -6,6 +6,8 @@ import (
 	"go-one/common/db"
 	"go-one/common/log"
 	"go-one/common/mq/kafka"
+	"go-one/common/pool"
+	"go-one/common/pool/goroutine_pool"
 	"go-one/common/register"
 	"math/rand"
 	"net/http"
@@ -45,10 +47,14 @@ func Init() {
 
 	cache.InitRedis(&oneConfig.RedisConfig)
 
+	pool.InitPool(oneConfig.PoolConfig)
+
 	if len(oneConfig.PprofHost) != 0 {
 		log.Infof("run pprofServer ...")
 		go setupPprofServer(oneConfig.PprofHost)
 	}
+
+	addTimerTask()
 
 	log.Info("context init success")
 }
@@ -92,4 +98,15 @@ func setupPprofServer(listenAddr string) {
 			log.Errorf("run pprofServer error:%s", err.Error())
 		}
 	}()
+}
+
+func addTimerTask() {
+	if goroutine_pool.IsEnable() {
+		err := AddCronTask("goroutine_pool_timer", "@every 30s", func() {
+			log.Infof("goroutine pool running task num:%d", goroutine_pool.Running())
+		})
+		if err != nil {
+			panic("add goroutine_pool_timer error:" + err.Error())
+		}
+	}
 }

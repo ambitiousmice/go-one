@@ -1,20 +1,29 @@
 package processor
 
 import (
+	"go-one/common/consts"
 	"go-one/demo/im/proto"
 	scene2 "go-one/demo/im/scene"
-	"go-one/game/player"
-	"go-one/game/scene_center"
+	"go-one/game/common"
+	"go-one/game/entity"
 )
 
 type SubscribeRoomProcessor struct {
 }
 
-func (t *SubscribeRoomProcessor) Process(player *player.Player, param []byte) {
+func (t *SubscribeRoomProcessor) Process(player *entity.Player, param []byte) {
 	subscribeRoomReq := &proto.SubscribeRoomReq{}
-	UnPackMsg(player, param, subscribeRoomReq)
+	err := common.UnPackMsg(param, subscribeRoomReq)
+	if err != nil {
+		player.SendCommonErrorMsg(consts.ParamError)
+		return
+	}
+	scene := player.Scene
+	if scene == nil {
+		player.SendCommonErrorMsg("加入房间失败")
+		return
+	}
 
-	scene := scene_center.GetSceneByPlayer(player)
 	scene.I.(*scene2.ChatScene).RoomManager.SubscribeRoom(player, subscribeRoomReq.RoomID)
 
 }

@@ -1,5 +1,9 @@
 package common_proto
 
+import (
+	"go-one/game/common"
+)
+
 type ErrorResp struct {
 	Code int32
 	Data string
@@ -71,4 +75,36 @@ type LeaveSceneReq struct {
 type LeaveSceneResp struct {
 	SceneType string
 	SceneID   int64
+}
+
+type OnCreateEntity struct {
+	EntityID int64
+	Type     string
+	X        common.Coord   /*`json:"x"`*/
+	Y        common.Coord   /*`json:"y"`*/
+	Z        common.Coord   /*`json:"z"`*/
+	Yaw      common.Yaw     /*`json:"Yaw"`*/
+	Speed    common.Speed   /*`json:"Speed"`*/
+	Attr     map[string]any /*`json:"attr"`*/
+}
+
+type OnDestroyEntity struct {
+	EntityID int64
+}
+
+type AOISyncInfo struct {
+	EntityID int64
+	X        common.Coord /*`json:"x"`*/
+	Y        common.Coord /*`json:"y"`*/
+	Z        common.Coord /*`json:"z"`*/
+	Yaw      common.Yaw   /*`json:"Yaw"`*/
+	Speed    common.Speed /*`json:"Speed"`*/
+}
+
+type MoveReq struct {
+	X     common.Coord
+	Y     common.Coord
+	Z     common.Coord
+	Yaw   common.Yaw
+	Speed common.Speed
 }

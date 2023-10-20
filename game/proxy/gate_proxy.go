@@ -10,8 +10,7 @@ import (
 	"go-one/common/log"
 	"go-one/common/pktconn"
 	"go-one/game/common"
-	"go-one/game/player"
-	"go-one/game/scene_center"
+	"go-one/game/entity"
 	"net"
 	"time"
 )
@@ -124,14 +123,14 @@ func (gp *GateProxy) Handle3003(pkt *pktconn.Packet) {
 	req := &common_proto.NewPlayerConnectionReq{}
 	pkt.ReadData(req)
 
-	p := player.GetPlayer(req.EntityID)
+	p := entity.GetPlayer(req.EntityID)
 	if p == nil {
-		p = player.AddPlayer(req.EntityID, gp.GateClusterID)
+		p = entity.AddPlayer(req.EntityID, gp.GateClusterID)
 		p.UpdateStatus(common.PlayerStatusOnline)
-		scene_center.JoinScene(common.SceneTypeLobby, 0, p)
+		p.JoinScene(common.SceneTypeLobby, 0)
 	} else {
 		p.UpdateStatus(common.PlayerStatusOnline)
-		scene_center.ReJoinScene(p)
+		p.ReJoinScene()
 	}
 
 }
@@ -140,7 +139,7 @@ func (gp *GateProxy) Handle3004(pkt *pktconn.Packet) {
 	req := &common_proto.PlayerDisconnectedReq{}
 	pkt.ReadData(req)
 
-	player.RemovePlayer(req.EntityID)
+	entity.RemovePlayer(req.EntityID)
 }
 
 // ============================================================================基础协议

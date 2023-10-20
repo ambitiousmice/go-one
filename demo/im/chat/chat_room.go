@@ -5,7 +5,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"go-one/common/log"
 	"go-one/demo/im/proto"
-	"go-one/game/player"
+	"go-one/game/entity"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -27,7 +27,7 @@ type ChatRoom struct {
 	name string
 
 	pMutex  sync.RWMutex
-	players map[int64]*player.Player
+	players map[int64]*entity.Player
 
 	rwMutex         sync.RWMutex
 	broadcastTimer  *time.Timer
@@ -39,7 +39,7 @@ func NewChatRoom(id int64, name string) *ChatRoom {
 	room := &ChatRoom{
 		ID:              id,
 		name:            name,
-		players:         make(map[int64]*player.Player),
+		players:         make(map[int64]*entity.Player),
 		broadcastTimer:  time.NewTimer(time.Millisecond * 50),
 		msgBufferMaxLen: 1024,
 	}
@@ -53,7 +53,7 @@ func (r *ChatRoom) String() string {
 	return fmt.Sprintf("room info:ID=<%d>", r.ID)
 
 }
-func (r *ChatRoom) Join(player *player.Player) {
+func (r *ChatRoom) Join(player *entity.Player) {
 	r.pMutex.Lock()
 	defer r.pMutex.Unlock()
 
@@ -63,7 +63,7 @@ func (r *ChatRoom) Join(player *player.Player) {
 	log.Infof("%s join %s", player, r)
 }
 
-func (r *ChatRoom) Leave(player *player.Player) {
+func (r *ChatRoom) Leave(player *entity.Player) {
 	r.pMutex.Lock()
 	defer r.pMutex.Unlock()
 

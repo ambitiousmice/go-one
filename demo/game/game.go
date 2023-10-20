@@ -6,7 +6,7 @@ import (
 	"go-one/common/log"
 	"go-one/demo/game/processor"
 	"go-one/game"
-	"go-one/game/player"
+	"go-one/game/entity"
 	"go-one/game/processor_center"
 	"golang.org/x/net/websocket"
 	"net/http"
@@ -25,7 +25,7 @@ func main() {
 
 	gameServer := game.NewGameServer()
 
-	player.SetPlayerType(&DemoPlayer{})
+	entity.SetPlayerType(&DemoPlayer{})
 
 	go setupHTTPServer(":8833", nil, "", "")
 
@@ -38,7 +38,7 @@ func RegisterProcessor() {
 }
 
 type DemoPlayer struct {
-	player.Player
+	entity.Player
 }
 
 func (p *DemoPlayer) OnCreated() {
@@ -53,6 +53,11 @@ func (p *DemoPlayer) OnClientConnected() {
 }
 func (p *DemoPlayer) OnClientDisconnected() {
 
+}
+
+func (p *DemoPlayer) OnJoinScene() {
+
+	log.Infof("%s join %s", p, p.Scene)
 }
 
 func setupHTTPServer(listenAddr string, wsHandler func(ws *websocket.Conn), certFile string, keyFile string) {

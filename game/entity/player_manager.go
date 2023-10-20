@@ -1,4 +1,4 @@
-package player
+package entity
 
 import (
 	"go-one/common/log"

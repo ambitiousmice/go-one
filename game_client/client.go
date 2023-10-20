@@ -10,12 +10,12 @@ import (
 	"go-one/common/network"
 	"go-one/common/pktconn"
 	"go-one/common/utils"
+	"go-one/game/common"
+	"go-one/game/entity"
 	"net"
 	"sync"
 
 	"fmt"
-
-	"time"
 
 	"github.com/xtaci/kcp-go"
 	"golang.org/x/net/websocket"
@@ -32,6 +32,10 @@ type Client struct {
 	conn        *pktconn.PacketConn
 	packetQueue chan *pktconn.Packet
 	crontab     *cron.Cron
+
+	Position entity.Vector3
+	Yaw      common.Yaw
+	Speed    common.Speed
 
 	I IClient
 }
@@ -161,16 +165,13 @@ func (c *Client) recvLoop() {
 }
 
 func (c *Client) loop() {
-	ticker := time.Tick(time.Millisecond * 100)
 	for {
 		select {
 		case pkt := <-c.packetQueue:
 			c.handlePacket(pkt)
 			pkt.Release()
 			//break
-		case <-ticker:
 
-			break
 		}
 	}
 }
@@ -184,9 +185,9 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	if msgType != 2001 {
+	/*if msgType != 2001 {
 		log.Infof("handlePacket: %d", msgType)
-	}
+	}*/
 	switch msgType {
 	case common_proto.ConnectionSuccessFromServer:
 		c.enterGame()
@@ -205,6 +206,7 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		processor := ProcessorContext[gameResp.Cmd]
 		if processor == nil {
 			log.Warnf("未找到处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
+			return
 		}
 		processor.Process(c, gameResp.Data)
 	}

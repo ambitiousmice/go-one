@@ -1,7 +1,10 @@
 package common
 
-// scene type
+type Coord float32
+type Yaw float32
+type Speed float32
 
+// scene type
 const (
 	SceneTypeLobby = "lobby"
 )
@@ -17,7 +20,8 @@ const (
 // Game error msg
 
 const (
-	ServerIsFull = "服务器爆满,请稍后再试"
+	ServerIsFull    = "服务器爆满,请稍后再试"
+	ReconnectFailed = "重连失败..."
 )
 
 // player status

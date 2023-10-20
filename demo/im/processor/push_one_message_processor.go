@@ -1,17 +1,23 @@
 package processor
 
 import (
+	"go-one/common/consts"
 	"go-one/demo/im/message_center"
 	"go-one/demo/im/proto"
-	"go-one/game/player"
+	"go-one/game/common"
+	"go-one/game/entity"
 )
 
 type PushOneMessageProcessor struct {
 }
 
-func (t *PushOneMessageProcessor) Process(player *player.Player, param []byte) {
+func (t *PushOneMessageProcessor) Process(player *entity.Player, param []byte) {
 	pushMessageReq := &proto.PushMessageReq{}
-	UnPackMsg(player, param, pushMessageReq)
+	err := common.UnPackMsg(param, pushMessageReq)
+	if err != nil {
+		player.SendCommonErrorMsg(consts.ParamError)
+		return
+	}
 
 	pushMessageReq.From = player.EntityID
 

@@ -3,7 +3,7 @@ package processor_center
 import (
 	"go-one/common/common_proto"
 	"go-one/common/log"
-	"go-one/game/player"
+	"go-one/game/entity"
 	"go-one/game/processor_center/base_processor"
 	"go-one/game/proxy"
 	"strconv"
@@ -16,6 +16,7 @@ var GPM = &GameProcessManager{
 func init() {
 	GPM.RegisterProcessor(&base_processor.JoinSceneProcessor{})
 	GPM.RegisterProcessor(&base_processor.LeaveSceneProcessor{})
+	GPM.RegisterProcessor(&base_processor.MoveProcessor{})
 }
 
 type GameProcessManager struct {
@@ -31,10 +32,10 @@ func (gpm *GameProcessManager) RegisterProcessor(p Processor) {
 }
 
 func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req *common_proto.GameReq) {
-	p := player.GetPlayer(entityID)
+	p := entity.GetPlayer(entityID)
 	if p == nil {
 		log.Warnf("p:<%d> not found", entityID)
-		/*p = game.AddPlayer(entityID, gp.gateClusterID)
+		/*p = game.AddPosition(entityID, gp.gateClusterID)
 		p.UpdateStatus(game.PlayerStatusOnline)*/
 	}
 	processor := gpm.processContext[req.Cmd]

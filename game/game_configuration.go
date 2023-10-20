@@ -48,9 +48,11 @@ type ServerConfig struct {
 }
 
 type SceneManagerConfig struct {
-	SceneType         string `yaml:"scene-type"`
-	SceneMaxPlayerNum int    `yaml:"scene-max-player-num"`
-	SceneIDStart      int64  `yaml:"scene-id-start"`
-	SceneIDEnd        int64  `yaml:"scene-id-end"`
-	MatchStrategy     string `yaml:"match-strategy"`
+	EnableAOI         bool    `yaml:"enable-aoi"`
+	AOIDistance       float32 `yaml:"aoi-distance"`
+	SceneType         string  `yaml:"scene-type"`
+	SceneMaxPlayerNum int     `yaml:"scene-max-player-num"`
+	SceneIDStart      int64   `yaml:"scene-id-start"`
+	SceneIDEnd        int64   `yaml:"scene-id-end"`
+	MatchStrategy     string  `yaml:"match-strategy"`
 }

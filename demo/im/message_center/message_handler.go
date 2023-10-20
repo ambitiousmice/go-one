@@ -4,11 +4,11 @@ import (
 	"go-one/demo/im/common"
 	"go-one/demo/im/proto"
 	scene2 "go-one/demo/im/scene"
-	"go-one/game/scene_center"
+	"go-one/game/entity"
 )
 
 func RoomMessageHandler(msg *proto.PushMessageReq) {
-	for _, scene := range scene_center.ManagerContext[common.SceneTypeChat].GetScenes() {
+	for _, scene := range entity.ManagerContext[common.SceneTypeChat].GetScenes() {
 		room := scene.I.(*scene2.ChatScene).RoomManager.GetRoom(msg.RoomID)
 		if room == nil {
 			continue
@@ -23,7 +23,7 @@ func RoomMessageHandler(msg *proto.PushMessageReq) {
 }
 
 func OneMessageHandler(msg *proto.PushMessageReq) {
-	for _, scene := range scene_center.ManagerContext[common.SceneTypeChat].GetScenes() {
+	for _, scene := range entity.ManagerContext[common.SceneTypeChat].GetScenes() {
 		scene.PushOne(msg.To, proto.MessageAck, &proto.ChatMessage{
 			RoomID: common.OneRoomID,
 			From:   msg.From,
@@ -33,7 +33,7 @@ func OneMessageHandler(msg *proto.PushMessageReq) {
 }
 
 func BroadcastMessageHandler(msg *proto.PushMessageReq) {
-	for _, scene := range scene_center.ManagerContext[common.SceneTypeChat].GetScenes() {
+	for _, scene := range entity.ManagerContext[common.SceneTypeChat].GetScenes() {
 		scene.Broadcast(proto.MessageAck, &proto.ChatMessage{
 			RoomID: common.BroadcastRoomID,
 			From:   msg.From,

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package main;
+option go_package = "/common_proto";
+
+message AOISyncInfo {
+  int64 entityID = 1;
+  float x = 2;
+  float y = 3;
+  float z = 4;
+  float yaw = 5;
+  float speed = 6;
+}
+
+message AOISyncInfoList {
+  repeated AOISyncInfo aoiSyncInfo = 1;
+}
+
+message MoveReq {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float yaw = 4;
+  float speed = 5;
+}

@@ -1,4 +1,4 @@
-package scene_center
+package entity
 
 import (
 	"errors"

@@ -1,10 +1,9 @@
-package scene_center
+package entity
 
 import (
 	"go-one/common/common_proto"
 	"go-one/common/log"
 	"go-one/game/common"
-	"go-one/game/player"
 )
 
 type LobbyScene struct {
@@ -23,7 +22,7 @@ func (r *LobbyScene) OnDestroyed() {
 	log.Info("LobbyScene destroyed")
 }
 
-func (r *LobbyScene) OnJoined(player *player.Player) {
+func (r *LobbyScene) OnJoined(player *Player) {
 	joinSceneResp := &common_proto.JoinSceneResp{
 		SceneID:   r.ID,
 		SceneType: r.Type,
@@ -34,6 +33,6 @@ func (r *LobbyScene) OnJoined(player *player.Player) {
 	player.SendGameData(common_proto.JoinSceneAck, joinSceneResp)
 }
 
-func (r *LobbyScene) OnLeft(player *player.Player) {
+func (r *LobbyScene) OnLeft(player *Player) {
 	log.Infof("%s left lobby ", player.String())
 }

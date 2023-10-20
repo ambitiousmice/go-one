@@ -24,6 +24,7 @@ const (
 
 	EnterGameFromClient = 2003                // 客户端登录
 	EnterGameClientAck  = EnterGameFromClient // 客户端登录应答
+
 )
 
 // game dispatcher
@@ -47,4 +48,12 @@ const (
 
 	LeaveScene    = 4002       // 离开场景
 	LeaveSceneAck = LeaveScene // 离开场景 应答
+
+	CreateEntity = 4003 //创建玩家
+
+	DestroyEntity = 4004 //销毁玩家
+
+	Move = 4005
+
+	AOISync = 4006
 )

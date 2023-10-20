@@ -10,9 +10,8 @@ import (
 	"go-one/demo/im/processor"
 	"go-one/demo/im/scene"
 	"go-one/game"
-	player2 "go-one/game/player"
+	"go-one/game/entity"
 	"go-one/game/processor_center"
-	"go-one/game/scene_center"
 )
 
 func main() {
@@ -28,9 +27,9 @@ func main() {
 
 	gameServer := game.NewGameServer()
 
-	player2.SetPlayerType(&chat.ChatPlayer{})
+	entity.SetPlayerType(&chat.ChatPlayer{})
 
-	scene_center.RegisterSceneType(&scene.ChatScene{})
+	entity.RegisterSceneType(&scene.ChatScene{})
 
 	gameServer.Run()
 

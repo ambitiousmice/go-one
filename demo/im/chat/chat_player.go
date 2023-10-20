@@ -1,13 +1,13 @@
 package chat
 
 import (
+	"go-one/common/log"
 	"go-one/demo/im/proto"
-	"go-one/game/player"
-	"go-one/game/scene_center"
+	"go-one/game/entity"
 )
 
 type ChatPlayer struct {
-	player.Player
+	entity.Player
 
 	subscribeRooms map[int64]*ChatRoom
 }
@@ -28,7 +28,12 @@ func (p *ChatPlayer) OnClientDisconnected() {
 	for _, r := range p.subscribeRooms {
 		r.Leave(&p.Player)
 	}
-	scene_center.Leave(&p.Player)
+	p.LeaveScene()
+}
+
+func (p *ChatPlayer) OnJoinScene() {
+
+	log.Infof("%s join %s", p, p.Scene)
 }
 
 func (p *ChatPlayer) SubscribeRoom(room *ChatRoom) {

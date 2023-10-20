@@ -1,64 +1,47 @@
 package main
 
 import (
-	"flag"
-	"go-one/common/idgenerator"
-	"go-one/common/json"
+	"encoding/json"
+	"fmt"
+	"go-one/test_package/t"
 	"log"
-	"net/http"
-	_ "net/http/pprof"
-	"sync"
 
-	"github.com/gorilla/websocket"
+	"github.com/golang/protobuf/proto"
 )
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  256,
-	WriteBufferSize: 256,
-	WriteBufferPool: &sync.Pool{},
-}
-
-func process(c *websocket.Conn) {
-	defer c.Close()
-	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s", message)
-	}
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-
-	// Process connection in a new goroutine
-	go process(c)
-
-	// Let the http handler return, the 8k buffer created by it will be garbage collected
-}
-
 func main() {
-	var GateInfo http.Request
-	err := json.UnmarshalFromString("", GateInfo)
-	if err == nil {
-
+	// 创建包含100个AOISyncInfo对象的切片
+	aoiSlice := make([]*t.AOISyncInfo, 100)
+	for i := 0; i < 100; i++ {
+		aoi := &t.AOISyncInfo{
+			EntityId: int64(i),
+			X:        float32(i),
+			Y:        float32(i),
+			Z:        float32(i),
+			Yaw:      float32(i),
+			Speed:    float32(i),
+		}
+		aoiSlice[i] = aoi
 	}
-	node, err := idgenerator.NewNode(1)
 
-	println(node.NextIDStr())
+	// 进行JSON序列化
+	jsonData, err := json.Marshal(aoiSlice)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jsonSize := len(jsonData)
+	println(string(jsonData))
+	// 进行Protocol Buffers序列化
+	protoData, err := proto.Marshal(&t.AOISyncInfoList{AoiSyncInfo: aoiSlice})
+	if err != nil {
+		log.Fatal(err)
+	}
+	protoSize := len(protoData)
 
+	// 计算大小差异倍数
+	ratio := float64(protoSize) / float64(jsonSize)
+
+	fmt.Printf("JSON序列化大小: %d bytes\n", jsonSize)
+	fmt.Printf("Protocol Buffers序列化大小: %d bytes\n", protoSize)
+	fmt.Printf("大小差异倍数: %.2f倍\n", ratio)
 }
-
-type T struct {
-	A int
-}
-
-var Map = make(map[int]*T)

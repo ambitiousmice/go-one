@@ -8,13 +8,14 @@ import (
 	"go-one/common/log"
 	"go-one/common/network"
 	"go-one/common/pktconn"
-	"go-one/game/player"
+	"go-one/common/pool/goroutine_pool"
+	"go-one/game/entity"
 	"go-one/game/processor_center"
 	"go-one/game/proxy"
-	"go-one/game/scene_center"
 	"net"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -61,12 +62,19 @@ func NewGameServer() *GameServer {
 		log.Warnf("no scene manager config,will only support lobby scene")
 	} else {
 		for _, config := range gameConfig.SceneManagerConfigs {
-			scene_center.ManagerContext[config.SceneType] = scene_center.NewSceneManager(config.SceneType, config.SceneMaxPlayerNum, config.SceneIDStart, config.SceneIDEnd, config.MatchStrategy)
+			entity.ManagerContext[config.SceneType] = entity.NewSceneManager(config.SceneType,
+				config.SceneMaxPlayerNum,
+				config.SceneIDStart,
+				config.SceneIDEnd,
+				config.MatchStrategy,
+				config.EnableAOI,
+				config.AOIDistance,
+			)
 		}
 	}
 
-	scene_center.RegisterSceneType(&scene_center.LobbyScene{})
-	player.SetGameServer(gameServer)
+	entity.RegisterSceneType(&entity.LobbyScene{})
+	entity.SetGameServer(gameServer)
 
 	return gameServer
 }
@@ -78,6 +86,7 @@ func (gs *GameServer) Run() {
 	gs.cron.AddFunc("@every 20s", func() {
 		log.Infof("当前链接数:%d", len(gs.gateProxies))
 		log.Infof("网关包队列长度:%d", len(gs.GatePacketQueue))
+		log.Infof("aoi 消息通道长度:%d", entity.GetAOIMsgChannelSize())
 	})
 
 	gs.mainRoutine()
@@ -87,10 +96,14 @@ func (gs *GameServer) mainRoutine() {
 	for {
 		select {
 		case pkt := <-gs.GatePacketQueue:
-			go func() {
+			err := goroutine_pool.Submit(func() {
 				gs.handleGatePacket(pkt)
 				pkt.Release()
-			}()
+			})
+
+			if err != nil {
+				log.Errorf("submit GatePacket task error:%s", err.Error())
+			}
 		}
 	}
 }
@@ -231,19 +244,20 @@ func (gs *GameServer) removeGateProxy(cp *proxy.GateProxy) {
 }
 
 func (gs *GameServer) GetGateProxyByGateClusterID(gateClusterID uint8) *proxy.GateProxy {
-	gs.GpMutex.Lock()
-	defer gs.GpMutex.Unlock()
+	gs.GpMutex.RLock()
+	defer gs.GpMutex.RUnlock()
 
 	nodeProxies := gs.gateNodeProxies[gateClusterID]
 	if nodeProxies == nil {
 		return nil
 	}
 
-	gs.pollingIndex++
+	pollingIndex := atomic.AddUint64(&gs.pollingIndex, 1)
 
-	pollingIndex := gs.pollingIndex % uint64(len(nodeProxies))
+	nextIndex := pollingIndex % uint64(len(nodeProxies))
 
-	gateProxy := nodeProxies[pollingIndex]
+	gateProxy := nodeProxies[nextIndex]
+
 	return gateProxy
 }
 

@@ -1,18 +1,20 @@
-package scene_center
+package entity
 
 import (
 	"go-one/common/context"
 	"go-one/common/log"
 	"go-one/game/common"
-	"go-one/game/player"
 	"math/rand"
 	"reflect"
 	"sync"
+	"time"
 )
 
-var ManagerContext = make(map[string]*Manager)
+var ManagerContext = make(map[string]*SceneManager)
 var sceneTypes = make(map[string]reflect.Type)
 var playerCountMap = make(map[string]int)
+
+var aoiMsgChan chan func()
 
 func init() {
 	err := context.AddCronTask("scene_player_count_task", "0 0/1 * * * ?", func() {
@@ -32,7 +34,7 @@ func init() {
 	}
 }
 
-type Manager struct {
+type SceneManager struct {
 	mutex             sync.RWMutex
 	sceneType         string
 	sceneMaxPlayerNum int
@@ -42,14 +44,16 @@ type Manager struct {
 	IDPool            *IDPool
 	scenes            map[int64]*Scene
 	sceneJoinOrder    []int64
+	enableAOI         bool
+	aoiDistance       float32
 }
 
-func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64, sceneIDEnd int64, matchStrategy string) *Manager {
+func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64, sceneIDEnd int64, matchStrategy string, enableAOI bool, aoiDistance float32) *SceneManager {
 	idPool, err := NewIDPool(sceneIDStart, sceneIDEnd)
 	if err != nil {
 		panic("init room id pool error: " + err.Error())
 	}
-	return &Manager{
+	m := &SceneManager{
 		sceneType:         sceneType,
 		sceneIDStart:      sceneIDStart,
 		sceneIDEnd:        sceneIDEnd,
@@ -58,16 +62,38 @@ func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64
 		IDPool:            idPool,
 		scenes:            make(map[int64]*Scene),
 		sceneJoinOrder:    make([]int64, 0),
+		enableAOI:         enableAOI,
+		aoiDistance:       aoiDistance,
 	}
+
+	if enableAOI {
+		if aoiMsgChan == nil {
+			aoiMsgChan = make(chan func(), 102400)
+
+			go func() {
+				for {
+					select {
+					case task := <-aoiMsgChan:
+						task()
+						//log.Infof("process aoiMsg task")
+					}
+				}
+			}()
+		}
+
+		m.syncAOIInfoTicker()
+	}
+
+	return m
 }
 
-func (sm *Manager) GetScene(sceneID int64) *Scene {
+func (sm *SceneManager) GetScene(sceneID int64) *Scene {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 	return sm.scenes[sceneID]
 }
 
-func (sm *Manager) GetSceneByStrategy() *Scene {
+func (sm *SceneManager) GetSceneByStrategy() *Scene {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 
@@ -83,7 +109,7 @@ func (sm *Manager) GetSceneByStrategy() *Scene {
 	}
 }
 
-func (sm *Manager) matchSceneByOrder() *Scene {
+func (sm *SceneManager) matchSceneByOrder() *Scene {
 
 	// 遍历房间加入的顺序
 	for _, sceneID := range sm.sceneJoinOrder {
@@ -97,7 +123,7 @@ func (sm *Manager) matchSceneByOrder() *Scene {
 	return sm.createScene()
 }
 
-func (sm *Manager) matchSceneRandomly() *Scene {
+func (sm *SceneManager) matchSceneRandomly() *Scene {
 	// 随机打乱场景加入顺序
 	rand.Shuffle(len(sm.sceneJoinOrder), func(i, j int) {
 		sm.sceneJoinOrder[i], sm.sceneJoinOrder[j] = sm.sceneJoinOrder[j], sm.sceneJoinOrder[i]
@@ -106,7 +132,7 @@ func (sm *Manager) matchSceneRandomly() *Scene {
 	return sm.matchSceneByOrder()
 }
 
-func (sm *Manager) matchSceneBalanced() *Scene {
+func (sm *SceneManager) matchSceneBalanced() *Scene {
 	// 寻找最少人数的场景
 	var minScene *Scene
 	minPlayers := 99999 // 初始值设置为一个较大的数
@@ -130,7 +156,7 @@ func (sm *Manager) matchSceneBalanced() *Scene {
 	return minScene
 }
 
-func (sm *Manager) createScene() *Scene {
+func (sm *SceneManager) createScene() *Scene {
 	sceneID, err := sm.IDPool.Get()
 	if err != nil {
 		log.Warnf("create scene error: %s", err.Error())
@@ -143,7 +169,7 @@ func (sm *Manager) createScene() *Scene {
 
 	scene := reflect.Indirect(iSceneValue).FieldByName("Scene").Addr().Interface().(*Scene)
 	scene.I = iScene
-	scene.init(sceneID, sm.sceneType, sm.sceneMaxPlayerNum)
+	scene.init(sceneID, sm.sceneType, sm.sceneMaxPlayerNum, sm.enableAOI, sm.aoiDistance)
 
 	sm.scenes[scene.ID] = scene
 	sm.sceneJoinOrder = append(sm.sceneJoinOrder, sceneID)
@@ -151,23 +177,56 @@ func (sm *Manager) createScene() *Scene {
 	return scene
 }
 
-func (sm *Manager) RemoveScene(sceneID int64) {
+func (sm *SceneManager) RemoveScene(sceneID int64) {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 	delete(sm.scenes, sceneID)
 }
 
-func (sm *Manager) GetScenes() map[int64]*Scene {
+func (sm *SceneManager) GetScenes() map[int64]*Scene {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 	return sm.scenes
 }
 
-func (sm *Manager) GetSceneCount() int {
+func (sm *SceneManager) GetSceneCount() int {
 	return len(sm.scenes)
 }
 
-// RegisterSceneType register a scene_center type
+func (sm *SceneManager) syncAOIInfoTicker() {
+	go func() {
+		ticker := time.Tick(50 * time.Millisecond)
+		for {
+			select {
+			case <-ticker:
+				sm.mutex.RLock()
+				for _, scene := range sm.GetScenes() {
+					//log.Infof("%s 当前人数:%d", scene, scene.GetPlayerCount())
+					scene.mutex.RLock()
+					for _, player := range scene.players {
+						submitAOITask(func() {
+							player.CollectAOISyncInfos()
+						})
+					}
+					scene.mutex.RUnlock()
+				}
+				sm.mutex.RUnlock()
+			}
+		}
+
+	}()
+}
+
+func submitAOITask(task func()) {
+	//log.Infof("提交 aoi task")
+	aoiMsgChan <- task
+}
+
+func GetAOIMsgChannelSize() int {
+	return len(aoiMsgChan)
+}
+
+// RegisterSceneType register a entity type
 func RegisterSceneType(scene IScene) {
 	if sceneTypes[scene.GetSceneType()] != nil {
 		panic("scene type already registered, sceneType:" + scene.GetSceneType())
@@ -194,7 +253,7 @@ func getSceneObjType(sceneType string) reflect.Type {
 	return objType
 }
 
-func GetSceneManager(sceneType string) *Manager {
+func GetSceneManager(sceneType string) *SceneManager {
 	sceneManager := ManagerContext[sceneType]
 
 	if sceneManager == nil {
@@ -202,48 +261,4 @@ func GetSceneManager(sceneType string) *Manager {
 	}
 
 	return sceneManager
-}
-
-func GetSceneByPlayer(player *player.Player) *Scene {
-	manager := GetSceneManager(player.SceneType)
-	if manager == nil {
-		return nil
-	}
-
-	return manager.GetScene(player.SceneID)
-}
-
-func JoinScene(sceneType string, sceneID int64, player *player.Player) {
-	sceneManager := GetSceneManager(sceneType)
-
-	var scene *Scene
-	if sceneID == 0 {
-		scene = sceneManager.GetSceneByStrategy()
-	} else {
-		scene = sceneManager.GetScene(sceneID)
-	}
-
-	if scene == nil {
-		player.SendCommonErrorMsg(common.ServerIsFull)
-	}
-
-	scene.join(player)
-}
-
-func ReJoinScene(player *player.Player) {
-	scene := GetSceneByPlayer(player)
-	if scene == nil {
-		player.SendCommonErrorMsg(common.ServerIsFull)
-	}
-
-	scene.join(player)
-}
-
-func Leave(player *player.Player) {
-	scene := GetSceneByPlayer(player)
-	if scene == nil {
-		return
-	}
-
-	scene.leave(player)
 }

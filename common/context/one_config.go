@@ -5,6 +5,7 @@ import (
 	"go-one/common/db"
 	"go-one/common/log"
 	"go-one/common/mq/kafka"
+	"go-one/common/pool"
 	"go-one/common/register"
 )
 
@@ -17,4 +18,5 @@ type OneConfig struct {
 	MongoDBConfig        db.MongoDBConfig       `yaml:"mongodb"`
 	RedisConfig          cache.RedisConfig      `yaml:"redis"`
 	PprofHost            string                 `yaml:"pprof-host"`
+	PoolConfig           pool.Config            `yaml:"pool-config"`
 }

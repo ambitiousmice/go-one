@@ -1,21 +1,24 @@
-package scene_center
+package entity
 
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
-	"go-one/game/player"
+	"go-one/common/log"
+	"go-one/game/aoi"
 	"sync"
 )
 
 type BaseScene struct {
-	mutex        sync.RWMutex
-	ID           int64
-	Name         string
-	Type         string
-	MaxPlayerNum int
-	players      map[int64]*player.Player
-	cron         *cron.Cron
-	cronTaskMap  map[string]cron.EntryID
+	mutex           sync.RWMutex
+	ID              int64
+	Name            string
+	Type            string
+	MaxPlayerNum    int
+	players         map[int64]*Player
+	cron            *cron.Cron
+	cronTaskMap     map[string]cron.EntryID
+	aoiMgr          aoi.AOIManager
+	DefaultPosition Vector3
 }
 
 func NewBaseScene(id int64, sceneType string, maxPlayerNum int) *BaseScene {
@@ -23,7 +26,7 @@ func NewBaseScene(id int64, sceneType string, maxPlayerNum int) *BaseScene {
 		ID:           id,
 		Type:         sceneType,
 		MaxPlayerNum: maxPlayerNum,
-		players:      map[int64]*player.Player{},
+		players:      map[int64]*Player{},
 		cron:         cron.New(cron.WithSeconds()),
 		cronTaskMap:  map[string]cron.EntryID{},
 	}
@@ -33,25 +36,37 @@ func (br *BaseScene) String() string {
 	return fmt.Sprintf("scene info: type=%s, id=%d", br.Type, br.ID)
 }
 
-func (br *BaseScene) GetPlayer(entityID int64) *player.Player {
+func (br *BaseScene) ContainPlayer(entityID int64) bool {
+	br.mutex.RLock()
+	defer br.mutex.RUnlock()
+
+	_, ok := br.players[entityID]
+
+	return ok
+}
+
+func (br *BaseScene) GetPlayer(entityID int64) *Player {
 	br.mutex.RLock()
 	defer br.mutex.RUnlock()
 
 	return br.players[entityID]
 }
 
-func (br *BaseScene) AddPlayer(player *player.Player) {
+func (br *BaseScene) AddPlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
+	log.Infof("==============$s 添加玩家 %s", br, player)
 	br.players[player.EntityID] = player
 }
 
-func (br *BaseScene) RemovePlayer(player *player.Player) {
+func (br *BaseScene) RemovePlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
 	delete(br.players, player.EntityID)
+	log.Infof("==============$s 删除玩家 %s", br, player)
+
 }
 
 func (br *BaseScene) GetPlayerCount() int {
@@ -115,4 +130,14 @@ func (br *BaseScene) Broadcast(cmd uint16, data interface{}) {
 		p.SendGameData(cmd, data)
 	}
 
+}
+
+func (br *BaseScene) move(player *BasePlayer, newPos Vector3) {
+	if br.aoiMgr == nil {
+		return
+	}
+
+	player.Position = newPos
+	br.aoiMgr.Moved(&player.AOI, newPos.X, newPos.Z)
+	//	log.Infof("%s: %s move to %v", space, entity, newPos)
 }

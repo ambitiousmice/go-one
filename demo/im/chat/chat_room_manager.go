@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"go-one/game/player"
+	"go-one/game/entity"
 	"sync"
 )
 
@@ -45,13 +45,13 @@ func (crm *ChatRoomManager) GetRoomNotNil(roomID int64) *ChatRoom {
 	return room
 }
 
-func (crm *ChatRoomManager) SubscribeRoom(player *player.Player, roomID int64) *ChatRoom {
+func (crm *ChatRoomManager) SubscribeRoom(player *entity.Player, roomID int64) *ChatRoom {
 	room := crm.GetRoomNotNil(roomID)
 	room.Join(player)
 	return room
 }
 
-func (crm *ChatRoomManager) UnsubscribeRoom(player *player.Player, roomID int64) {
+func (crm *ChatRoomManager) UnsubscribeRoom(player *entity.Player, roomID int64) {
 	room := crm.GetRoomNotNil(roomID)
 	room.Leave(player)
 }
