@@ -73,8 +73,8 @@ func (br *BaseScene) GetPlayerCount() int {
 	return len(br.players)
 }
 
-func (br *BaseScene) RunCron() {
-	br.cron.Run()
+func (br *BaseScene) StartCron() {
+	br.cron.Start()
 }
 
 func (br *BaseScene) StopCron() {

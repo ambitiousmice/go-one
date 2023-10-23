@@ -21,7 +21,7 @@ func (p *CreateEntityProcessor) Process(client *Client, param []byte) {
 		client.Position.Y = createEntity.Y
 		client.Position.Z = createEntity.Z
 		go func() {
-			tick := time.Tick(50 * time.Millisecond)
+			tick := time.Tick(34 * time.Millisecond)
 			for {
 				select {
 				case <-tick:

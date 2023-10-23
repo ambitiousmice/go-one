@@ -85,7 +85,6 @@ func NewGateServer() *GateServer {
 }
 
 func (gs *GateServer) Run() {
-
 	dispatcher.InitGameDispatchers(GetGateConfig().GameDispatcherConfigs, gs.dispatcherClientPacketQueues)
 
 	go network.ServeTCPForever(gs.listenAddr, gs)

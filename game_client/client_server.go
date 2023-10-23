@@ -1,6 +1,9 @@
 package game_client
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+)
 
 type ClientServer struct {
 	iClientType reflect.Type
@@ -34,5 +37,6 @@ func (cs *ClientServer) Run() {
 		client := reflect.Indirect(iClientValue).FieldByName("Client").Addr().Interface().(*Client)
 		client.I = iClient
 		go client.Init(int64(i)).Run()
+		time.Sleep(10 * time.Millisecond)
 	}
 }

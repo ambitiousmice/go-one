@@ -1,6 +1,9 @@
 package aoi
 
-import "go-one/game/common"
+import (
+	"go-one/game/common"
+	"sync"
+)
 
 type xzaoi struct {
 	aoi          *AOI
@@ -15,6 +18,7 @@ type XZListAOIManager struct {
 	aoidist    common.Coord
 	xSweepList *xAOIList
 	zSweepList *zAOIList
+	mutex      sync.Mutex
 }
 
 // NewXZListAOIManager creates a new XZListAOIManager
@@ -28,6 +32,8 @@ func NewXZListAOIManager(aoidist common.Coord) AOIManager {
 
 // Enter is called when Entity enters Space
 func (aoiman *XZListAOIManager) Enter(aoi *AOI, x, z common.Coord) {
+	aoiman.mutex.Lock()
+	defer aoiman.mutex.Unlock()
 	aoi.dist = aoiman.aoidist
 
 	xzaoi := &xzaoi{
@@ -43,6 +49,8 @@ func (aoiman *XZListAOIManager) Enter(aoi *AOI, x, z common.Coord) {
 
 // Leave is called when Entity leaves Space
 func (aoiman *XZListAOIManager) Leave(aoi *AOI) {
+	aoiman.mutex.Lock()
+	defer aoiman.mutex.Unlock()
 	xzaoi := aoi.implData.(*xzaoi)
 	aoiman.xSweepList.Remove(xzaoi)
 	aoiman.zSweepList.Remove(xzaoi)
@@ -51,6 +59,8 @@ func (aoiman *XZListAOIManager) Leave(aoi *AOI) {
 
 // Moved is called when Entity moves in Space
 func (aoiman *XZListAOIManager) Moved(aoi *AOI, x, z common.Coord) {
+	aoiman.mutex.Lock()
+	defer aoiman.mutex.Unlock()
 	oldX := aoi.x
 	oldZ := aoi.z
 	aoi.x, aoi.z = x, z

@@ -1,6 +1,8 @@
 package pktconn
 
 import (
+	"fmt"
+	"go-one/common/log"
 	"io"
 	"net"
 	"runtime"
@@ -58,16 +60,20 @@ type flushable interface {
 	Flush() error
 }
 
+var maxRetries = 5
+
 func tryFlush(conn net.Conn) error {
 	if f, ok := conn.(flushable); ok {
-		for {
+		for retries := 0; retries < maxRetries; retries++ {
 			err := f.Flush()
 			if err == nil || !IsTemporary(err) {
 				return err
 			} else {
+				log.Warnf("Time out (%d/%d): %s", retries+1, maxRetries, err.Error())
 				runtime.Gosched()
 			}
 		}
+		return fmt.Errorf("exceeded maximum retry count")
 	} else {
 		return nil
 	}

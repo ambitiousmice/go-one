@@ -15,6 +15,7 @@ const (
 	SceneStrategyOrder    = "order"
 	SceneStrategyRandom   = "random"
 	SceneStrategyBalanced = "balanced"
+	SceneStrategyMax      = "max"
 )
 
 // Game error msg

@@ -9,7 +9,7 @@ type AOISyncProcessor struct {
 }
 
 func (p *AOISyncProcessor) Process(client *Client, param []byte) {
-	//log.Infof("sync info:%s", param)
+	log.Infof("sync info:%s", param)
 
 	var syncInfos []common_proto.AOISyncInfo
 	UnPackMsg(param, &syncInfos)

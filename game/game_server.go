@@ -69,6 +69,7 @@ func NewGameServer() *GameServer {
 				config.MatchStrategy,
 				config.EnableAOI,
 				config.AOIDistance,
+				time.Duration(config.TickRate)*time.Millisecond,
 			)
 		}
 	}
@@ -86,7 +87,7 @@ func (gs *GameServer) Run() {
 	gs.cron.AddFunc("@every 20s", func() {
 		log.Infof("当前链接数:%d", len(gs.gateProxies))
 		log.Infof("网关包队列长度:%d", len(gs.GatePacketQueue))
-		log.Infof("aoi 消息通道长度:%d", entity.GetAOIMsgChannelSize())
+		log.Infof("aoi消息队列长度:%d", entity.GetAOIMsgChannelSize())
 	})
 
 	gs.mainRoutine()
@@ -248,7 +249,7 @@ func (gs *GameServer) GetGateProxyByGateClusterID(gateClusterID uint8) *proxy.Ga
 	defer gs.GpMutex.RUnlock()
 
 	nodeProxies := gs.gateNodeProxies[gateClusterID]
-	if nodeProxies == nil {
+	if len(nodeProxies) == 0 {
 		return nil
 	}
 
@@ -265,6 +266,7 @@ func (gs *GameServer) SendAndRelease(gateClusterID uint8, packet *pktconn.Packet
 	gateProxy := gs.GetGateProxyByGateClusterID(gateClusterID)
 	if gateProxy == nil {
 		log.Errorf("not found gate proxy:%d", gateClusterID)
+		packet.Release()
 		return
 	}
 

@@ -58,6 +58,7 @@ loop:
 	for {
 		select {
 		case packet := <-pc.sendChan:
+			pc.conn.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
 			err := pc.flush(packet)
 			if err != nil {
 				pc.closeWithError(err)

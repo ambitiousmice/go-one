@@ -29,6 +29,7 @@ type BasePlayer struct {
 	Scene         *Scene
 	status        uint8
 
+	aoiMutex     sync.RWMutex
 	Position     Vector3
 	InterestedIn BasePlayerSet
 	InterestedBy BasePlayerSet
@@ -156,14 +157,24 @@ func (p *BasePlayer) OnLeaveAOI(otherAoi *aoi.AOI) {
 }
 
 func (p *BasePlayer) interest(other *BasePlayer) {
+	p.aoiMutex.Lock()
 	p.InterestedIn.Add(other)
+	p.aoiMutex.Unlock()
+
+	other.aoiMutex.Lock()
 	other.InterestedBy.Add(p)
+	other.aoiMutex.Unlock()
 	p.SendCreateEntity(other)
 }
 
 func (p *BasePlayer) uninterested(other *BasePlayer) {
+	p.aoiMutex.Lock()
 	p.InterestedIn.Del(other)
+	p.aoiMutex.Unlock()
+
+	other.aoiMutex.Lock()
 	other.InterestedBy.Del(p)
+	other.aoiMutex.Unlock()
 	p.SendDestroyEntity(other)
 }
 
@@ -182,6 +193,7 @@ func (p *BasePlayer) CollectAOISyncInfos() {
 	}
 
 	syncInfos := make([]*common_proto.AOISyncInfo, 0)
+	p.aoiMutex.RLock()
 	for neighbor := range p.InterestedBy {
 		aoiSyncInfo := &common_proto.AOISyncInfo{
 			EntityID: neighbor.EntityID,
@@ -193,6 +205,7 @@ func (p *BasePlayer) CollectAOISyncInfos() {
 		}
 		syncInfos = append(syncInfos, aoiSyncInfo)
 	}
+	p.aoiMutex.RUnlock()
 
 	p.SendGameData(common_proto.AOISync, syncInfos)
 }

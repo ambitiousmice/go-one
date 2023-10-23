@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"net"
 	"sync"
+	"time"
 )
 
 // NewBufferedConn creates a new connection with buffered write based on underlying connection
@@ -47,4 +48,12 @@ func (bc *bufferedConn) Flush() error {
 	}
 
 	return nil
+}
+
+func (bc *bufferedConn) SetReadTimeout(timeout time.Duration) error {
+	return bc.SetDeadline(time.Now().Add(timeout))
+}
+
+func (bc *bufferedConn) SetWriteTimeout(timeout time.Duration) error {
+	return bc.SetWriteDeadline(time.Now().Add(timeout))
 }

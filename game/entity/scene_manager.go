@@ -3,6 +3,7 @@ package entity
 import (
 	"go-one/common/context"
 	"go-one/common/log"
+	"go-one/common/pool/goroutine_pool"
 	"go-one/game/common"
 	"math/rand"
 	"reflect"
@@ -46,13 +47,19 @@ type SceneManager struct {
 	sceneJoinOrder    []int64
 	enableAOI         bool
 	aoiDistance       float32
+	tickRate          time.Duration
 }
 
-func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64, sceneIDEnd int64, matchStrategy string, enableAOI bool, aoiDistance float32) *SceneManager {
+func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64, sceneIDEnd int64, matchStrategy string, enableAOI bool, aoiDistance float32, tickRate time.Duration) *SceneManager {
 	idPool, err := NewIDPool(sceneIDStart, sceneIDEnd)
 	if err != nil {
 		panic("init room id pool error: " + err.Error())
 	}
+
+	if tickRate == 0 {
+		tickRate = 34 * time.Millisecond
+	}
+
 	m := &SceneManager{
 		sceneType:         sceneType,
 		sceneIDStart:      sceneIDStart,
@@ -64,6 +71,7 @@ func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64
 		sceneJoinOrder:    make([]int64, 0),
 		enableAOI:         enableAOI,
 		aoiDistance:       aoiDistance,
+		tickRate:          tickRate,
 	}
 
 	if enableAOI {
@@ -74,7 +82,8 @@ func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64
 				for {
 					select {
 					case task := <-aoiMsgChan:
-						task()
+						goroutine_pool.Submit(task)
+
 						//log.Infof("process aoiMsg task")
 					}
 				}
@@ -104,6 +113,8 @@ func (sm *SceneManager) GetSceneByStrategy() *Scene {
 		return sm.matchSceneRandomly()
 	case common.SceneStrategyBalanced:
 		return sm.matchSceneBalanced()
+	case common.SceneStrategyMax:
+		return sm.matchSceneMax()
 	default:
 		return sm.matchSceneByOrder()
 	}
@@ -156,6 +167,30 @@ func (sm *SceneManager) matchSceneBalanced() *Scene {
 	return minScene
 }
 
+func (sm *SceneManager) matchSceneMax() *Scene {
+	// 寻找人数最多且小于最大人数限制的房间
+	var maxScene *Scene
+	maxPlayers := 0
+
+	for _, sceneID := range sm.sceneJoinOrder {
+		room := sm.scenes[sceneID]
+		if room != nil {
+			playerCount := room.GetPlayerCount()
+			if playerCount < room.MaxPlayerNum && playerCount > maxPlayers {
+				maxPlayers = playerCount
+				maxScene = room
+			}
+		}
+	}
+
+	// 如果没有可用房间，创建一个新房间
+	if maxScene == nil {
+		return sm.createScene()
+	}
+
+	return maxScene
+}
+
 func (sm *SceneManager) createScene() *Scene {
 	sceneID, err := sm.IDPool.Get()
 	if err != nil {
@@ -195,7 +230,7 @@ func (sm *SceneManager) GetSceneCount() int {
 
 func (sm *SceneManager) syncAOIInfoTicker() {
 	go func() {
-		ticker := time.Tick(50 * time.Millisecond)
+		ticker := time.Tick(sm.tickRate)
 		for {
 			select {
 			case <-ticker:

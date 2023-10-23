@@ -1,10 +1,10 @@
 nacos:
   host: 192.168.1.213:8848
   instance:
-    ip: 192.168.1.213
+    ip: 192.168.1.22
     port: 7760
     service: multiplayer
     groupName: 1
-    clusterName: 1
+    clusterName: 4
     metadata:
       "version": 1.0

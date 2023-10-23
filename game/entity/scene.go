@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"go-one/common/log"
 	"go-one/game/aoi"
 	"go-one/game/common"
 )
@@ -18,6 +19,12 @@ func (s *Scene) init(id int64, sceneType string, maxPlayerNum int, enableAOI boo
 		s.aoiMgr = aoi.NewXZListAOIManager(common.Coord(aoiDistance))
 	}
 	s.I.OnCreated()
+
+	s.AddCronTask("entity count", "@every 5s", func() {
+		log.Infof("%s 最大承载人数:%d,当前人数:%d", s, s.MaxPlayerNum, s.GetPlayerCount())
+	})
+
+	s.StartCron()
 }
 
 func (s *Scene) String() string {
@@ -38,9 +45,11 @@ func (s *Scene) join(player *Player) {
 		if !exist {
 			s.aoiMgr.Enter(&player.AOI, s.DefaultPosition.X, s.DefaultPosition.Z)
 		}
+		player.aoiMutex.RLock()
 		for neighbor := range player.InterestedBy {
 			player.SendCreateEntity(neighbor)
 		}
+		player.aoiMutex.RUnlock()
 	}
 
 	s.I.OnJoined(player)
