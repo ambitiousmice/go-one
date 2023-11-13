@@ -199,7 +199,11 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		c.I.OnEnterGameSuccess(c, loginResp)
 
 		ClientContext[c.ID] = c
+	case common_proto.BroadcastFromServer:
+		broadcastMsg := &common_proto.GateBroadcastMsg{}
+		packet.ReadData(broadcastMsg)
 
+		c.BroadcastMsgHandler(broadcastMsg)
 	case common_proto.GameMethodFromClientAck:
 		gameResp := &common_proto.GameResp{}
 		packet.ReadData(gameResp)
@@ -226,6 +230,10 @@ func (c *Client) SendMsg(msgType uint16, msg interface{}) {
 func (c *Client) enterGame() {
 	c.SendMsg(common_proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
 	log.Infof("发送登录消息:%s", c)
+}
+
+func (c *Client) BroadcastMsgHandler(msg *common_proto.GateBroadcastMsg) {
+	log.Infof("收到广播消息:%s", msg.Data)
 }
 
 func (c *Client) SendGameData(cmd uint16, data any) {

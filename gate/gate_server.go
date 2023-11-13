@@ -354,3 +354,11 @@ func (gs *GateServer) getClientProxy(entityID int64) *ClientProxy {
 	return gs.clientProxies[entityID]
 
 }
+
+func (gs *GateServer) Broadcast(msg any) {
+	gs.RLock()
+	defer gs.RUnlock()
+	for _, proxy := range gs.clientProxies {
+		proxy.SendMsg(common_proto.BroadcastFromServer, msg)
+	}
+}

@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
-	"go-one/common/log"
 	"go-one/game/aoi"
 	"sync"
 )
@@ -56,7 +55,6 @@ func (br *BaseScene) AddPlayer(player *Player) {
 	br.mutex.Lock()
 	defer br.mutex.Unlock()
 
-	log.Infof("==============$s 添加玩家 %s", br, player)
 	br.players[player.EntityID] = player
 }
 
@@ -65,7 +63,6 @@ func (br *BaseScene) RemovePlayer(player *Player) {
 	defer br.mutex.Unlock()
 
 	delete(br.players, player.EntityID)
-	log.Infof("==============$s 删除玩家 %s", br, player)
 
 }
 

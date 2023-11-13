@@ -117,12 +117,11 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 
 // ============================================================================游戏协议============================================================================
 
-var ID int64 = 1
-
 func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 	if cp.entityID != 0 {
-		log.Warnf("ready login, but already login: %s", cp)
+		log.Warnf("ready enter game, but already enter game: %s", cp)
 		cp.SendEnterGameClientAck()
+		cp.NotifyNewPlayerConnection()
 		return
 	}
 
@@ -143,8 +142,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 			return
 		}
 
-		cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
-		delete(cp.cronMap, consts.CheckEnterGame)
+		cp.removeCronTask(consts.CheckEnterGame)
 
 		gateServer.removeTempClientProxy(cp.clientID)
 
@@ -166,8 +164,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 
 	cp.game = param.Game
 
-	cp.cron.Remove(cp.cronMap[consts.CheckEnterGame])
-	delete(cp.cronMap, consts.CheckEnterGame)
+	cp.removeCronTask(consts.CheckEnterGame)
 
 	gateServer.removeTempClientProxy(cp.clientID)
 
@@ -217,9 +214,19 @@ func (cp *ClientProxy) PlayerDisconnected() {
 
 }
 
+func (cp *ClientProxy) removeCronTask(taskName string) {
+	taskID, ok := cp.cronMap[taskName]
+	if !ok {
+		return
+	}
+
+	cp.cron.Remove(taskID)
+	delete(cp.cronMap, taskName)
+}
+
 // ============================================================================客户端协议============================================================================
 
-func (cp *ClientProxy) SendMsg(msgType uint16, msg interface{}) {
+func (cp *ClientProxy) SendMsg(msgType uint16, msg any) {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(msgType)
 

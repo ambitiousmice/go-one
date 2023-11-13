@@ -3,6 +3,6 @@ server:
   load-balancer-url: http://192.168.1.213:8888/gate/choose/test
   partition: 1
   server-host: 192.168.1.22:6666
-  client_num: 50
+  client_num: 1
   kcp: false
   websocket: false

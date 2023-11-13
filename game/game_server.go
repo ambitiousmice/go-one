@@ -87,7 +87,7 @@ func (gs *GameServer) Run() {
 	gs.cron.AddFunc("@every 20s", func() {
 		log.Infof("当前链接数:%d", len(gs.gateProxies))
 		log.Infof("网关包队列长度:%d", len(gs.GatePacketQueue))
-		log.Infof("aoi消息队列长度:%d", entity.GetAOIMsgChannelSize())
+		log.Infof("aoi消息队列长度:%d", entity.GetSceneMsgChannelSize())
 	})
 
 	gs.mainRoutine()

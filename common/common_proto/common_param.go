@@ -108,3 +108,8 @@ type MoveReq struct {
 	Yaw   common.Yaw
 	Speed common.Speed
 }
+
+type GateBroadcastMsg struct {
+	Type string
+	Data []byte
+}

@@ -29,6 +29,7 @@ func (cs *ClientServer) Run() {
 	RegisterProcessor(&JoinSceneProcessor{})
 	RegisterProcessor(&CreateEntityProcessor{})
 	RegisterProcessor(&AOISyncProcessor{})
+	RegisterProcessor(&BroadcastProcessor{})
 
 	for i := 1; i <= Config.ServerConfig.ClientNum; i++ {
 		iClientValue := reflect.New(cs.iClientType)

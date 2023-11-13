@@ -11,8 +11,8 @@ import (
 
 func main() {
 	// 创建包含100个AOISyncInfo对象的切片
-	aoiSlice := make([]*t.AOISyncInfo, 100)
-	for i := 0; i < 100; i++ {
+	aoiSlice := make([]*t.AOISyncInfo, 10)
+	for i := 0; i < 10; i++ {
 		aoi := &t.AOISyncInfo{
 			EntityId: int64(i),
 			X:        float32(i),

@@ -61,7 +61,7 @@ func InitConsumer(consumerConfigs []ConsumerConfig) {
 
 		consumerHandler := consumerHandlerContext[c.HandlerName]
 		if consumerHandler == nil {
-			panic("consumer handler: " + c.HandlerName + " not found")
+			log.Panic("consumer handler: " + c.HandlerName + " not found")
 		}
 
 		go func() {

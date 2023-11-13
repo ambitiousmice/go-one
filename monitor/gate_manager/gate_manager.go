@@ -3,9 +3,11 @@ package gate_manager
 import (
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/robfig/cron/v3"
+	"go-one/common/cache"
 	"go-one/common/consts"
 	"go-one/common/log"
 	"go-one/common/register"
+	"go-one/common/utils"
 	"go-one/monitor/config"
 	"sort"
 	"strconv"
@@ -17,6 +19,8 @@ var gateContext = make(map[int64]*GateInfos)
 var gatesMutex = new(sync.RWMutex)
 
 var crontab = *cron.New(cron.WithSeconds())
+
+var entityGateInfoCacheKey = "entity_gate_map"
 
 func init() {
 	_, err := crontab.AddFunc("@every 10s", func() {
@@ -190,8 +194,24 @@ func FreshGateInfo(gateName, groupName string) {
 func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	gateInfos := GetGateInfos(partition)
 
+	var previousGateInfo GateInfo
+	err := cache.GetHashField(utils.ToString(entityGateInfoCacheKey), utils.ToString(entityID), &previousGateInfo)
+	if err == nil && previousGateInfo.Partition == partition {
+		newGateInfo := gateInfos.getGate(previousGateInfo.ClusterId)
+		if newGateInfo != nil {
+			return newGateInfo
+		}
+	}
+
 	index := entityID % int64(len(gateInfos.ClusterIds))
-	return gateInfos.getGate(gateInfos.ClusterIds[index])
+	newGateInfo := gateInfos.getGate(gateInfos.ClusterIds[index])
+
+	err = cache.SetHashField(utils.ToString(entityGateInfoCacheKey), utils.ToString(entityID), newGateInfo)
+	if err != nil {
+		log.Warnf("set entity gate cache error:%s", err.Error())
+	}
+
+	return newGateInfo
 }
 
 func GetGateInfo(partition int64, clusterID int64) *GateInfo {

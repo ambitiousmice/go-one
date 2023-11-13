@@ -15,7 +15,7 @@ var ManagerContext = make(map[string]*SceneManager)
 var sceneTypes = make(map[string]reflect.Type)
 var playerCountMap = make(map[string]int)
 
-var aoiMsgChan chan func()
+var sceneMsgChan chan func()
 
 func init() {
 	err := context.AddCronTask("scene_player_count_task", "0 0/1 * * * ?", func() {
@@ -33,6 +33,22 @@ func init() {
 	if err != nil {
 		panic("add cron task scene_player_count_task error: " + err.Error())
 	}
+
+	sceneMsgChan = make(chan func(), 102400)
+
+	go func() {
+		for {
+			select {
+			case task := <-sceneMsgChan:
+				errs := goroutine_pool.Submit(task)
+				if errs != nil {
+					log.Warnf("submit scene msg err:%s", errs.Error())
+				}
+
+				//log.Infof("process scene aoiMsg task")
+			}
+		}
+	}()
 }
 
 type SceneManager struct {
@@ -75,21 +91,6 @@ func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64
 	}
 
 	if enableAOI {
-		if aoiMsgChan == nil {
-			aoiMsgChan = make(chan func(), 102400)
-
-			go func() {
-				for {
-					select {
-					case task := <-aoiMsgChan:
-						goroutine_pool.Submit(task)
-
-						//log.Infof("process aoiMsg task")
-					}
-				}
-			}()
-		}
-
 		m.syncAOIInfoTicker()
 	}
 
@@ -239,7 +240,7 @@ func (sm *SceneManager) syncAOIInfoTicker() {
 					//log.Infof("%s 当前人数:%d", scene, scene.GetPlayerCount())
 					scene.mutex.RLock()
 					for _, player := range scene.players {
-						submitAOITask(func() {
+						submitSceneTask(func() {
 							player.CollectAOISyncInfos()
 						})
 					}
@@ -252,13 +253,12 @@ func (sm *SceneManager) syncAOIInfoTicker() {
 	}()
 }
 
-func submitAOITask(task func()) {
-	//log.Infof("提交 aoi task")
-	aoiMsgChan <- task
+func submitSceneTask(task func()) {
+	sceneMsgChan <- task
 }
 
-func GetAOIMsgChannelSize() int {
-	return len(aoiMsgChan)
+func GetSceneMsgChannelSize() int {
+	return len(sceneMsgChan)
 }
 
 // RegisterSceneType register a entity type
@@ -292,7 +292,7 @@ func GetSceneManager(sceneType string) *SceneManager {
 	sceneManager := ManagerContext[sceneType]
 
 	if sceneManager == nil {
-		panic("scene manager not found, sceneType:" + sceneType)
+		log.Warnf("scene manager not found, sceneType:%s", sceneType)
 	}
 
 	return sceneManager

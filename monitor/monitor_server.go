@@ -29,6 +29,7 @@ func main() {
 		gateGroup.GET("/choose/:partition", gate_manager.ChooseGate)
 		gateGroup.GET("/choose/test", gate_manager.ChooseGateTest)
 		gateGroup.GET("/collectData", gate_manager.CollectData)
+		gateGroup.POST("/broadcast", gate_manager.Broadcast)
 	}
 
 	addr := ":" + utils.ToString(context.GetOneConfig().Nacos.Instance.Port)

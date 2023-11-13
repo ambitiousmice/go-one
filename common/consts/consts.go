@@ -102,3 +102,12 @@ const (
 	Version   = "version"
 	Status    = "status"
 )
+
+// gate kafka topic
+const (
+	GateBroadcastTopic = "gate-broadcast"
+)
+
+const (
+	GateBroadcastTypeNotice = "notice"
+)

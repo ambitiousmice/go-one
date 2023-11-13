@@ -12,6 +12,10 @@ func Unmarshal(data []byte, v interface{}) error {
 	return jsonI.Unmarshal(data, v)
 }
 
+func Marshal(v interface{}) ([]byte, error) {
+	return jsonI.Marshal(v)
+}
+
 func MarshalToString(v interface{}) (string, error) {
 	return jsonI.MarshalToString(v)
 }

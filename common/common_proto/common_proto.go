@@ -10,6 +10,7 @@ const (
 const (
 	ConnectionSuccessFromServer = 1001
 	OfflineFromServer           = 1002
+	BroadcastFromServer         = 1003
 )
 
 // from client

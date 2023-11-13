@@ -18,7 +18,7 @@ func (p *Player) init(entityID int64, gateClusterID uint8) {
 }
 
 func (p *Player) JoinScene(sceneType string, sceneID int64) {
-	submitAOITask(func() {
+	submitSceneTask(func() {
 		scene := p.Scene
 		if scene != nil {
 			if scene.Type == sceneType && scene.ID == sceneID {
@@ -47,7 +47,7 @@ func (p *Player) JoinScene(sceneType string, sceneID int64) {
 }
 
 func (p *Player) ReJoinScene() {
-	submitAOITask(func() {
+	submitSceneTask(func() {
 		scene := p.Scene
 		if scene == nil {
 			p.SendCommonErrorMsg(common.ReconnectFailed)
@@ -60,7 +60,7 @@ func (p *Player) ReJoinScene() {
 }
 
 func (p *Player) LeaveScene() {
-	submitAOITask(func() {
+	submitSceneTask(func() {
 		scene := p.Scene
 		if scene == nil {
 			return
@@ -71,7 +71,7 @@ func (p *Player) LeaveScene() {
 }
 
 func (p *Player) Move(moveReq *common_proto.MoveReq) {
-	submitAOITask(func() {
+	submitSceneTask(func() {
 		scene := p.Scene
 		if scene == nil {
 			return
