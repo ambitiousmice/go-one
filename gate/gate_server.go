@@ -235,7 +235,7 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 		cp.CloseAll()
 	}
 
-	cp.cronMap[consts.CheckEnterGame] = jobID
+	cp.cronMap[consts.CheckLogin] = jobID
 	cp.SendConnectionSuccessFromServer()
 
 	cp.cron.AddFunc("@every "+strconv.Itoa(gs.checkHeartbeatsInterval)+"s", func() {
@@ -273,8 +273,8 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 		cp.ForwardByDispatcher(pkt)
 	case common_proto.HeartbeatFromClient:
 		cp.SendHeartBeatAck()
-	case common_proto.EnterGameFromClient:
-		cp.EnterGame(pkt)
+	case common_proto.LoginFromClient:
+		cp.Login(pkt)
 	case common_proto.OfflineFromClient:
 		cp.CloseAll()
 	default:

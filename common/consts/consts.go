@@ -74,7 +74,7 @@ const (
 
 // cron job name
 const (
-	CheckEnterGame = "checkEnterGame" // 检查进入游戏
+	CheckLogin = "checkLogin" // 检查登录
 )
 
 // loginType

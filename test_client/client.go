@@ -180,8 +180,8 @@ func (bot *ClientBot) handlePacket(packet *pktconn.Packet) {
 	case common_proto.ConnectionSuccessFromServer:
 		bot.login("190e5f8a-e3aa-4320-954d-8505b4393de4")
 		log.Infof("发送登录消息")
-	case common_proto.EnterGameClientAck:
-		loginResp := &common_proto.EnterGameResp{}
+	case common_proto.LoginFromClientAck:
+		loginResp := &common_proto.LoginResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果,EntityID:%d", loginResp.EntityID)
 		/*go func() {
@@ -219,7 +219,7 @@ func (bot *ClientBot) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (bot *ClientBot) login(account string) {
-	bot.SendMsg(common_proto.EnterGameFromClient, &common_proto.EnterGameReq{
+	bot.SendMsg(common_proto.LoginFromClient, &common_proto.LoginReq{
 		AccountType: consts.TokenLogin,
 		Account:     account,
 		Game:        "elite-star",

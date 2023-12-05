@@ -14,7 +14,7 @@ type LoginResult struct {
 	EntityID int64
 }
 
-func Login(manager LoginManager, param common_proto.EnterGameReq) (*LoginResult, error) {
+func Login(manager LoginManager, param common_proto.LoginReq) (*LoginResult, error) {
 	switch param.AccountType {
 	case consts.TokenLogin:
 		return manager.TokenLogin(param.Account)

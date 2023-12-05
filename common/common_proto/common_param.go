@@ -9,11 +9,11 @@ type ErrorResp struct {
 	Data string
 }
 
-type EnterGameFromServerParam struct {
+type ConnectionSuccessFromServerResp struct {
 	ClientID string
 }
 
-type EnterGameReq struct {
+type LoginReq struct {
 	AccountType string
 	Account     string
 	EntityID    int64
@@ -21,7 +21,7 @@ type EnterGameReq struct {
 	Game        string
 }
 
-type EnterGameResp struct {
+type LoginResp struct {
 	EntityID int64
 	Game     string
 }

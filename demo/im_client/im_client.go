@@ -34,16 +34,16 @@ func (ic *ImClient) OnCreated(client *game_client.Client) {
 
 }
 
-func (ic *ImClient) EnterGameParamWrapper(client *game_client.Client) *common_proto.EnterGameReq {
-	return &common_proto.EnterGameReq{
+func (ic *ImClient) LoginReqWrapper(client *game_client.Client) *common_proto.LoginReq {
+	return &common_proto.LoginReq{
 		AccountType: consts.TokenLogin,
 		Account:     "account",
 		Game:        "im",
 	}
 }
 
-func (ic *ImClient) OnEnterGameSuccess(client *game_client.Client, resp *common_proto.EnterGameResp) {
-	log.Infof("%d enter game:%s success", resp.EntityID, resp.Game)
+func (ic *ImClient) OnLoginSuccess(client *game_client.Client, resp *common_proto.LoginResp) {
+	log.Infof("%d login :%s success", resp.EntityID, resp.Game)
 }
 
 func (ic *ImClient) OnJoinScene(client *game_client.Client, joinSceneResp *common_proto.JoinSceneResp) {

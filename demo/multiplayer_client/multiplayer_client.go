@@ -32,15 +32,15 @@ func (ic *MultiplayerClient) OnCreated(client *game_client.Client) {
 
 }
 
-func (ic *MultiplayerClient) EnterGameParamWrapper(client *game_client.Client) *common_proto.EnterGameReq {
-	return &common_proto.EnterGameReq{
+func (ic *MultiplayerClient) LoginReqWrapper(client *game_client.Client) *common_proto.LoginReq {
+	return &common_proto.LoginReq{
 		AccountType: consts.TokenLogin,
 		Account:     "account",
 		Game:        "multiplayer",
 	}
 }
 
-func (ic *MultiplayerClient) OnEnterGameSuccess(client *game_client.Client, resp *common_proto.EnterGameResp) {
+func (ic *MultiplayerClient) OnLoginSuccess(client *game_client.Client, resp *common_proto.LoginResp) {
 	log.Infof("%d enter game:%s success", resp.EntityID, resp.Game)
 }
 

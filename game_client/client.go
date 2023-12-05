@@ -42,8 +42,8 @@ type Client struct {
 
 type IClient interface {
 	OnCreated(client *Client)
-	EnterGameParamWrapper(client *Client) *common_proto.EnterGameReq
-	OnEnterGameSuccess(client *Client, resp *common_proto.EnterGameResp)
+	LoginReqWrapper(client *Client) *common_proto.LoginReq
+	OnLoginSuccess(client *Client, resp *common_proto.LoginResp)
 	OnJoinScene(client *Client, joinSceneResp *common_proto.JoinSceneResp)
 }
 
@@ -191,12 +191,12 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	switch msgType {
 	case common_proto.ConnectionSuccessFromServer:
 		c.enterGame()
-	case common_proto.EnterGameClientAck:
-		loginResp := &common_proto.EnterGameResp{}
+	case common_proto.LoginFromClientAck:
+		loginResp := &common_proto.LoginResp{}
 		packet.ReadData(loginResp)
 		log.Infof("登录结果,EntityID:%d,game:%s", loginResp.EntityID, loginResp.Game)
 		c.ID = loginResp.EntityID
-		c.I.OnEnterGameSuccess(c, loginResp)
+		c.I.OnLoginSuccess(c, loginResp)
 
 		ClientContext[c.ID] = c
 	case common_proto.BroadcastFromServer:
@@ -228,7 +228,7 @@ func (c *Client) SendMsg(msgType uint16, msg interface{}) {
 }
 
 func (c *Client) enterGame() {
-	c.SendMsg(common_proto.EnterGameFromClient, c.I.EnterGameParamWrapper(c))
+	c.SendMsg(common_proto.LoginFromClient, c.I.LoginReqWrapper(c))
 	log.Infof("发送登录消息:%s", c)
 }
 

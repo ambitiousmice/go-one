@@ -117,7 +117,7 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 
 // ============================================================================游戏协议============================================================================
 
-func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
+func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	if cp.entityID != 0 {
 		log.Warnf("ready enter game, but already enter game: %s", cp)
 		cp.SendEnterGameClientAck()
@@ -125,7 +125,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 		return
 	}
 
-	var param common_proto.EnterGameReq
+	var param common_proto.LoginReq
 	packet.ReadData(&param)
 
 	if param.EntityID != 0 && param.ClientID != "" {
@@ -142,7 +142,7 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 			return
 		}
 
-		cp.removeCronTask(consts.CheckEnterGame)
+		cp.removeCronTask(consts.CheckLogin)
 
 		gateServer.removeTempClientProxy(cp.clientID)
 
@@ -157,14 +157,14 @@ func (cp *ClientProxy) EnterGame(packet *pktconn.Packet) {
 
 	loginResult, err := Login(gateServer.LoginManager, param)
 	if err != nil {
-		log.Errorf("EnterGame error: %s", err)
+		log.Errorf("Login error: %s", err)
 		return
 	}
 	cp.entityID = loginResult.EntityID
 
 	cp.game = param.Game
 
-	cp.removeCronTask(consts.CheckEnterGame)
+	cp.removeCronTask(consts.CheckLogin)
 
 	gateServer.removeTempClientProxy(cp.clientID)
 
@@ -244,7 +244,7 @@ func (cp *ClientProxy) SendError(error string) {
 }
 
 func (cp *ClientProxy) SendConnectionSuccessFromServer() {
-	cp.SendMsg(common_proto.ConnectionSuccessFromServer, &common_proto.EnterGameFromServerParam{
+	cp.SendMsg(common_proto.ConnectionSuccessFromServer, &common_proto.ConnectionSuccessFromServerResp{
 		ClientID: cp.clientID,
 	})
 }
@@ -258,7 +258,7 @@ func (cp *ClientProxy) SendOffline() {
 }
 
 func (cp *ClientProxy) SendEnterGameClientAck() {
-	cp.SendMsg(common_proto.EnterGameClientAck, common_proto.EnterGameResp{
+	cp.SendMsg(common_proto.LoginFromClientAck, common_proto.LoginResp{
 		EntityID: cp.entityID,
 		Game:     cp.game,
 	})

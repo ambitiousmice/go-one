@@ -23,8 +23,8 @@ const (
 
 	OfflineFromClient = 2002 //客户端主动下线
 
-	EnterGameFromClient = 2003                // 客户端登录
-	EnterGameClientAck  = EnterGameFromClient // 客户端登录应答
+	LoginFromClient    = 2003            // 客户端登录
+	LoginFromClientAck = LoginFromClient // 客户端登录应答
 
 )
 
