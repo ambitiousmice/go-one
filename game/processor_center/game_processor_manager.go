@@ -26,7 +26,7 @@ type GameProcessManager struct {
 func (gpm *GameProcessManager) RegisterProcessor(p Processor) {
 	processor := gpm.processContext[p.GetCmd()]
 	if processor != nil {
-		panic("duplicate processor_center: " + strconv.Itoa(int(p.GetCmd())))
+		log.Panic("duplicate processor_center: " + strconv.Itoa(int(p.GetCmd())))
 	}
 	gpm.processContext[p.GetCmd()] = p
 }

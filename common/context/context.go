@@ -25,7 +25,7 @@ func init() {
 func Init() {
 	err := InitConfig()
 	if err != nil {
-		panic("read yaml error:" + err.Error())
+		log.Panic("read yaml error:" + err.Error())
 	}
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -37,7 +37,7 @@ func Init() {
 
 	err = InitIDGenerator(oneConfig.IDGeneratorConfig)
 	if err != nil {
-		panic("init id generator error:" + err.Error())
+		log.Panic("init id generator error:" + err.Error())
 	}
 
 	kafka.InitProducer(oneConfig.KafkaProducerConfig)
@@ -106,7 +106,7 @@ func addTimerTask() {
 			log.Infof("goroutine pool running task num:%d", goroutine_pool.Running())
 		})
 		if err != nil {
-			panic("add goroutine_pool_timer error:" + err.Error())
+			log.Panic("add goroutine_pool_timer error:" + err.Error())
 		}
 	}
 }

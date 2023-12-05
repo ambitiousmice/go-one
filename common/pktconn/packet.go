@@ -72,7 +72,7 @@ func allocPacket() *Packet {
 	pkt.refcount = 1
 
 	if pkt.GetPayloadLen() != 0 {
-		panic(fmt.Errorf("allocPacket: payload should be 0, but is %d", pkt.GetPayloadLen()))
+		log.Panic(fmt.Errorf("allocPacket: payload should be 0, but is %d", pkt.GetPayloadLen()))
 	}
 
 	return pkt
@@ -128,7 +128,7 @@ func (p *Packet) PayloadCap() uint32 {
 
 func (p *Packet) extendPayload(size int) []byte {
 	if size > MaxPayloadLength {
-		panic(ErrPayloadTooLarge)
+		log.Panic(ErrPayloadTooLarge)
 	}
 
 	payloadLen := p.GetPayloadLen()
@@ -141,7 +141,7 @@ func (p *Packet) extendPayload(size int) []byte {
 	}
 
 	if newPayloadLen > MaxPayloadLength {
-		panic(ErrPayloadTooLarge)
+		log.Panic(ErrPayloadTooLarge)
 	}
 
 	// try to find the proper capacity for the size bytes
@@ -149,7 +149,7 @@ func (p *Packet) extendPayload(size int) []byte {
 
 	buffer := packetBufferPools[resizeToCap].Get().([]byte)
 	if len(buffer) != int(resizeToCap+prePayloadSize) {
-		panic(fmt.Errorf("buffer size should be %d, but is %d", resizeToCap, len(buffer)))
+		log.Panic(fmt.Errorf("buffer size should be %d, but is %d", resizeToCap, len(buffer)))
 	}
 	copy(buffer, p.data())
 	oldBytes := p.bytes
@@ -191,7 +191,7 @@ func (p *Packet) Release() {
 		p.SetPayloadLen(0)
 		packetPool.Put(p)
 	} else if refcount < 0 {
-		panic(fmt.Errorf("releasing packet with refcount=%d", p.refcount))
+		log.Panic(fmt.Errorf("releasing packet with refcount=%d", p.refcount))
 	}
 }
 
@@ -294,7 +294,7 @@ func (p *Packet) WriteVarBytesI(b []byte) {
 // WriteVarBytesH appends varsize bytes to the end of payload
 func (p *Packet) WriteVarBytesH(b []byte) {
 	if len(b) > 0xFFFF {
-		panic(ErrPayloadTooLarge)
+		log.Panic(ErrPayloadTooLarge)
 	}
 
 	p.WriteUint16(uint16(len(b)))
@@ -328,7 +328,7 @@ func (p *Packet) ReadBytes(size int) []byte {
 	readEnd := readPos + uint32(size)
 
 	if size > MaxPayloadLength || readEnd > p.GetPayloadLen() {
-		panic(ErrPayloadTooSmall)
+		log.Panic(ErrPayloadTooSmall)
 	}
 
 	p.readCursor = readEnd

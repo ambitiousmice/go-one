@@ -35,7 +35,7 @@ type PacketConn struct {
 // NewPacketConn creates a packet connection based on network connection
 func NewPacketConn(ctx context.Context, conn net.Conn, proxy interface{}) *PacketConn {
 	if conn == nil {
-		panic("conn is nil")
+		log.Panic("conn is nil")
 	}
 
 	pcCtx, pcCancel := context.WithCancel(ctx)
@@ -104,7 +104,7 @@ func (pc *PacketConn) ReceiveChan(receiveChan chan *Packet) (err error) {
 // Send send packets to remote
 func (pc *PacketConn) Send(packet *Packet) error {
 	if atomic.LoadInt64(&packet.refcount) <= 0 {
-		panic(fmt.Errorf("sending packet with refcount=%d", packet.refcount))
+		log.Panic(fmt.Errorf("sending packet with refcount=%d", packet.refcount))
 	}
 
 	packet.addRefCount(1)

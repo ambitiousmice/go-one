@@ -195,7 +195,7 @@ func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	gateInfos := GetGateInfos(partition)
 
 	var previousGateInfo GateInfo
-	err := cache.GetHashField(utils.ToString(entityGateInfoCacheKey), utils.ToString(entityID), &previousGateInfo)
+	err := cache.GetHashField(entityGateInfoCacheKey, utils.ToString(entityID), &previousGateInfo)
 	if err == nil && previousGateInfo.Partition == partition {
 		newGateInfo := gateInfos.getGate(previousGateInfo.ClusterId)
 		if newGateInfo != nil {
@@ -206,7 +206,7 @@ func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	index := entityID % int64(len(gateInfos.ClusterIds))
 	newGateInfo := gateInfos.getGate(gateInfos.ClusterIds[index])
 
-	err = cache.SetHashField(utils.ToString(entityGateInfoCacheKey), utils.ToString(entityID), newGateInfo)
+	err = cache.SetHashField(entityGateInfoCacheKey, utils.ToString(entityID), newGateInfo)
 	if err != nil {
 		log.Warnf("set entity gate cache error:%s", err.Error())
 	}

@@ -17,7 +17,7 @@ func ServeWebsocket(listenAddr string, delegate WebsocketServerDelegate) {
 	http.HandleFunc("/ws", delegate.ServeWebsocketConnection)
 	err := http.ListenAndServe(listenAddr, nil)
 	if err != nil {
-		panic("run websocket server error:" + err.Error())
+		log.Panic("run websocket server error:" + err.Error())
 	}
 }
 

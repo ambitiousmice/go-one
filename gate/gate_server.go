@@ -56,7 +56,7 @@ func (gs *GateServer) String() string {
 
 func NewGateServer() *GateServer {
 	if gateServer != nil {
-		panic("gate server only can be initialized once")
+		log.Panic("gate server only can be initialized once")
 	}
 
 	cronTab := cron.New(cron.WithSeconds())

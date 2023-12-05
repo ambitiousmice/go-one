@@ -34,7 +34,7 @@ type Instance struct {
 
 func Run(config NacosConf) {
 	if len(config.Host) == 0 {
-		panic("nacos server addr is empty")
+		log.Panic("nacos server addr is empty")
 	}
 
 	serverAddresses := strings.Split(config.Host, ",")
@@ -45,7 +45,7 @@ func Run(config NacosConf) {
 		host := serverAddress[0]
 		port, err := strconv.ParseUint(serverAddress[1], 10, 64)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 
 		sc[i] = *constant.NewServerConfig(host, port, constant.WithContextPath("/nacos"))
@@ -75,7 +75,7 @@ func Run(config NacosConf) {
 	)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	instance := config.Instance
@@ -105,7 +105,7 @@ func Run(config NacosConf) {
 	})
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 }
@@ -113,7 +113,7 @@ func Run(config NacosConf) {
 func registerServiceInstance(client naming_client.INamingClient, param vo.RegisterInstanceParam) {
 	success, err := client.RegisterInstance(param)
 	if !success || err != nil {
-		panic("RegisterServiceInstance failed!" + err.Error())
+		log.Panic("RegisterServiceInstance failed!" + err.Error())
 	}
 	log.Infof("RegisterServiceInstance,param:%+v,result:%+v \n\n", param, success)
 }

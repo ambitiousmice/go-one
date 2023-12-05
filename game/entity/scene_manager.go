@@ -15,7 +15,7 @@ var ManagerContext = make(map[string]*SceneManager)
 var sceneTypes = make(map[string]reflect.Type)
 var playerCountMap = make(map[string]int)
 
-var sceneMsgChan chan func()
+var sceneMsgChan = make(chan func(), 102400)
 
 func init() {
 	err := context.AddCronTask("scene_player_count_task", "0 0/1 * * * ?", func() {
@@ -31,10 +31,8 @@ func init() {
 	})
 
 	if err != nil {
-		panic("add cron task scene_player_count_task error: " + err.Error())
+		log.Panic("add cron task scene_player_count_task error: " + err.Error())
 	}
-
-	sceneMsgChan = make(chan func(), 102400)
 
 	go func() {
 		for {
@@ -69,7 +67,7 @@ type SceneManager struct {
 func NewSceneManager(sceneType string, sceneMaxPlayerNum int, sceneIDStart int64, sceneIDEnd int64, matchStrategy string, enableAOI bool, aoiDistance float32, tickRate time.Duration) *SceneManager {
 	idPool, err := NewIDPool(sceneIDStart, sceneIDEnd)
 	if err != nil {
-		panic("init room id pool error: " + err.Error())
+		log.Panic("init room id pool error: " + err.Error())
 	}
 
 	if tickRate == 0 {
@@ -264,7 +262,7 @@ func GetSceneMsgChannelSize() int {
 // RegisterSceneType register a entity type
 func RegisterSceneType(scene IScene) {
 	if sceneTypes[scene.GetSceneType()] != nil {
-		panic("scene type already registered, sceneType:" + scene.GetSceneType())
+		log.Panic("scene type already registered, sceneType:" + scene.GetSceneType())
 	}
 
 	objVal := reflect.ValueOf(scene)
@@ -282,7 +280,7 @@ func RegisterSceneType(scene IScene) {
 func getSceneObjType(sceneType string) reflect.Type {
 	objType := sceneTypes[sceneType]
 	if objType == nil {
-		panic("scene type not found, sceneType:" + sceneType)
+		log.Panic("scene type not found, sceneType:" + sceneType)
 	}
 
 	return objType

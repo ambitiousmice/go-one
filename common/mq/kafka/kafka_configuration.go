@@ -54,7 +54,7 @@ func InitConsumer(consumerConfigs []ConsumerConfig) {
 
 		consumerGroup, err := sarama.NewConsumerGroup(strings.Split(c.Brokers, ","), c.Group, config)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 
 		topics := strings.Split(c.Topics, ",")

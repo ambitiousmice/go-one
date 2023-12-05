@@ -250,7 +250,7 @@ func Handle3002(pkt *pktconn.Packet) {
 
 	if !req.Success {
 		log.Errorf("handle3002: %s", req.Msg)
-		panic("handle3002 failed")
+		log.Panic("handle3002 failed")
 	}
 }
 

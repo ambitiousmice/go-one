@@ -1,6 +1,7 @@
 package game_client
 
 import (
+	"go-one/common/log"
 	"reflect"
 	"time"
 )
@@ -23,7 +24,7 @@ func (cs *ClientServer) Run() {
 
 	err := InitConfig()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	RegisterProcessor(&JoinSceneProcessor{})

@@ -3,6 +3,7 @@ package context
 import (
 	"flag"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"go-one/common/log"
 	"go-one/common/register"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -48,13 +49,13 @@ func InitConfigFromNacos() {
 	})
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	err = yaml.Unmarshal([]byte(content), &oneConfig)
 
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	configFromNacos = content

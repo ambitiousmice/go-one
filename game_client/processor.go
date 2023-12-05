@@ -1,6 +1,9 @@
 package game_client
 
-import "strconv"
+import (
+	"go-one/common/log"
+	"strconv"
+)
 
 var ProcessorContext = make(map[uint16]Processor)
 
@@ -12,7 +15,7 @@ type Processor interface {
 func RegisterProcessor(p Processor) {
 	processor := ProcessorContext[p.GetCmd()]
 	if processor != nil {
-		panic("duplicate processor_center: " + strconv.Itoa(int(p.GetCmd())))
+		log.Panic("duplicate processor_center: " + strconv.Itoa(int(p.GetCmd())))
 	}
 	ProcessorContext[p.GetCmd()] = p
 }

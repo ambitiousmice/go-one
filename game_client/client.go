@@ -59,12 +59,12 @@ func (c *Client) Init(ID int64) *Client {
 
 		resp, err := utils.Get(Config.ServerConfig.LoadBalancerUrl, param)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		var r result
 		err = json.UnmarshalFromString(resp, &r)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		if Config.ServerConfig.Websocket {
 			c.ServerHost = r.Data.WsAddr
@@ -96,7 +96,7 @@ func (c *Client) Run() {
 	var netConn net.Conn
 	netConn, err := c.connectServer()
 	if err != nil {
-		panic("connect server failed: " + err.Error())
+		log.Panic("connect server failed: " + err.Error())
 	}
 
 	log.Infof("%s connected: %s", c, netConn.RemoteAddr())

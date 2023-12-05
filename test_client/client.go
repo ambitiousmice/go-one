@@ -57,7 +57,7 @@ func newClientBot(id int) *ClientBot {
 
 		resp, err := utils.Get(Config.ServerConfig.LoadBalancerUrl, param)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		var r result
 		json.UnmarshalFromString(resp, r)
@@ -81,7 +81,7 @@ func (bot *ClientBot) run() {
 	var netConn net.Conn
 	netConn, err := bot.connectServer()
 	if err != nil {
-		panic("connect server failed: " + err.Error())
+		log.Panic("connect server failed: " + err.Error())
 	}
 
 	log.Infof("connected: %s", netConn.RemoteAddr())

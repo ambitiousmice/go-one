@@ -25,7 +25,7 @@ func NewSyncProducer(producerConfig ProducerConfig) IProducer {
 	config.Producer.Return.Errors = true
 	syncProducer, err := sarama.NewSyncProducer(strings.Split(producerConfig.Brokers, ","), config)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return &SyncProducer{
@@ -75,7 +75,7 @@ func NewAsyncProducer(producerConfig ProducerConfig) IProducer {
 	config.Producer.Return.Errors = true
 	syncProducer, err := sarama.NewAsyncProducer(strings.Split(producerConfig.Brokers, ","), config)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return &AsyncProducer{

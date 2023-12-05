@@ -39,7 +39,7 @@ func (obj *TestObj) OnEnterAOI(otheraoi *AOI) {
 	if VERIFY_NEIGHBOR_COUNT {
 		other := obj.getObj(otheraoi)
 		if obj == other {
-			panic("should not enter self")
+			log.Panic("should not enter self")
 		}
 		if _, ok := obj.neighbors[other]; ok {
 			log.Panicf("duplicae enter aoi")
@@ -54,7 +54,7 @@ func (obj *TestObj) OnLeaveAOI(otheraoi *AOI) {
 	if VERIFY_NEIGHBOR_COUNT {
 		other := obj.getObj(otheraoi)
 		if obj == other {
-			panic("should not leave self")
+			log.Panic("should not leave self")
 		}
 		if _, ok := obj.neighbors[other]; !ok {
 			log.Panicf("duplicate leave aoi")

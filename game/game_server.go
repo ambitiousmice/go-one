@@ -42,7 +42,7 @@ type GameServer struct {
 
 func NewGameServer() *GameServer {
 	if gameServer != nil {
-		panic("Game server only can be initialized once")
+		log.Panic("Game server only can be initialized once")
 	}
 
 	crontab := cron.New(cron.WithSeconds())

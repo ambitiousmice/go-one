@@ -21,7 +21,7 @@ type LoadBalancer interface {
 
 func AddLoadBalancer(loadBalancerType string, loadBalancer LoadBalancer) {
 	if loadBalancerTypes[loadBalancerType] != nil {
-		panic("loadBalancer type already registered, loadBalancerType:" + loadBalancerType)
+		log.Panic("loadBalancer type already registered, loadBalancerType:" + loadBalancerType)
 	}
 
 	objVal := reflect.ValueOf(loadBalancer)
