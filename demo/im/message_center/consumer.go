@@ -42,7 +42,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			case Broadcast:
 				BroadcastMessageHandler(m)
 			}
-			log.Infof("ChatMessage claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
+			log.Infof("ChatMessage claimed: value = %s, timestamp = %v, topic = %s", message, message.Timestamp, message.Topic)
 			session.MarkMessage(message, "")
 		case <-session.Context().Done():
 			return nil

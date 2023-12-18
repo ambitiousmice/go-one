@@ -62,7 +62,7 @@ func NewGameServer() *GameServer {
 		log.Warnf("no scene manager config,will only support lobby scene")
 	} else {
 		for _, config := range gameConfig.SceneManagerConfigs {
-			entity.ManagerContext[config.SceneType] = entity.NewSceneManager(config.SceneType,
+			entity.SceneManagerContext[config.SceneType] = entity.NewSceneManager(config.SceneType,
 				config.SceneMaxPlayerNum,
 				config.SceneIDStart,
 				config.SceneIDEnd,

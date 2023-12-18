@@ -38,7 +38,7 @@ func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req 
 		/*p = game.AddPosition(entityID, gp.gateClusterID)
 		p.UpdateStatus(game.PlayerStatusOnline)*/
 	}
-	processor := gpm.processContext[req.Cmd]
+	processor := gpm.processContext[uint16(req.Cmd)]
 	if processor == nil {
 		log.Errorf("p%d send invalid cmd: %d", entityID, req.Cmd)
 		p.SendCommonErrorMsg("invalid cmd")

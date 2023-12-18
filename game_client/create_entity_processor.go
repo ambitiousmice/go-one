@@ -4,6 +4,7 @@ import (
 	"go-one/common/common_proto"
 	"go-one/common/json"
 	"go-one/common/log"
+	"go-one/game/common"
 	"time"
 )
 
@@ -17,9 +18,9 @@ func (p *CreateEntityProcessor) Process(client *Client, param []byte) {
 
 	if createEntity.EntityID == client.ID {
 		log.Infof("create self entity:%s", s)
-		client.Position.X = createEntity.X
-		client.Position.Y = createEntity.Y
-		client.Position.Z = createEntity.Z
+		client.Position.X = common.Coord(createEntity.X)
+		client.Position.Y = common.Coord(createEntity.Y)
+		client.Position.Z = common.Coord(createEntity.Z)
 		go func() {
 			tick := time.Tick(34 * time.Millisecond)
 			for {
@@ -29,11 +30,11 @@ func (p *CreateEntityProcessor) Process(client *Client, param []byte) {
 					client.Position.Y = client.Position.Y + 0.0000001
 					client.Position.Z = client.Position.Z + 0.0000001
 					moveReq := &common_proto.MoveReq{
-						X:     client.Position.X,
-						Y:     client.Position.Y,
-						Z:     client.Position.Z,
-						Yaw:   client.Yaw,
-						Speed: client.Speed,
+						X:     float32(client.Position.X),
+						Y:     float32(client.Position.Y),
+						Z:     float32(client.Position.Z),
+						Yaw:   float32(client.Yaw),
+						Speed: float32(client.Speed),
 					}
 
 					client.SendGameData(common_proto.Move, moveReq)

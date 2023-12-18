@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package common_proto;
+
+message ErrorResp {
+  int32 Code = 1;
+  string Data = 2;
+}
+
+message ConnectionSuccessFromServerResp {
+  string ClientID = 1;
+}
+
+message LoginReq {
+  string AccountType = 1;
+  string Account = 2;
+  int64 EntityID = 3;
+  string ClientID = 4;
+  string Game = 5;
+  int32 Region = 6;
+}
+
+message LoginResp {
+  int64 EntityID = 1;
+  string Game = 2;
+  int32 Region = 3;
+}
+
+message GameDispatcherChannelInfoReq {
+  int32 GateClusterID = 1;
+  string Game = 2;
+  int32 GameClusterID = 3;
+  int32 ChannelID = 4;
+}
+
+message GameDispatcherChannelInfoResp {
+  bool Success = 1;
+  string Msg = 2;
+}
+
+message NewPlayerConnectionReq {
+  int64 EntityID = 1;
+  int32 Region = 2;
+}
+
+message PlayerDisconnectedReq {
+  int64 EntityID = 1;
+}
+
+message GameReq {
+  int32 Cmd = 1;
+  bytes Param = 2;
+}
+
+message GameResp {
+  int32 Cmd = 1;
+  int32 Code = 2;
+  bytes Data = 3;
+}
+
+message JoinSceneReq {
+  string SceneType = 1;
+  int64 SceneID = 2;
+}
+
+message JoinSceneResp {
+  string SceneType = 1;
+  int64 SceneID = 2;
+}
+
+message LeaveSceneReq {
+  string SceneType = 1;
+  int64 SceneID = 2;
+}
+
+message LeaveSceneResp {
+  string SceneType = 1;
+  int64 SceneID = 2;
+}
+
+message OnCreateEntity {
+  int64 EntityID = 1;
+  string Type = 2;
+  float X = 3;
+  float Y = 4;
+  float Z = 5;
+  float Yaw = 6;
+  float Speed = 7;
+}
+
+message OnDestroyEntity {
+  int64 EntityID = 1;
+}
+
+message AOISyncInfo {
+  int64 EntityID = 1;
+  float X = 2;
+  float Y = 3;
+  float Z = 4;
+  float Yaw = 5;
+  float Speed = 6;
+}
+
+message MoveReq {
+  float X = 1;
+  float Y = 2;
+  float Z = 3;
+  float Yaw = 4;
+  float Speed = 5;
+}
+
+message GateBroadcastMsg {
+  string Type = 1;
+  bytes Data = 2;
+}

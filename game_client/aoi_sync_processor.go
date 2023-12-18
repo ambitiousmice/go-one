@@ -11,10 +11,10 @@ type AOISyncProcessor struct {
 func (p *AOISyncProcessor) Process(client *Client, param []byte) {
 	log.Infof("sync info:%s", param)
 
-	var syncInfos []common_proto.AOISyncInfo
-	UnPackMsg(param, &syncInfos)
+	var syncInfoBatch common_proto.AOISyncInfoBatch
+	UnPackMsg(param, &syncInfoBatch)
 
-	log.Infof("syncInfos size:%d", len(syncInfos))
+	log.Infof("syncInfos size:%d", len(syncInfoBatch.GetSyncInfos()))
 	/*for _, info := range syncInfos {
 		s, _ := json.MarshalToString(info)
 		log.Infof("sync info:%s", s)

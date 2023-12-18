@@ -21,6 +21,7 @@ type ClientProxy struct {
 	entityID  int64
 	game      string
 	clusterID uint8
+	region    int32
 
 	heartbeatTime time.Time
 	cron          *cron.Cron
@@ -131,8 +132,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	if param.EntityID != 0 && param.ClientID != "" {
 		oldCP := gateServer.getClientProxy(param.EntityID)
 		if oldCP != nil && oldCP.entityID == param.EntityID && oldCP.clientID == param.ClientID {
-			oldCP.cron.Stop()
-			oldCP.Close()
+			oldCP.CloseAll()
 			cp.game = param.Game
 			cp.clusterID = oldCP.clusterID
 			cp.entityID = oldCP.entityID
@@ -162,7 +162,14 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	}
 	cp.entityID = loginResult.EntityID
 
+	oldCP := gateServer.getClientProxy(cp.entityID)
+	if oldCP != nil {
+		oldCP.CloseAll()
+	}
+
 	cp.game = param.Game
+
+	cp.region = param.Region
 
 	cp.removeCronTask(consts.CheckLogin)
 
@@ -174,15 +181,16 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 
 	cp.SendEnterGameClientAck()
 
-	log.Infof("enter game success: %s", cp)
+	log.Infof("login game success: %s", cp)
 }
 
 func (cp *ClientProxy) NotifyNewPlayerConnection() {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(common_proto.NewPlayerConnectionFromDispatcher)
 
-	req := common_proto.NewPlayerConnectionReq{
+	req := &common_proto.NewPlayerConnectionReq{
 		EntityID: cp.entityID,
+		Region:   cp.region,
 	}
 
 	packet.AppendData(req)
@@ -204,13 +212,15 @@ func (cp *ClientProxy) PlayerDisconnected() {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(common_proto.PlayerDisconnectedFromDispatcher)
 
-	req := common_proto.PlayerDisconnectedReq{
+	req := &common_proto.PlayerDisconnectedReq{
 		EntityID: cp.entityID,
 	}
 
 	packet.AppendData(req)
 
 	cp.ForwardByDispatcher(packet)
+
+	cp.SendOffline()
 
 }
 
@@ -250,15 +260,17 @@ func (cp *ClientProxy) SendConnectionSuccessFromServer() {
 }
 
 func (cp *ClientProxy) SendHeartBeatAck() {
-	cp.SendMsg(common_proto.HeartbeatFromClientAck, time.Now().UnixMilli())
+	cp.SendMsg(common_proto.HeartbeatFromClientAck, &common_proto.HeartbeatAck{
+		Time: time.Now().UnixMilli(),
+	})
 }
 
 func (cp *ClientProxy) SendOffline() {
-	cp.SendMsg(common_proto.OfflineFromServer, time.Now().UnixMilli())
+	cp.SendMsg(common_proto.OfflineFromServer, nil)
 }
 
 func (cp *ClientProxy) SendEnterGameClientAck() {
-	cp.SendMsg(common_proto.LoginFromClientAck, common_proto.LoginResp{
+	cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
 		EntityID: cp.entityID,
 		Game:     cp.game,
 	})

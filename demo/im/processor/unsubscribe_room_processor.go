@@ -12,8 +12,8 @@ type UnsubscribeRoomProcessor struct {
 }
 
 func (t *UnsubscribeRoomProcessor) Process(player *entity.Player, param []byte) {
-	subscribeRoomReq := proto.SubscribeRoomReq{}
-	err := common.UnPackMsg(param, subscribeRoomReq)
+	unSubscribeRoomReq := &proto.UnsubscribeRoomReq{}
+	err := common.UnPackMsg(param, unSubscribeRoomReq)
 	if err != nil {
 		player.SendCommonErrorMsg(consts.ParamError)
 		return
@@ -24,7 +24,7 @@ func (t *UnsubscribeRoomProcessor) Process(player *entity.Player, param []byte) 
 		return
 	}
 
-	scene.I.(*scene2.ChatScene).RoomManager.UnsubscribeRoom(player, subscribeRoomReq.RoomID)
+	scene.I.(*scene2.ChatScene).RoomManager.UnsubscribeRoom(player, unSubscribeRoomReq.RoomID)
 }
 
 func (t *UnsubscribeRoomProcessor) GetCmd() uint16 {

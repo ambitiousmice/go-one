@@ -11,8 +11,8 @@ type Player struct {
 	I IPlayer
 }
 
-func (p *Player) init(entityID int64, gateClusterID uint8) {
-	p.BasePlayer = NewBasePlayer(entityID, gateClusterID)
+func (p *Player) init(entityID int64, region int32, gateClusterID uint8) {
+	p.BasePlayer = NewBasePlayer(entityID, region, gateClusterID)
 
 	p.I.OnCreated()
 }
@@ -77,13 +77,13 @@ func (p *Player) Move(moveReq *common_proto.MoveReq) {
 			return
 		}
 
-		p.Position.X = moveReq.X
-		p.Position.Y = moveReq.Y
-		p.Position.Z = moveReq.Z
+		p.Position.X = common.Coord(moveReq.X)
+		p.Position.Y = common.Coord(moveReq.Y)
+		p.Position.Z = common.Coord(moveReq.Z)
 
-		p.Speed = moveReq.Speed
-		p.Yaw = moveReq.Yaw
-		scene.aoiMgr.Moved(&p.AOI, moveReq.X, moveReq.Z)
+		p.Speed = common.Speed(moveReq.Speed)
+		p.Yaw = common.Yaw(moveReq.Yaw)
+		scene.aoiMgr.Moved(&p.AOI, p.Position.X, p.Position.Z)
 	})
 
 }

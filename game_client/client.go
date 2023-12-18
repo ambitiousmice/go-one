@@ -207,7 +207,7 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	case common_proto.GameMethodFromClientAck:
 		gameResp := &common_proto.GameResp{}
 		packet.ReadData(gameResp)
-		processor := ProcessorContext[gameResp.Cmd]
+		processor := ProcessorContext[uint16(gameResp.Cmd)]
 		if processor == nil {
 			log.Warnf("未找到处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
 			return
@@ -238,7 +238,7 @@ func (c *Client) BroadcastMsgHandler(msg *common_proto.GateBroadcastMsg) {
 
 func (c *Client) SendGameData(cmd uint16, data any) {
 	c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
-		Cmd:   cmd,
+		Cmd:   int32(cmd),
 		Param: PackMsg(data),
 	})
 }

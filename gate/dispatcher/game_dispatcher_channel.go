@@ -274,9 +274,9 @@ func (gpc *GameDispatcherChannel) sendDispatcherInfo() {
 
 	clusterID, _ := strconv.ParseUint(clusterIDStr, 10, 8)
 	gpc.SendMsg(common_proto.GameDispatcherChannelInfoFromDispatcher, &common_proto.GameDispatcherChannelInfoReq{
-		GateClusterID: uint8(clusterID),
+		GateClusterID: int32(clusterID),
 		Game:          gpc.gameDispatcher.game,
-		GameClusterID: gpc.gameDispatcher.gameClusterID,
-		ChannelID:     gpc.channelID,
+		GameClusterID: int32(gpc.gameDispatcher.gameClusterID),
+		ChannelID:     int32(gpc.channelID),
 	})
 }

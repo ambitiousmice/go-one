@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var ManagerContext = make(map[string]*SceneManager)
+var SceneManagerContext = make(map[string]*SceneManager)
 var sceneTypes = make(map[string]reflect.Type)
 var playerCountMap = make(map[string]int)
 
@@ -19,7 +19,7 @@ var sceneMsgChan = make(chan func(), 102400)
 
 func init() {
 	err := context.AddCronTask("scene_player_count_task", "0 0/1 * * * ?", func() {
-		for _, manager := range ManagerContext {
+		for _, manager := range SceneManagerContext {
 			playerCount := 0
 			for _, scene := range manager.scenes {
 				playerCount += scene.GetPlayerCount()
@@ -287,7 +287,7 @@ func getSceneObjType(sceneType string) reflect.Type {
 }
 
 func GetSceneManager(sceneType string) *SceneManager {
-	sceneManager := ManagerContext[sceneType]
+	sceneManager := SceneManagerContext[sceneType]
 
 	if sceneManager == nil {
 		log.Warnf("scene manager not found, sceneType:%s", sceneType)

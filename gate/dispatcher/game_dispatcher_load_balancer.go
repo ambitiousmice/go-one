@@ -13,13 +13,13 @@ func init() {
 	AddLoadBalancer("hash", NewHashLoadBalancer())
 }
 
-type LoadBalancer interface {
+type GameDispatcherLoadBalancer interface {
 	Choose(game string, param any) *GameDispatcher
 	FixedChoose(game string, gameClusterID uint8) *GameDispatcher
 	Init()
 }
 
-func AddLoadBalancer(loadBalancerType string, loadBalancer LoadBalancer) {
+func AddLoadBalancer(loadBalancerType string, loadBalancer GameDispatcherLoadBalancer) {
 	if loadBalancerTypes[loadBalancerType] != nil {
 		log.Panic("loadBalancer type already registered, loadBalancerType:" + loadBalancerType)
 	}
@@ -37,7 +37,7 @@ func AddLoadBalancer(loadBalancerType string, loadBalancer LoadBalancer) {
 
 }
 
-func CreateLoadBalancer(loadBalancerType string) LoadBalancer {
+func CreateLoadBalancer(loadBalancerType string) GameDispatcherLoadBalancer {
 	loadBalancerObjType := loadBalancerTypes[loadBalancerType]
 	if loadBalancerObjType == nil {
 		log.Errorf("dispatcher loadBalancer type not found, loadBalancerType:%s", loadBalancerType)
@@ -45,7 +45,7 @@ func CreateLoadBalancer(loadBalancerType string) LoadBalancer {
 	}
 
 	loadBalancerObj := reflect.New(loadBalancerObjType)
-	loadBalancer := loadBalancerObj.Interface().(LoadBalancer)
+	loadBalancer := loadBalancerObj.Interface().(GameDispatcherLoadBalancer)
 	loadBalancer.Init()
 
 	return loadBalancer

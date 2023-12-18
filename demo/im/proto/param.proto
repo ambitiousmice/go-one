@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "/proto";
+
+message SubscribeRoomReq {
+  int64 RoomID = 1;
+}
+
+message SubscribeRoomResp {
+  int64 RoomID = 1;
+}
+
+message UnsubscribeRoomReq {
+  int64 RoomID = 1;
+}
+
+message UnsubscribeRoomResp {
+  int64 RoomID = 1;
+}
+
+message PushMessageReq {
+  int64 RoomID = 1;
+  int64 From = 2;
+  int64 To = 3;
+  string Msg = 4;
+}
+
+message ChatMessage {
+  int64 RoomID = 1;
+  int64 From = 2;
+  string Msg = 3;
+}
+
+message MessageBatch {
+  repeated ChatMessage messages = 1;
+}

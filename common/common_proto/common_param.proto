@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package common_proto;
+option go_package = "/common_proto";
+
+message ErrorResp {
+  int32 code = 1;
+  string data = 2;
+}
+
+//心跳
+message HeartbeatAck {
+  int64 time = 1;
+}
+
+// 连接成功
+message ConnectionSuccessFromServerResp {
+  string clientID = 1;
+}
+
+// 登录
+message LoginReq {
+  string accountType = 1;
+  string account = 2;
+  int64 entityID = 3;
+  string clientID = 4;
+  string game = 5;
+  int32 region = 6;
+}
+
+message LoginResp {
+  int64 entityID = 1;
+  string game = 2;
+  int32 region = 3;
+}
+
+// 网关广播消息
+message GateBroadcastMsg {
+  string type = 1;
+  bytes data = 2;
+}
+
+// 游戏内协议
+message GameReq {
+  int32 cmd = 1;
+  bytes param = 2;
+}
+
+message GameResp {
+  int32 cmd = 1;
+  int32 code = 2;
+  bytes data = 3;
+}
+
+//===========游戏内协议==============
+
+// 加入场景
+message JoinSceneReq {
+  string sceneType = 1;
+  int64 sceneID = 2;
+}
+
+message JoinSceneResp {
+  string sceneType = 1;
+  int64 sceneID = 2;
+}
+
+// 离开场景
+message LeaveSceneReq {
+  string sceneType = 1;
+  int64 sceneID = 2;
+}
+
+message LeaveSceneResp {
+  string sceneType = 1;
+  int64 sceneID = 2;
+}
+
+// =========多人AOI============
+// 创建角色
+message OnCreateEntity {
+  int64 entityID = 1;
+  string type = 2;
+  float x = 3;
+  float y = 4;
+  float z = 5;
+  float yaw = 6;
+  float speed = 7;
+}
+
+// 销毁角色
+message OnDestroyEntity {
+  int64 entityID = 1;
+}
+
+// AOI同步信息
+message AOISyncInfo {
+  int64 entityID = 1;
+  float x = 2;
+  float y = 3;
+  float z = 4;
+  float yaw = 5;
+  float speed = 6;
+}
+
+message AOISyncInfoBatch {
+  repeated AOISyncInfo syncInfos = 1;
+}
+
+// 移动
+message MoveReq {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float yaw = 4;
+  float speed = 5;
+}

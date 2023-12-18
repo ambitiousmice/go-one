@@ -4,6 +4,7 @@ import (
 	"go-one/common/log"
 	"go-one/demo/im/proto"
 	"go-one/game_client"
+	"time"
 )
 
 type SubscribeRoomProcessor struct {
@@ -36,7 +37,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 		}
 	}()*/
 
-	/*go func() {
+	go func() {
 		for {
 			currentTime := time.Now()
 
@@ -50,7 +51,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 			}
 			time.Sleep(1 * time.Second)
 		}
-	}()*/
+	}()
 
 	/*go func() {
 		for {

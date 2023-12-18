@@ -101,17 +101,17 @@ func (r *ChatRoom) broadcastTask() {
 
 func (r *ChatRoom) sendMessages() {
 	// 复制消息并清空缓冲区
-	messages := make([]*proto.ChatMessage, len(r.msgBuffer))
-	copy(messages, r.msgBuffer)
-	r.msgBuffer = r.msgBuffer[:0]
-
+	messageBatch := &proto.MessageBatch{
+		Messages: r.msgBuffer,
+	}
 	// 发送消息给所有玩家
 	r.pMutex.RLock()
 	for _, p := range r.players {
-		p.SendGameData(proto.MessageAck, messages)
+		p.SendGameData(proto.MessageAck, messageBatch)
 	}
 	r.pMutex.RUnlock()
 
-	// 原子增加消息计数
-	atomic.AddUint64(&messageCount, uint64(len(messages)))
+	atomic.AddUint64(&messageCount, uint64(len(r.msgBuffer)))
+
+	r.msgBuffer = r.msgBuffer[:0]
 }

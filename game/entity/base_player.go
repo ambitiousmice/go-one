@@ -25,6 +25,7 @@ func SetGameServer(gs IGameServer) {
 type BasePlayer struct {
 	sync.RWMutex
 	EntityID      int64
+	Region        int32
 	gateClusterID uint8
 	Scene         *Scene
 	status        uint8
@@ -43,11 +44,12 @@ type BasePlayer struct {
 	attrMap map[string]interface{}
 }
 
-func NewBasePlayer(entityID int64, gateClusterID uint8) *BasePlayer {
+func NewBasePlayer(entityID int64, region int32, gateClusterID uint8) *BasePlayer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	basePlayer := &BasePlayer{
 		EntityID:      entityID,
+		Region:        region,
 		gateClusterID: gateClusterID,
 		cron:          crontab,
 		cronMap:       map[string]cron.EntryID{},
@@ -74,7 +76,7 @@ func (p *BasePlayer) SendCommonErrorMsg(error string) {
 
 func (p *BasePlayer) SendErrorMsg(cmd uint16, error string) {
 	p.SendGameMsg(&common_proto.GameResp{
-		Cmd:  cmd,
+		Cmd:  int32(cmd),
 		Code: consts.ErrorCommon,
 		Data: []byte(error),
 	})
@@ -104,7 +106,7 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 	}
 
 	resp := &common_proto.GameResp{
-		Cmd:  cmd,
+		Cmd:  int32(cmd),
 		Data: dataByte,
 	}
 
@@ -123,11 +125,11 @@ func (p *BasePlayer) SendCreateEntity(createPlayer *BasePlayer) {
 
 	createPlayerData := &common_proto.OnCreateEntity{
 		EntityID: createPlayer.EntityID,
-		X:        createPlayer.Position.X,
-		Y:        createPlayer.Position.Y,
-		Z:        createPlayer.Position.Z,
-		Yaw:      createPlayer.Yaw,
-		Speed:    createPlayer.Speed,
+		X:        float32(createPlayer.Position.X),
+		Y:        float32(createPlayer.Position.Y),
+		Z:        float32(createPlayer.Position.Z),
+		Yaw:      float32(createPlayer.Yaw),
+		Speed:    float32(createPlayer.Speed),
 	}
 
 	p.SendGameData(common_proto.CreateEntity, createPlayerData)
@@ -197,15 +199,19 @@ func (p *BasePlayer) CollectAOISyncInfos() {
 	for neighbor := range p.InterestedBy {
 		aoiSyncInfo := &common_proto.AOISyncInfo{
 			EntityID: neighbor.EntityID,
-			X:        neighbor.Position.X,
-			Y:        neighbor.Position.Y,
-			Z:        neighbor.Position.Z,
-			Yaw:      neighbor.Yaw,
-			Speed:    neighbor.Speed,
+			X:        float32(neighbor.Position.X),
+			Y:        float32(neighbor.Position.Y),
+			Z:        float32(neighbor.Position.Z),
+			Yaw:      float32(neighbor.Yaw),
+			Speed:    float32(neighbor.Speed),
 		}
 		syncInfos = append(syncInfos, aoiSyncInfo)
 	}
 	p.aoiMutex.RUnlock()
 
-	p.SendGameData(common_proto.AOISync, syncInfos)
+	syncInfoBatch := &common_proto.AOISyncInfoBatch{
+		SyncInfos: syncInfos,
+	}
+
+	p.SendGameData(common_proto.AOISync, syncInfoBatch)
 }

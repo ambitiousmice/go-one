@@ -15,7 +15,7 @@ import (
 
 var gameDispatcherMap = make(map[string]map[uint8]*GameDispatcher)
 
-var gameLoadBalancerMap = make(map[string]LoadBalancer)
+var gameLoadBalancerMap = make(map[string]GameDispatcherLoadBalancer)
 
 var crontab = *cron.New(cron.WithSeconds())
 
@@ -122,9 +122,10 @@ func newGameDispatcher() {
 				gameDispatcher.channels[i] = NewDispatcherChannel(i, gameDispatcher)
 			}
 
+			gameDispatcher.Run()
+
 			gameDispatcherMap[game][clusterID] = gameDispatcher
 
-			gameDispatcher.Run()
 		}
 	}
 }

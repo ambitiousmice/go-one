@@ -10,29 +10,29 @@ type LobbyScene struct {
 	Scene
 }
 
-func (r *LobbyScene) GetSceneType() string {
+func (l *LobbyScene) GetSceneType() string {
 	return common.SceneTypeLobby
 }
 
-func (r *LobbyScene) OnCreated() {
-	log.Info("LobbyScene created")
+func (l *LobbyScene) OnCreated() {
+	log.Info("lobby scene:%d created", l.Scene.ID)
 }
 
-func (r *LobbyScene) OnDestroyed() {
-	log.Info("LobbyScene destroyed")
+func (l *LobbyScene) OnDestroyed() {
+	log.Info("lobby scene:%d  destroyed", l.Scene.ID)
 }
 
-func (r *LobbyScene) OnJoined(player *Player) {
+func (l *LobbyScene) OnJoined(player *Player) {
 	joinSceneResp := &common_proto.JoinSceneResp{
-		SceneID:   r.ID,
-		SceneType: r.Type,
+		SceneID:   l.ID,
+		SceneType: l.Type,
 	}
 
-	log.Infof("%s joined lobby ", player.String())
+	log.Infof("%s joined lobby:%d ", player.String(), l.Scene.ID)
 
 	player.SendGameData(common_proto.JoinSceneAck, joinSceneResp)
 }
 
-func (r *LobbyScene) OnLeft(player *Player) {
-	log.Infof("%s left lobby ", player.String())
+func (l *LobbyScene) OnLeft(player *Player) {
+	log.Infof("%s left lobby:%d", player.String(), l.Scene.ID)
 }

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package common_proto;
+option go_package = "/common_proto";
+
+message GameDispatcherChannelInfoReq {
+  int32 gateClusterID = 1;
+  string game = 2;
+  int32 gameClusterID = 3;
+  int32 channelID = 4;
+}
+
+message GameDispatcherChannelInfoResp {
+  bool success = 1;
+  string msg = 2;
+}
+
+message NewPlayerConnectionReq {
+  int64 entityID = 1;
+  int32 region = 2;
+}
+
+message PlayerDisconnectedReq {
+  int64 entityID = 1;
+}

@@ -109,8 +109,8 @@ func (gp *GateProxy) Handle3002(pkt *pktconn.Packet) {
 		gp.CloseAll()
 	}
 
-	gp.GateClusterID = req.GateClusterID
-	gp.DispatcherChannelID = req.ChannelID
+	gp.GateClusterID = uint8(req.GateClusterID)
+	gp.DispatcherChannelID = uint8(req.ChannelID)
 
 	gp.gameServer.AddGateProxy(gp)
 
@@ -125,7 +125,7 @@ func (gp *GateProxy) Handle3003(pkt *pktconn.Packet) {
 
 	p := entity.GetPlayer(req.EntityID)
 	if p == nil {
-		p = entity.AddPlayer(req.EntityID, gp.GateClusterID)
+		p = entity.AddPlayer(req.EntityID, req.Region, gp.GateClusterID)
 		p.UpdateStatus(common.PlayerStatusOnline)
 		p.JoinScene(common.SceneTypeLobby, 0)
 	} else {
