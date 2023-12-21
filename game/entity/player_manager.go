@@ -50,9 +50,10 @@ func RemovePlayer(entityID int64) {
 
 	player := GetPlayer(entityID)
 	if player != nil && player.I != nil {
-		player.I.OnClientDisconnected()
+		player.I.OnDestroy()
 	} else {
 		log.Infof("删除用户:%d,不存在", entityID)
+		return
 	}
 	playerMutex.Lock()
 	defer playerMutex.Unlock()

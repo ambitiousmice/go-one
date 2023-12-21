@@ -25,10 +25,14 @@ func main() {
 
 	router.Use(timeoutMiddleware())
 
+	appGroup := router.Group("/app-api/monitor/gate")
+	{
+		appGroup.GET("/choose/:partition", gate_manager.ChooseGate)
+		appGroup.GET("/choose/test", gate_manager.ChooseGateTest)
+	}
+
 	gateGroup := router.Group("/gate")
 	{
-		gateGroup.GET("/choose/:partition", gate_manager.ChooseGate)
-		gateGroup.GET("/choose/test", gate_manager.ChooseGateTest)
 		gateGroup.GET("/collectData", gate_manager.CollectData)
 		gateGroup.POST("/broadcast", gate_manager.Broadcast)
 	}

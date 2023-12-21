@@ -139,7 +139,10 @@ func (gp *GateProxy) Handle3004(pkt *pktconn.Packet) {
 	req := &common_proto.PlayerDisconnectedReq{}
 	pkt.ReadData(req)
 
-	entity.RemovePlayer(req.EntityID)
+	player := entity.GetPlayer(req.EntityID)
+	if player != nil && player.I != nil {
+		player.I.OnClientDisconnected()
+	}
 }
 
 // ============================================================================基础协议
