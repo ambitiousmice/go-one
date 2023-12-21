@@ -223,7 +223,7 @@ func (gs *GateServer) handleClientConnection(conn net.Conn) {
 
 	gs.addTempClientProxy(cp)
 
-	jobID, err := cp.cron.AddFunc("@every 3s", func() {
+	jobID, err := cp.cron.AddFunc("@every 10s", func() {
 		if cp.entityID == 0 {
 			log.Infof("客户端:%s 未登录游戏,主动踢出", cp)
 			cp.CloseAll()
@@ -267,7 +267,7 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 	//entityID := cp.entityID
 	msgType := pkt.ReadUint16()
 
-	//log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
+	log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
 	switch msgType {
 	case common_proto.GameMethodFromClient:
 		cp.ForwardByDispatcher(pkt)
@@ -296,6 +296,7 @@ func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 	clientProxy := gs.getClientProxy(entityID)
 
 	if clientProxy != nil {
+		packet.TruncatePayload(consts.EntityIDLength)
 		err := clientProxy.Send(packet)
 		if err != nil {
 			log.Errorf("客户端:%s 发送消息失败:%s", clientProxy, err)

@@ -119,6 +119,7 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 // ============================================================================游戏协议============================================================================
 
 func (cp *ClientProxy) Login(packet *pktconn.Packet) {
+	log.Infof("%s start login", cp)
 	if cp.entityID != 0 {
 		log.Warnf("ready enter game, but already enter game: %s", cp)
 		cp.SendEnterGameClientAck()
@@ -164,6 +165,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 
 	oldCP := gateServer.getClientProxy(cp.entityID)
 	if oldCP != nil {
+		cp.clusterID = oldCP.clusterID
 		oldCP.CloseAll()
 	}
 
@@ -248,6 +250,7 @@ func (cp *ClientProxy) SendMsg(msgType uint16, msg any) {
 }
 
 func (cp *ClientProxy) SendError(error string) {
+	log.Warnf("%s send error data:%s", cp, error)
 	cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
 		Data: error,
 	})

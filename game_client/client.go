@@ -185,11 +185,13 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	}()
 
 	msgType := packet.ReadUint16()
-	/*if msgType != 2001 {
-		log.Infof("handlePacket: %d", msgType)
-	}*/
+	if msgType == 1001 {
+		log.Infof("handlePacket: %d", packet.GetPayloadLen())
+	}
 	switch msgType {
 	case common_proto.ConnectionSuccessFromServer:
+		r := &common_proto.ConnectionSuccessFromServerResp{}
+		packet.ReadData(r)
 		c.enterGame()
 	case common_proto.LoginFromClientAck:
 		loginResp := &common_proto.LoginResp{}

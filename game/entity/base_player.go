@@ -41,7 +41,7 @@ type BasePlayer struct {
 
 	cron    *cron.Cron
 	cronMap map[string]cron.EntryID
-	attrMap map[string]interface{}
+	attrMap map[string]any
 }
 
 func NewBasePlayer(entityID int64, region int32, gateClusterID uint8) *BasePlayer {

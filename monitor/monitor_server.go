@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"go-one/common/context"
+	"go-one/common/log"
 	"go-one/common/utils"
 	"go-one/monitor/config"
 	"go-one/monitor/gate_manager"
@@ -33,7 +34,13 @@ func main() {
 	}
 
 	addr := ":" + utils.ToString(context.GetOneConfig().Nacos.Instance.Port)
-	router.Run(addr)
+	log.Infof("server run with:%s", addr)
+	err := router.Run(addr)
+	if err != nil {
+		log.Errorf("server run with error:%s", err)
+		return
+	}
+
 }
 
 func timeoutMiddleware() gin.HandlerFunc {

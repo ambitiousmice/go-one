@@ -164,6 +164,23 @@ func (p *Packet) extendPayload(size int) []byte {
 	return p.payloadSlice(payloadLen, newPayloadLen)
 }
 
+func (p *Packet) TruncatePayload(size int) {
+	payloadLen := p.GetPayloadLen()
+
+	if size >= int(payloadLen) {
+		// If size is greater than or equal to current payload length,
+		// set payload length to 0 and return.
+		p.SetPayloadLen(0)
+		return
+	}
+
+	newPayloadLen := payloadLen - uint32(size)
+	p.SetPayloadLen(newPayloadLen)
+
+	// Use slice to truncate from the end
+	p.bytes = p.bytes[:len(p.bytes)-size]
+}
+
 // addRefCount adds reference count of packet
 func (p *Packet) addRefCount(add int64) {
 	atomic.AddInt64(&p.refcount, add)
@@ -421,8 +438,18 @@ func (p *Packet) ReadMapStringString() map[string]string {
 	return m
 }
 
-// AppendData appends one data of any type to the end of payload
+// AppendData appends data of any type to the end of payload
 func (p *Packet) AppendData(msg interface{}) {
+	dataBytes, err := MSG_PACKER.PackMsg(msg, nil)
+	if err != nil {
+		log.Error(err)
+	}
+
+	p.WriteBytes(dataBytes)
+}
+
+// AppendData appends one data of any type to the end of payload
+func (p *Packet) AppendOneData(msg interface{}) {
 	dataBytes, err := MSG_PACKER.PackMsg(msg, nil)
 	if err != nil {
 		log.Error(err)
@@ -433,6 +460,16 @@ func (p *Packet) AppendData(msg interface{}) {
 
 // ReadData reads one data of any type from the beginning of unread payload
 func (p *Packet) ReadData(msg interface{}) {
+	b := p.UnreadPayload()
+	//gwlog.Infof("ReadData: %s", string(b))
+	err := MSG_PACKER.UnpackMsg(b, msg)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// ReadData reads one data of any type from the beginning of unread payload
+func (p *Packet) ReadOneData(msg interface{}) {
 	b := p.ReadVarBytes()
 	//gwlog.Infof("ReadData: %s", string(b))
 	err := MSG_PACKER.UnpackMsg(b, msg)

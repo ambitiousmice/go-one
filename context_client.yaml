@@ -5,4 +5,4 @@ server:
   server-host: 192.168.1.22:6666
   client_num: 2
   kcp: false
-  websocket: false
+  websocket: true
