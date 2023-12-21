@@ -143,6 +143,8 @@ func (gp *GateProxy) Handle3004(pkt *pktconn.Packet) {
 	if player != nil && player.I != nil {
 		player.I.OnClientDisconnected()
 	}
+
+	entity.RemovePlayer(req.EntityID)
 }
 
 // ============================================================================基础协议

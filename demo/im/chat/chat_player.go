@@ -20,10 +20,6 @@ func (p *ChatPlayer) OnDestroy() {
 
 }
 
-func (p *ChatPlayer) OnClientConnected() {
-
-}
-
 func (p *ChatPlayer) OnClientDisconnected() {
 	for _, r := range p.subscribeRooms {
 		r.Leave(&p.Player)
