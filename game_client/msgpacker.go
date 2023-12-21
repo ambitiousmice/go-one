@@ -1,8 +1,8 @@
 package game_client
 
 import (
-	"go-one/common/log"
-	"go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
 )
 
 func UnPackMsg(param []byte, obj any) {

@@ -1,9 +1,9 @@
 package game_client
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/log"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/game/common"
 )
 
 type BroadcastProcessor struct {

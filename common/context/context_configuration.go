@@ -2,9 +2,9 @@ package context
 
 import (
 	"flag"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/register"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
-	"go-one/common/log"
-	"go-one/common/register"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )

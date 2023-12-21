@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"io"
 	"net"
 	"sync/atomic"

@@ -1,8 +1,8 @@
 package gate_manager
 
 import (
+	"github.com/ambitiousmice/go-one/common/json"
 	"github.com/gin-gonic/gin"
-	"go-one/common/json"
 	"net/http"
 	"strconv"
 )

@@ -1,11 +1,11 @@
 package processor
 
 import (
-	"go-one/common/consts"
-	"go-one/demo/im/proto"
-	scene2 "go-one/demo/im/scene"
-	"go-one/game/common"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	scene2 "github.com/ambitiousmice/go-one/demo/im/scene"
+	"github.com/ambitiousmice/go-one/game/common"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type SubscribeRoomProcessor struct {

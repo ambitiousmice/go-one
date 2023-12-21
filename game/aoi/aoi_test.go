@@ -2,7 +2,7 @@ package aoi
 
 import (
 	"fmt"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/game/common"
 	"log"
 	"math/rand"
 	"testing"

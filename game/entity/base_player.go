@@ -2,13 +2,13 @@ package entity
 
 import (
 	"fmt"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/game/aoi"
+	"github.com/ambitiousmice/go-one/game/common"
 	"github.com/robfig/cron/v3"
-	"go-one/common/common_proto"
-	"go-one/common/consts"
-	"go-one/common/log"
-	"go-one/common/pktconn"
-	"go-one/game/aoi"
-	"go-one/game/common"
 	"sync"
 )
 

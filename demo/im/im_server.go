@@ -2,16 +2,16 @@ package main
 
 import (
 	"flag"
-	"go-one/common/context"
-	"go-one/common/mq/kafka"
-	"go-one/demo/im/chat"
-	"go-one/demo/im/common"
-	"go-one/demo/im/message_center"
-	"go-one/demo/im/processor"
-	"go-one/demo/im/scene"
-	"go-one/game"
-	"go-one/game/entity"
-	"go-one/game/processor_center"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/mq/kafka"
+	"github.com/ambitiousmice/go-one/demo/im/chat"
+	"github.com/ambitiousmice/go-one/demo/im/common"
+	"github.com/ambitiousmice/go-one/demo/im/message_center"
+	"github.com/ambitiousmice/go-one/demo/im/processor"
+	"github.com/ambitiousmice/go-one/demo/im/scene"
+	"github.com/ambitiousmice/go-one/game"
+	"github.com/ambitiousmice/go-one/game/entity"
+	"github.com/ambitiousmice/go-one/game/processor_center"
 )
 
 func main() {

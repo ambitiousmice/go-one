@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/log"
-	"go-one/demo/mini_game/common"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/demo/mini_game/common"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type MiniCommonScene struct {

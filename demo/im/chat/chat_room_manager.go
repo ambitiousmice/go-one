@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/game/entity"
 	"sync"
 )
 

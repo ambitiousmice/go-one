@@ -1,8 +1,8 @@
 package main
 
 import (
-	"go-one/common/context"
-	"go-one/gate"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/gate"
 )
 
 type DemoLoginManager struct {

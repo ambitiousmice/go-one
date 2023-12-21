@@ -1,9 +1,9 @@
 package chat
 
 import (
-	"go-one/common/log"
-	"go-one/demo/im/proto"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type ChatPlayer struct {

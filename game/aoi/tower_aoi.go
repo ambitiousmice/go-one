@@ -1,8 +1,8 @@
 package aoi
 
 import (
-	"go-one/common/log"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/game/common"
 )
 
 type TowerAOIManager struct {

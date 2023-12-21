@@ -1,7 +1,7 @@
 package game_client
 
 import (
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"strconv"
 )
 

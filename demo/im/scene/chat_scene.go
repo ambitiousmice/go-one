@@ -1,11 +1,11 @@
 package scene
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/log"
-	"go-one/demo/im/chat"
-	"go-one/demo/im/common"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/demo/im/chat"
+	"github.com/ambitiousmice/go-one/demo/im/common"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type ChatScene struct {

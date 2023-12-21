@@ -1,13 +1,13 @@
 package register
 
 import (
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
-	"go-one/common/consts"
-	"go-one/common/log"
 	"strconv"
 	"strings"
 )

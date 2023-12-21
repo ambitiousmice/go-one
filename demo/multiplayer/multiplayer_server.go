@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"go-one/common/context"
-	entity2 "go-one/demo/multiplayer/entity"
-	"go-one/game"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/context"
+	entity2 "github.com/ambitiousmice/go-one/demo/multiplayer/entity"
+	"github.com/ambitiousmice/go-one/game"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package processor_center
 
 import (
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type Processor interface {

@@ -1,6 +1,6 @@
 package aoi
 
-import "go-one/game/common"
+import "github.com/ambitiousmice/go-one/game/common"
 
 // Coord is the type for coordinate axes values
 

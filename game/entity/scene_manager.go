@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"go-one/common/context"
-	"go-one/common/log"
-	"go-one/common/pool/goroutine_pool"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pool/goroutine_pool"
+	"github.com/ambitiousmice/go-one/game/common"
 	"math/rand"
 	"reflect"
 	"sync"

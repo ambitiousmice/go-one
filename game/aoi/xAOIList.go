@@ -1,6 +1,6 @@
 package aoi
 
-import "go-one/game/common"
+import "github.com/ambitiousmice/go-one/game/common"
 
 type xAOIList struct {
 	aoidist common.Coord

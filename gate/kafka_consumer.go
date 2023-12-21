@@ -2,9 +2,9 @@ package gate
 
 import (
 	"github.com/IBM/sarama"
-	"go-one/common/consts"
-	"go-one/common/log"
-	"go-one/common/mq/kafka"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/mq/kafka"
 )
 
 func init() {

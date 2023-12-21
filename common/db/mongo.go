@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

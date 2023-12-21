@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"go-one/common/context"
-	"go-one/common/log"
-	"go-one/common/utils"
-	"go-one/monitor/config"
-	"go-one/monitor/gate_manager"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/utils"
+	"github.com/ambitiousmice/go-one/monitor/config"
+	"github.com/ambitiousmice/go-one/monitor/gate_manager"
 	"time"
 )
 import "github.com/gin-gonic/gin"

@@ -1,11 +1,11 @@
 package processor_center
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/log"
-	"go-one/game/entity"
-	"go-one/game/processor_center/base_processor"
-	"go-one/game/proxy"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/game/entity"
+	"github.com/ambitiousmice/go-one/game/processor_center/base_processor"
+	"github.com/ambitiousmice/go-one/game/proxy"
 	"strconv"
 )
 

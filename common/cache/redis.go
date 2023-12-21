@@ -2,8 +2,8 @@ package cache
 
 import (
 	"context"
-	"go-one/common/json"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/json"
+	"github.com/ambitiousmice/go-one/common/log"
 	"strings"
 	"time"
 

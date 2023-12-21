@@ -1,11 +1,11 @@
 package main
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/consts"
-	"go-one/common/log"
-	"go-one/demo/im/proto"
-	"go-one/game_client"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	"github.com/ambitiousmice/go-one/game_client"
 	"time"
 )
 

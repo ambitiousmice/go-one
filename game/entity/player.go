@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"go-one/common/common_proto"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/game/common"
 )
 
 type Player struct {

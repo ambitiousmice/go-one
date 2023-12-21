@@ -1,10 +1,10 @@
 package message_center
 
 import (
-	"go-one/demo/im/common"
-	"go-one/demo/im/proto"
-	scene2 "go-one/demo/im/scene"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/demo/im/common"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	scene2 "github.com/ambitiousmice/go-one/demo/im/scene"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 func RoomMessageHandler(msg *proto.PushMessageReq) {

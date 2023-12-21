@@ -1,11 +1,11 @@
 package processor
 
 import (
-	"go-one/common/consts"
-	"go-one/demo/im/message_center"
-	"go-one/demo/im/proto"
-	"go-one/game/common"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/demo/im/message_center"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	"github.com/ambitiousmice/go-one/game/common"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type PushOneMessageProcessor struct {

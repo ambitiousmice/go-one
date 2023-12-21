@@ -2,8 +2,8 @@ package gate
 
 import (
 	"errors"
-	"go-one/common/common_proto"
-	"go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/consts"
 )
 
 type LoginManager interface {

@@ -2,8 +2,8 @@ package kafka
 
 import (
 	"github.com/IBM/sarama"
-	"go-one/common/log"
-	"go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
 	"strings"
 )
 

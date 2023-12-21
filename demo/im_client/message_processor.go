@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go-one/common/log"
-	"go-one/demo/im/proto"
-	"go-one/game_client"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/demo/im/proto"
+	"github.com/ambitiousmice/go-one/game_client"
 	"time"
 )
 

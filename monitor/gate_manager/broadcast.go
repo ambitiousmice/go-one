@@ -1,12 +1,12 @@
 package gate_manager
 
 import (
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/json"
+	"github.com/ambitiousmice/go-one/common/mq/kafka"
+	"github.com/ambitiousmice/go-one/common/utils"
 	"github.com/gin-gonic/gin"
-	"go-one/common/common_proto"
-	"go-one/common/consts"
-	"go-one/common/json"
-	"go-one/common/mq/kafka"
-	"go-one/common/utils"
 	"net/http"
 )
 

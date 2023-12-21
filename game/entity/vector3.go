@@ -2,7 +2,7 @@ package entity
 
 import (
 	"fmt"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/game/common"
 	"math"
 )
 

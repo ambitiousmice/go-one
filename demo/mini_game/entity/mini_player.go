@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"go-one/common/log"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type MiniPlayer struct {

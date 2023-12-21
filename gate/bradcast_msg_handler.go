@@ -2,9 +2,9 @@ package gate
 
 import (
 	"github.com/IBM/sarama"
-	"go-one/common/common_proto"
-	"go-one/common/log"
-	"go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
 )
 
 func BroadcastMsgHandler(msg *sarama.ConsumerMessage) {

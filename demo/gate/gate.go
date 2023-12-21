@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"go-one/common/context"
-	"go-one/gate"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/gate"
 	_ "net/http/pprof"
 )
 

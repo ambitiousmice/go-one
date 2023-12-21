@@ -2,7 +2,7 @@ package pktconn
 
 import (
 	"fmt"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"io"
 	"net"
 	"runtime"

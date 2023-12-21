@@ -2,7 +2,7 @@ package common_proto
 
 //
 //import (
-//	"go-one/game/common"
+//	"github.com/ambitiousmice/go-one/game/common"
 //)
 //
 //type ErrorResp struct {

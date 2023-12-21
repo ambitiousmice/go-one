@@ -1,11 +1,11 @@
 package base_processor
 
 import (
-	"go-one/common/common_proto"
-	"go-one/common/consts"
-	"go-one/common/pktconn"
-	"go-one/game/common"
-	"go-one/game/entity"
+	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/game/common"
+	"github.com/ambitiousmice/go-one/game/entity"
 )
 
 type LeaveSceneProcessor struct {

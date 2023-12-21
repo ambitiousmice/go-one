@@ -2,8 +2,8 @@ package entity
 
 import (
 	"fmt"
+	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/robfig/cron/v3"
-	"go-one/game/aoi"
 	"sync"
 )
 

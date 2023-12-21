@@ -2,9 +2,9 @@ package context
 
 import (
 	"errors"
-	"go-one/common/consts"
-	"go-one/common/idgenerator"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/idgenerator"
+	"github.com/ambitiousmice/go-one/common/log"
 )
 
 var idGenerator idgenerator.IDGenerator

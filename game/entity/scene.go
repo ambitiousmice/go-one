@@ -2,9 +2,9 @@ package entity
 
 import (
 	"fmt"
-	"go-one/common/log"
-	"go-one/game/aoi"
-	"go-one/game/common"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/game/aoi"
+	"github.com/ambitiousmice/go-one/game/common"
 )
 
 type Scene struct {

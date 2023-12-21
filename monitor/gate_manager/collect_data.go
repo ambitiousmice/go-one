@@ -1,8 +1,8 @@
 package gate_manager
 
 import (
+	"github.com/ambitiousmice/go-one/monitor/util/gin_util"
 	"github.com/gin-gonic/gin"
-	"go-one/monitor/util/gin_util"
 	"net/http"
 )
 

@@ -1,8 +1,8 @@
 package network
 
 import (
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/gorilla/websocket"
-	"go-one/common/log"
 	"net"
 	"net/http"
 	"time"

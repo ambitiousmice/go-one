@@ -1,8 +1,8 @@
 package goroutine_pool
 
 import (
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/panjf2000/ants/v2"
-	"go-one/common/log"
 )
 
 var goroutinePool *ants.Pool

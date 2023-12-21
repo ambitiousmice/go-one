@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/IBM/sarama"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"strings"
 )
 

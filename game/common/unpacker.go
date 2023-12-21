@@ -1,7 +1,7 @@
 package common
 
 import (
-	"go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/pktconn"
 )
 
 func UnPackMsg(param []byte, obj any) error {

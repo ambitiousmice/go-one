@@ -1,7 +1,7 @@
 package dispatcher
 
 import (
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"reflect"
 	"sync/atomic"
 )

@@ -1,8 +1,8 @@
 package game
 
 import (
-	"go-one/common/context"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/log"
 	"gopkg.in/yaml.v3"
 )
 

@@ -1,12 +1,12 @@
 package context
 
 import (
-	"go-one/common/cache"
-	"go-one/common/db"
-	"go-one/common/log"
-	"go-one/common/mq/kafka"
-	"go-one/common/pool"
-	"go-one/common/register"
+	"github.com/ambitiousmice/go-one/common/cache"
+	"github.com/ambitiousmice/go-one/common/db"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/mq/kafka"
+	"github.com/ambitiousmice/go-one/common/pool"
+	"github.com/ambitiousmice/go-one/common/register"
 )
 
 type OneConfig struct {

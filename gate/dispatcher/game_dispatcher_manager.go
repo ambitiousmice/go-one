@@ -1,14 +1,14 @@
 package dispatcher
 
 import (
+	"github.com/ambitiousmice/go-one/common/entity"
+	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/register"
+	"github.com/ambitiousmice/go-one/common/utils"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"github.com/robfig/cron/v3"
-	"go-one/common/entity"
-	"go-one/common/log"
-	"go-one/common/pktconn"
-	"go-one/common/register"
-	"go-one/common/utils"
 	"strconv"
 	"sync/atomic"
 )

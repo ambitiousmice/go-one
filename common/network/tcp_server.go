@@ -2,7 +2,7 @@ package network
 
 import (
 	"errors"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/log"
 	"net"
 	"time"
 )

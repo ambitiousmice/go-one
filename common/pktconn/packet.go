@@ -3,8 +3,8 @@ package pktconn
 import (
 	"encoding/binary"
 	"fmt"
-	"go-one/common/consts"
-	"go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/log"
 	"math"
 	"sync"
 	"sync/atomic"
