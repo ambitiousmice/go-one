@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package common_proto;
-option go_package = "/common_proto";
+option go_package = "../common_proto";
 
 message GameDispatcherChannelInfoReq {
   int32 gateClusterID = 1;

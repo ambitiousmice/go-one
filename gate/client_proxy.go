@@ -156,12 +156,14 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 		return
 	}
 
-	loginResult, err := Login(gateServer.LoginManager, param)
-	if err != nil {
+	loginResult, err := Login(gateServer.LoginManager, &param)
+	if err != nil || !loginResult.Success {
 		log.Errorf("Login error: %s", err)
+		cp.SendError("登录失败")
 		return
 	}
-	cp.entityID = loginResult.EntityID
+
+	cp.entityID = param.EntityID
 
 	oldCP := gateServer.getClientProxy(cp.entityID)
 	if oldCP != nil {

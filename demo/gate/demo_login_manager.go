@@ -33,7 +33,7 @@ type ValidateTokenResp struct {
 	RoleId    int    `json:"roleId"`
 }
 
-func (manager *DemoLoginManager) TokenLogin(token string) (*gate.LoginResult, error) {
+func (manager *DemoLoginManager) Login(param any) (*gate.LoginResult, error) {
 	/*data := &ValidateTokenResp{}
 	result := &resultResp{Data: data}
 
