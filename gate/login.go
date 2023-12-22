@@ -7,7 +7,7 @@ import (
 )
 
 type LoginManager interface {
-	Login(param any) (*LoginResult, error)
+	Login(param *common_proto.LoginReq) (*LoginResult, error)
 }
 
 type LoginResult struct {
@@ -18,7 +18,7 @@ type LoginResult struct {
 func Login(manager LoginManager, param *common_proto.LoginReq) (*LoginResult, error) {
 	switch param.AccountType {
 	case consts.TokenLogin:
-		return manager.Login(param.Account)
+		return manager.Login(param)
 	default:
 		return nil, errors.New("unknown login type")
 	}

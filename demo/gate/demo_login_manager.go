@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/context"
 	"github.com/ambitiousmice/go-one/gate"
 )
@@ -33,7 +34,7 @@ type ValidateTokenResp struct {
 	RoleId    int    `json:"roleId"`
 }
 
-func (manager *DemoLoginManager) Login(param any) (*gate.LoginResult, error) {
+func (manager *DemoLoginManager) Login(param *common_proto.LoginReq) (*gate.LoginResult, error) {
 	/*data := &ValidateTokenResp{}
 	result := &resultResp{Data: data}
 
