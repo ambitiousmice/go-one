@@ -1,9 +1,7 @@
 package gate
 
 import (
-	"errors"
 	"github.com/ambitiousmice/go-one/common/common_proto"
-	"github.com/ambitiousmice/go-one/common/consts"
 )
 
 type LoginManager interface {
@@ -11,15 +9,9 @@ type LoginManager interface {
 }
 
 type LoginResult struct {
-	Success  bool
-	EntityID int64
+	Success bool
 }
 
 func Login(manager LoginManager, param *common_proto.LoginReq) (*LoginResult, error) {
-	switch param.AccountType {
-	case consts.TokenLogin:
-		return manager.Login(param)
-	default:
-		return nil, errors.New("unknown login type")
-	}
+	return manager.Login(param)
 }
