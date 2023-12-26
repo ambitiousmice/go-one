@@ -1,6 +1,6 @@
 server:
   use-load-balancer: true
-  load-balancer-url: http://192.168.1.213:8888/gate/choose/test
+  load-balancer-url: http://192.168.1.213:9911/app-api/monitor/gate/choose/test
   partition: 1
   server-host: 192.168.1.22:6666
   client_num: 2

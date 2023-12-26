@@ -26,7 +26,7 @@ type config struct {
 type serverConfig struct {
 	UseLoadBalancer bool   `yaml:"use-load-balancer"`
 	LoadBalancerUrl string `yaml:"load-balancer-url"`
-	Partition       string `yaml:"partition"`
+	Partition       int32  `yaml:"partition"`
 	Kcp             bool   `yaml:"kcp"`
 	Websocket       bool   `yaml:"websocket"`
 	ServerHost      string `yaml:"server-host"`

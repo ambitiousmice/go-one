@@ -27,7 +27,8 @@ type Client struct {
 	sync.Mutex
 	ServerHost string
 
-	ID int64
+	ID     int64
+	Region int32
 
 	conn        *pktconn.PacketConn
 	packetQueue chan *pktconn.Packet
@@ -49,12 +50,13 @@ type IClient interface {
 
 func (c *Client) Init(ID int64) *Client {
 	c.ID = ID
+	c.Region = Config.ServerConfig.Partition
 	c.packetQueue = make(chan *pktconn.Packet)
 	c.crontab = cron.New(cron.WithSeconds())
 	c.I.OnCreated(c)
 	if Config.ServerConfig.UseLoadBalancer {
 		param := make(map[string]string)
-		param["partition"] = Config.ServerConfig.Partition
+		param["partition"] = utils.ToString(Config.ServerConfig.Partition)
 		param["entityID"] = utils.ToString(ID)
 
 		resp, err := utils.Get(Config.ServerConfig.LoadBalancerUrl, param)

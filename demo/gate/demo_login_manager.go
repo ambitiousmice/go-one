@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/ambitiousmice/go-one/common/common_proto"
-	"github.com/ambitiousmice/go-one/common/context"
 	"github.com/ambitiousmice/go-one/gate"
 )
 
@@ -59,6 +58,6 @@ func (manager *DemoLoginManager) Login(param *common_proto.LoginReq) (*gate.Logi
 	}, nil*/
 
 	return &gate.LoginResult{
-		EntityID: context.NextEntityID(),
+		Success: true,
 	}, nil
 }

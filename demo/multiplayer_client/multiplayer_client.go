@@ -35,6 +35,7 @@ func (ic *MultiplayerClient) LoginReqWrapper(client *game_client.Client) *common
 		Account:     "account",
 		Game:        "multiplayer",
 		EntityID:    ic.ID,
+		Region:      ic.Region,
 	}
 }
 

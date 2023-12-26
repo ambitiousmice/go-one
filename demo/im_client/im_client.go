@@ -40,6 +40,7 @@ func (ic *ImClient) LoginReqWrapper(client *game_client.Client) *common_proto.Lo
 		Account:     "account",
 		Game:        "im",
 		EntityID:    ic.ID,
+		Region:      ic.Region,
 	}
 }
 
