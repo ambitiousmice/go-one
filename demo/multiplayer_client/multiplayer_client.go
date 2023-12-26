@@ -34,6 +34,7 @@ func (ic *MultiplayerClient) LoginReqWrapper(client *game_client.Client) *common
 		AccountType: consts.TokenLogin,
 		Account:     "account",
 		Game:        "multiplayer",
+		EntityID:    ic.ID,
 	}
 }
 

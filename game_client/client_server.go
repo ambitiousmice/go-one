@@ -1,6 +1,7 @@
 package game_client
 
 import (
+	"github.com/ambitiousmice/go-one/common/context"
 	"github.com/ambitiousmice/go-one/common/log"
 	"reflect"
 	"time"
@@ -38,7 +39,7 @@ func (cs *ClientServer) Run() {
 
 		client := reflect.Indirect(iClientValue).FieldByName("Client").Addr().Interface().(*Client)
 		client.I = iClient
-		go client.Init(int64(i)).Run()
+		go client.Init(context.NextEntityID()).Run()
 		time.Sleep(10 * time.Millisecond)
 	}
 }

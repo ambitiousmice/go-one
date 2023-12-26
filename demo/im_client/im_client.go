@@ -39,6 +39,7 @@ func (ic *ImClient) LoginReqWrapper(client *game_client.Client) *common_proto.Lo
 		AccountType: consts.TokenLogin,
 		Account:     "account",
 		Game:        "im",
+		EntityID:    ic.ID,
 	}
 }
 
