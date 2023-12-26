@@ -100,14 +100,14 @@ func InitMongo(c *Config) {
 	config = c
 	GetMongoClient()
 
-	log.Infof("MongoDB init success")
+	log.Infof("MongoDB init success:%s", c.URI)
 }
 
 func GetMongoClient() *qmgo.Client {
 	once.Do(func() {
 		// 创建 MongoDB 客户端，只会执行一次
 		clientOptions := config.BuildConfig()
-		client, err := qmgo.NewClient(context.Background(), nil, options.ClientOptions{ClientOptions: clientOptions})
+		client, err := qmgo.NewClient(context.Background(), &qmgo.Config{Uri: config.URI}, options.ClientOptions{ClientOptions: clientOptions})
 		if err != nil {
 			log.Fatal(err)
 		}
