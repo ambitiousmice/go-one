@@ -97,6 +97,7 @@ func InitMongo(c *Config) {
 		return
 	}
 
+	config = c
 	GetMongoClient()
 
 	log.Infof("MongoDB init success")
