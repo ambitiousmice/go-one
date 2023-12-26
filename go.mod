@@ -12,6 +12,7 @@ require (
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.4
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/panjf2000/ants/v2 v2.9.0
+	github.com/qiniu/qmgo v1.1.8
 	github.com/redis/go-redis/v9 v9.3.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
