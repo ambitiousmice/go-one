@@ -27,7 +27,10 @@ func (cs *ClientServer) Run() {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	err = context.InitIDGenerator(Config.IDGeneratorConfig)
+	if err != nil {
+		log.Panic("init id generator error:" + err.Error())
+	}
 	RegisterProcessor(&JoinSceneProcessor{})
 	RegisterProcessor(&CreateEntityProcessor{})
 	RegisterProcessor(&AOISyncProcessor{})

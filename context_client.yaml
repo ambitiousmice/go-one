@@ -6,3 +6,8 @@ server:
   client_num: 2
   kcp: false
   websocket: true
+
+
+id_generator:
+  type: "snowflake"
+  node_id: 1

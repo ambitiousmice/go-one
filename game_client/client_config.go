@@ -2,6 +2,7 @@ package game_client
 
 import (
 	"fmt"
+	"github.com/ambitiousmice/go-one/common/context"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -18,7 +19,8 @@ func SetYamlFile(yaml string) {
 }
 
 type config struct {
-	ServerConfig serverConfig `yaml:"server"`
+	ServerConfig      serverConfig              `yaml:"server"`
+	IDGeneratorConfig context.IDGeneratorConfig `yaml:"id_generator"`
 }
 
 type serverConfig struct {
