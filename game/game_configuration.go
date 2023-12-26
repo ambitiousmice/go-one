@@ -39,6 +39,10 @@ func InitConfig(localConfigs ...any) {
 	}
 }
 
+func GetConfigParam(key string) any {
+	return gameConfig.Params[key]
+}
+
 type ServerConfig struct {
 	Game                   string `yaml:"Game"`
 	ListenAddr             string `yaml:"listenAddr"`
