@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -138,17 +139,20 @@ func (m *Mapper) Insert(document any) error {
 }
 
 func (m *Mapper) Find(filter bson.M, result any) error {
-	return m.client.Find(context.Background(), filter).One(result)
+	err := m.client.Find(context.Background(), filter).One(result)
+	if errors.Is(err, qmgo.ErrNoSuchDocuments) {
+		return nil
+	}
+	return err
 }
 
 func (m *Mapper) FindArray(filter bson.M, result any) error {
 
 	err := m.client.Find(context.Background(), filter).All(result)
-	if err != nil {
-		return err
+	if errors.Is(err, qmgo.ErrNoSuchDocuments) {
+		return nil
 	}
-
-	return nil
+	return err
 }
 
 // FindPage 分页查询文档
@@ -158,11 +162,10 @@ func (m *Mapper) FindPage(filter bson.M, pageNum, pageSize int64, results []any)
 
 	// 执行查询
 	err := m.client.Find(context.Background(), filter).Skip(skip).Limit(pageSize).All(&results)
-	if err != nil {
-		return err
+	if errors.Is(err, qmgo.ErrNoSuchDocuments) {
+		return nil
 	}
-
-	return nil
+	return err
 }
 
 func (m *Mapper) Update(filter, update bson.M) error {
