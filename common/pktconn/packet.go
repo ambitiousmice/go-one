@@ -445,31 +445,11 @@ func (p *Packet) AppendData(msg interface{}) {
 		log.Error(err)
 	}
 
-	p.WriteBytes(dataBytes)
-}
-
-// AppendData appends one data of any type to the end of payload
-func (p *Packet) AppendOneData(msg interface{}) {
-	dataBytes, err := MSG_PACKER.PackMsg(msg, nil)
-	if err != nil {
-		log.Error(err)
-	}
-
 	p.WriteVarBytesI(dataBytes)
 }
 
 // ReadData reads one data of any type from the beginning of unread payload
 func (p *Packet) ReadData(msg interface{}) {
-	b := p.UnreadPayload()
-	//gwlog.Infof("ReadData: %s", string(b))
-	err := MSG_PACKER.UnpackMsg(b, msg)
-	if err != nil {
-		log.Error(err)
-	}
-}
-
-// ReadData reads one data of any type from the beginning of unread payload
-func (p *Packet) ReadOneData(msg interface{}) {
 	b := p.ReadVarBytes()
 	//gwlog.Infof("ReadData: %s", string(b))
 	err := MSG_PACKER.UnpackMsg(b, msg)
