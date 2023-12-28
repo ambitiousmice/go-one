@@ -75,6 +75,13 @@ func (p *BasePlayer) SendCommonErrorMsg(error string) {
 	})
 }
 
+func (p *BasePlayer) SendError(errorCode int32) {
+	p.SendGameMsg(&common_proto.GameResp{
+		Cmd:  common_proto.Error,
+		Code: errorCode,
+	})
+}
+
 func (p *BasePlayer) SendErrorMsg(errorCode int32, error string) {
 	p.SendGameMsg(&common_proto.GameResp{
 		Cmd:  common_proto.Error,

@@ -85,7 +85,8 @@ const (
 // error code
 
 const (
-	ErrorCommon = 1
+	ErrorCommon  = 1 // 通用错误码
+	InvalidParam = 2 // 违法的请求参数
 )
 
 const (
