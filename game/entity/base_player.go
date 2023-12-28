@@ -70,16 +70,33 @@ func (p *BasePlayer) String() string {
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
 	p.SendGameMsg(&common_proto.GameResp{
 		Cmd:  common_proto.Error,
+		Code: consts.ErrorCommon,
 		Data: []byte(error),
 	})
 }
 
-func (p *BasePlayer) SendErrorMsg(cmd uint16, error string) {
+func (p *BasePlayer) SendErrorMsg(errorCode int32, error string) {
 	p.SendGameMsg(&common_proto.GameResp{
-		Cmd:  int32(cmd),
-		Code: consts.ErrorCommon,
+		Cmd:  common_proto.Error,
+		Code: errorCode,
 		Data: []byte(error),
 	})
+}
+
+func (p *BasePlayer) SendErrorData(errorCode int32, data any) {
+	resp := &common_proto.GameResp{
+		Cmd:  common_proto.Error,
+		Code: errorCode,
+	}
+	if data != nil {
+		byteData, err := pktconn.MSG_PACKER.PackMsg(data, nil)
+		if err != nil {
+			log.Errorf("%s pack error msg data error:%s", p, err)
+			return
+		}
+		resp.Data = byteData
+	}
+	p.SendGameMsg(resp)
 }
 
 func (p *BasePlayer) SendGameMsg(resp *common_proto.GameResp) {

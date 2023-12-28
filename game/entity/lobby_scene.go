@@ -15,11 +15,11 @@ func (l *LobbyScene) GetSceneType() string {
 }
 
 func (l *LobbyScene) OnCreated() {
-	log.Info("lobby scene:%d created", l.Scene.ID)
+	log.Infof("lobby scene:%d created", l.Scene.ID)
 }
 
 func (l *LobbyScene) OnDestroyed() {
-	log.Info("lobby scene:%d  destroyed", l.Scene.ID)
+	log.Infof("lobby scene:%d  destroyed", l.Scene.ID)
 }
 
 func (l *LobbyScene) OnJoined(player *Player) {
