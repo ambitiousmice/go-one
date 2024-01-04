@@ -28,6 +28,7 @@ func main() {
 	appGroup := router.Group("/app-api/monitor/gate")
 	{
 		appGroup.GET("/choose/:partition", gate_manager.ChooseGate)
+		appGroup.GET("/choose/inner", gate_manager.ChooseGateInner)
 		appGroup.GET("/choose/test", gate_manager.ChooseGateTest)
 	}
 

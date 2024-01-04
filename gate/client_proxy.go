@@ -163,7 +163,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 		return
 	}
 
-	cp.entityID = param.EntityID
+	cp.entityID = loginResult.EntityID
 
 	oldCP := gateServer.getClientProxy(cp.entityID)
 	if oldCP != nil {
@@ -173,7 +173,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 
 	cp.game = param.Game
 
-	cp.region = param.Region
+	cp.region = loginResult.Region
 
 	cp.removeCronTask(consts.CheckLogin)
 

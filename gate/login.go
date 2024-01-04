@@ -9,7 +9,9 @@ type LoginManager interface {
 }
 
 type LoginResult struct {
-	Success bool
+	Success  bool
+	Region   int32
+	EntityID int64
 }
 
 func Login(manager LoginManager, param *common_proto.LoginReq) (*LoginResult, error) {
