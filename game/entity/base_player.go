@@ -39,9 +39,9 @@ type BasePlayer struct {
 	Speed        common.Speed
 	SyncAOI      bool
 
-	cron    *cron.Cron
-	cronMap map[string]cron.EntryID
-	attrMap map[string]any
+	cronTab     *cron.Cron
+	cronTaskMap map[string]cron.EntryID
+	attrMap     map[string]any
 }
 
 func NewBasePlayer(entityID int64, region int32, gateClusterID uint8) *BasePlayer {
@@ -51,8 +51,8 @@ func NewBasePlayer(entityID int64, region int32, gateClusterID uint8) *BasePlaye
 		EntityID:      entityID,
 		Region:        region,
 		gateClusterID: gateClusterID,
-		cron:          crontab,
-		cronMap:       map[string]cron.EntryID{},
+		cronTab:       crontab,
+		cronTaskMap:   map[string]cron.EntryID{},
 		attrMap:       map[string]interface{}{},
 		InterestedIn:  make(BasePlayerSet),
 		InterestedBy:  make(BasePlayerSet),
@@ -65,6 +65,29 @@ func NewBasePlayer(entityID int64, region int32, gateClusterID uint8) *BasePlaye
 
 func (p *BasePlayer) String() string {
 	return fmt.Sprintf("player info: EntityID=<%d>, gateClusterID=<%d>", p.EntityID, p.gateClusterID)
+}
+
+func (p *BasePlayer) AddCronTask(taskName string, spec string, method func()) error {
+	taskID := p.cronTaskMap[taskName]
+	if taskID != 0 {
+		p.cronTab.Remove(taskID)
+	}
+
+	newTaskID, err := p.cronTab.AddFunc(spec, method)
+	if err != nil {
+		return err
+	}
+
+	p.cronTaskMap[taskName] = newTaskID
+
+	return nil
+}
+
+func (p *BasePlayer) RemoveCronTask(taskName string) {
+	taskID := p.cronTaskMap[taskName]
+	if taskID != 0 {
+		p.cronTab.Remove(taskID)
+	}
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {

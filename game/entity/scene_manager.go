@@ -31,7 +31,7 @@ func init() {
 	})
 
 	if err != nil {
-		log.Panic("add cron task scene_player_count_task error: " + err.Error())
+		log.Panic("add cronTab task scene_player_count_task error: " + err.Error())
 	}
 
 	go func() {
