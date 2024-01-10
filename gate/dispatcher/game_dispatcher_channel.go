@@ -144,7 +144,7 @@ func (gpc *GameDispatcherChannel) stop() {
 	gpc.Close()
 	close(gpc.packetQueue)
 
-	log.Warnf("game<%s> dispatcher channel<%d> closed: %s", gpc.gameDispatcher.game, gpc.channelID, gpc.RemoteAddr().String())
+	log.Warnf("game<%s> dispatcher channel<%d> closed", gpc.gameDispatcher.game, gpc.channelID)
 
 	gpc.gameDispatcher = nil
 }

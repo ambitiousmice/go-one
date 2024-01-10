@@ -43,6 +43,11 @@ func InitGameDispatchers(dispatcherConfigs []entity.GameDispatcherConfig, queues
 }
 
 func newGameDispatcher() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("newGameDispatcher panic: %v", err)
+		}
+	}()
 	for _, gameDispatcherConfig := range gameDispatcherConfigs {
 
 		game := gameDispatcherConfig.Game
