@@ -56,9 +56,9 @@ func RegisterCmdParam(cmd uint16, param any) {
 }
 
 type TestCmdReq struct {
-	PID  int64          `json:"pid"`
-	Cmd  uint16         `json:"cmd"`
-	Data map[string]any `json:"data"`
+	PID  int64  `json:"pid"`
+	Cmd  uint16 `json:"cmd"`
+	Data any    `json:"data"`
 }
 
 func httpHandler(c *gin.Context) {
