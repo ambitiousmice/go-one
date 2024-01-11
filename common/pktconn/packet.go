@@ -201,7 +201,9 @@ func (p *Packet) Release() {
 		if payloadCap > minPayloadCap {
 			buffer := p.bytes
 			p.bytes = p.initialBytes[:]
-			packetBufferPools[payloadCap].Put(buffer) // reclaim the buffer
+			pool := packetBufferPools[payloadCap]
+			pool.Put(buffer)
+			//packetBufferPools[payloadCap].Put(buffer) // reclaim the buffer
 		}
 
 		p.readCursor = 0

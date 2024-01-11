@@ -161,7 +161,7 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Errorf("handle gate packet error,Recover from panic: %v\n", r)
+			log.Errorf("handle gate packet error,Recover from panic: %v", r)
 		}
 	}()
 
