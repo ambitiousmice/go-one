@@ -236,8 +236,14 @@ func (c *Client) BroadcastMsgHandler(msg *common_proto.GateBroadcastMsg) {
 }
 
 func (c *Client) SendGameData(cmd uint16, data any) {
-	c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
-		Cmd:   int32(cmd),
-		Param: PackMsg(data),
-	})
+	if data == nil {
+		c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
+			Cmd: int32(cmd),
+		})
+	} else {
+		c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
+			Cmd:   int32(cmd),
+			Param: PackMsg(data),
+		})
+	}
 }

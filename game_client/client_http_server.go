@@ -69,18 +69,22 @@ func httpHandler(c *gin.Context) {
 		return
 	}
 
-	reqData := reflect.New(cmdParamContext[req.Cmd])
+	var reqData any = nil
 
-	dataBytes, err := json.Marshal(req.Data)
+	if cmdParamContext[req.Cmd] != nil {
+		reqData = reflect.New(cmdParamContext[req.Cmd])
 
-	err = json.Unmarshal(dataBytes, reqData)
+		dataBytes, err := json.Marshal(req.Data)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		err = json.Unmarshal(dataBytes, &reqData)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
-	ClientContext[req.PID].SendGameData(req.Cmd, reqData.Interface())
+	ClientContext[req.PID].SendGameData(req.Cmd, reqData)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": "0",
