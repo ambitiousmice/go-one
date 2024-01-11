@@ -152,13 +152,8 @@ func (c *Client) connectServerByKCP() (net.Conn, error) {
 }
 
 func (c *Client) connectServerByWebsocket() (net.Conn, error) {
-	originProto := "http"
-	wsProto := "ws"
 
-	origin := fmt.Sprintf("%s://%s/", originProto, c.ServerHost)
-	wsaddr := fmt.Sprintf("%s://%s/ws", wsProto, c.ServerHost)
-
-	return websocket.Dial(wsaddr, "", origin)
+	return websocket.Dial(c.ServerHost, "", c.ServerHost)
 }
 
 func (c *Client) recvLoop() {
