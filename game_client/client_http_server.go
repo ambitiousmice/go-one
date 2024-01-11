@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/ambitiousmice/go-one/common/json"
 	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/golang/protobuf/proto"
 	"net/http"
 	"reflect"
 	"time"
@@ -69,10 +70,8 @@ func httpHandler(c *gin.Context) {
 		return
 	}
 
-	var reqData any = nil
-
 	if cmdParamContext[req.Cmd] != nil {
-		reqData = reflect.New(cmdParamContext[req.Cmd])
+		reqData := reflect.New(cmdParamContext[req.Cmd]).Interface().(proto.Message)
 
 		dataBytes, err := json.Marshal(req.Data)
 
@@ -82,9 +81,11 @@ func httpHandler(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-	}
+		ClientContext[req.PID].SendGameData(req.Cmd, reqData)
+	} else {
+		ClientContext[req.PID].SendGameData(req.Cmd, nil)
 
-	ClientContext[req.PID].SendGameData(req.Cmd, reqData)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": "0",
