@@ -56,9 +56,9 @@ func RegisterCmdParam(cmd uint16, param any) {
 }
 
 type TestCmdReq struct {
-	PID  int64  `json:"pid"`
-	Cmd  uint16 `json:"cmd"`
-	Data string `json:"data"`
+	PID  int64          `json:"pid"`
+	Cmd  uint16         `json:"cmd"`
+	Data map[string]any `json:"data"`
 }
 
 func httpHandler(c *gin.Context) {
@@ -71,7 +71,9 @@ func httpHandler(c *gin.Context) {
 
 	reqData := reflect.New(cmdParamContext[req.Cmd])
 
-	err := json.UnmarshalFromString(req.Data, reqData)
+	dataBytes, err := json.Marshal(req.Data)
+
+	err = json.Unmarshal(dataBytes, reqData)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
