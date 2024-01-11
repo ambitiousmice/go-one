@@ -6,7 +6,6 @@ import (
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/demo/im/proto"
 	"github.com/ambitiousmice/go-one/game_client"
-	"time"
 )
 
 func main() {
@@ -15,9 +14,7 @@ func main() {
 	imClient := &ImClient{}
 	game_client.NewClientServer(imClient).Run()
 
-	for {
-		time.Sleep(time.Second)
-	}
+	select {}
 }
 
 func RegisterProcessors() {

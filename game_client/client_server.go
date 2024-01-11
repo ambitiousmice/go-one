@@ -36,6 +36,8 @@ func (cs *ClientServer) Run() {
 	RegisterProcessor(&AOISyncProcessor{})
 	RegisterProcessor(&BroadcastProcessor{})
 
+	go RunHttpServer()
+
 	for i := 1; i <= Config.ServerConfig.ClientNum; i++ {
 		iClientValue := reflect.New(cs.iClientType)
 		iClient := iClientValue.Interface().(IClient)
