@@ -208,7 +208,9 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		packet.ReadData(gameResp)
 		processor := ProcessorContext[uint16(gameResp.Cmd)]
 		if processor == nil {
-			log.Warnf("未找到处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
+			//log.Warnf("未找到处理器,使用默认处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
+			log.Warnf("未找到处理器,使用默认处理器:%d", gameResp.Cmd)
+			DefaultProcessor(c, uint16(gameResp.Cmd), gameResp.Data)
 			return
 		}
 		processor.Process(c, gameResp.Data)
