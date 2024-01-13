@@ -148,7 +148,7 @@ func (p *Packet) extendPayload(size int) []byte {
 	resizeToCap := getPayloadCapOfPayloadLen(newPayloadLen)
 
 	buffer := packetBufferPools[resizeToCap].Get().([]byte)
-	if len(buffer) != int(resizeToCap) {
+	if len(buffer) != int(resizeToCap+prePayloadSize) {
 		log.Panic(fmt.Errorf("buffer size should be %d, but is %d", resizeToCap, len(buffer)))
 	}
 	copy(buffer, p.data())
