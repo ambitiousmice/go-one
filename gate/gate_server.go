@@ -296,7 +296,7 @@ func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 	clientProxy := gs.getClientProxy(entityID)
 
 	if clientProxy != nil {
-		packet.TruncatePayload(consts.EntityIDLength)
+		packet.ClearLastPayload(consts.EntityIDLength)
 		err := clientProxy.Send(packet)
 		if err != nil {
 			log.Errorf("客户端:%s 发送消息失败:%s", clientProxy, err)

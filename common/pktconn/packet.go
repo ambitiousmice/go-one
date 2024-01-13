@@ -164,21 +164,34 @@ func (p *Packet) extendPayload(size int) []byte {
 	return p.payloadSlice(payloadLen, newPayloadLen)
 }
 
-func (p *Packet) TruncatePayload(size int) {
+func (p *Packet) ClearLastPayload(size int) {
 	payloadLen := p.GetPayloadLen()
 
 	if size >= int(payloadLen) {
 		// If size is greater than or equal to current payload length,
-		// set payload length to 0 and return.
+		// set payload length to 0 and clear the payload data.
 		p.SetPayloadLen(0)
+		// Determine the start index to clear
+		startIndex := len(p.bytes) - size
+
+		// Clear the payload data by setting the last few elements to zero value
+		for i := startIndex; i < len(p.bytes); i++ {
+			p.bytes[i] = 0
+		}
 		return
 	}
 
+	// Determine the start index to clear
+	startIndex := len(p.bytes) - size
+
+	// Clear the last few elements of the payload data by setting them to zero value
+	for i := startIndex; i < len(p.bytes); i++ {
+		p.bytes[i] = 0
+	}
+
+	// Update the payload length to reflect the truncation without changing the slice length
 	newPayloadLen := payloadLen - uint32(size)
 	p.SetPayloadLen(newPayloadLen)
-
-	// Use slice to truncate from the end
-	p.bytes = p.bytes[:len(p.bytes)-size]
 }
 
 // addRefCount adds reference count of packet
