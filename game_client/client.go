@@ -206,10 +206,14 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	case common_proto.GameMethodFromClientAck:
 		gameResp := &common_proto.GameResp{}
 		packet.ReadData(gameResp)
+		if gameResp.Code != 0 {
+			log.Warnf("game handle error,code:%d", gameResp.Code)
+			return
+		}
 		processor := ProcessorContext[uint16(gameResp.Cmd)]
 		if processor == nil {
 			//log.Warnf("未找到处理器,使用默认处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
-			log.Warnf("未找到处理器,使用默认处理器:%d", gameResp.Cmd)
+			log.Warnf("未找到处理器,使用默认处理器:%d,code:%d", gameResp.Cmd, gameResp.Code)
 			DefaultProcessor(c, uint16(gameResp.Cmd), gameResp.Data)
 			return
 		}
