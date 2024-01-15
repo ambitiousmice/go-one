@@ -50,6 +50,7 @@ func RemovePlayer(entityID int64) {
 
 	player := GetPlayer(entityID)
 	if player != nil && player.I != nil {
+		player.Destroy()
 		player.I.OnDestroy()
 	} else {
 		log.Infof("删除用户:%d,不存在", entityID)

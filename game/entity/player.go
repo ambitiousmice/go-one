@@ -87,3 +87,7 @@ func (p *Player) Move(moveReq *common_proto.MoveReq) {
 	})
 
 }
+
+func (p *Player) Destroy() {
+	p.cronTab.Stop()
+}
