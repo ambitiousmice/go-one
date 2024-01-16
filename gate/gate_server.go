@@ -94,7 +94,8 @@ func (gs *GateServer) Run() {
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
 	collectData := make(map[string]string)
-	collectData[consts.Partition] = context.GetOneConfig().Nacos.Instance.GroupName
+	collectData[consts.ServiceName] = context.GetOneConfig().Nacos.Instance.Service
+	collectData[consts.GroupId] = context.GetOneConfig().Nacos.Instance.GroupName
 	collectData[consts.ClusterId] = context.GetOneConfig().Nacos.Instance.ClusterName
 
 	gs.cron.AddFunc("@every 10s", func() {
@@ -113,7 +114,7 @@ func (gs *GateServer) Run() {
 		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
 		log.Infof("Memory Usage: %.2f MB", memoryUsageMB)
 
-		collectData["connectionCount"] = strconv.Itoa(len(gs.clientProxies))
+		collectData[consts.ConnectionCount] = strconv.Itoa(len(gs.clientProxies))
 		_, err := utils.Get(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData)
 		if err != nil {
 			log.Warnf("上报数据失败:%s", err)

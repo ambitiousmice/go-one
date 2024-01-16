@@ -96,12 +96,14 @@ const (
 
 // metadata key
 const (
-	Partition = "partition"
-	ClusterId = "clusterID"
-	WSAddr    = "wsAddr"
-	TCPAddr   = "tcpAddr"
-	Version   = "version"
-	Status    = "status"
+	ServiceName     = "serviceName"
+	GroupId         = "groupID"
+	ClusterId       = "clusterID"
+	WSAddr          = "wsAddr"
+	TCPAddr         = "tcpAddr"
+	Version         = "version"
+	Status          = "status"
+	ConnectionCount = "connectionCount"
 )
 
 // gate kafka topic

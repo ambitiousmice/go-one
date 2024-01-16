@@ -15,25 +15,28 @@ import (
 	"time"
 )
 
-var gateContext = make(map[int64]*GateInfos)
+var gateContext = make(map[int64]*GateInfos) // gateContext: {groupID: {gates: []*GateInfo}}
 var gatesMutex = new(sync.RWMutex)
+
+var regionGroupMap = make(map[int64]int64) // regionGroupMap: {regionID: groupID}
 
 var crontab = *cron.New(cron.WithSeconds())
 
 var entityGateInfoCacheKey = "entity_gate_map"
 
-func init() {
+func Init() {
+	InitRegionClusterMap()
 	_, err := crontab.AddFunc("@every 10s", func() {
 		start := time.Now().UnixMilli()
-		for _, groupName := range config.GetConfig().Gate.GroupNames {
+		for groupName, _ := range config.GetConfig().Gate.GroupInfos {
 			FreshGateInfo(config.GetConfig().Gate.Name, groupName)
 		}
 		gatesMutex.RLock()
-		for partition, gateInfos := range gateContext {
+		for groupID, gateInfos := range gateContext {
 			gateInfos.RLock()
 			for _, gateInfo := range gateInfos.Gates {
-				log.Infof("partition: %d, clusterId: %d, wsAddr: %s, tcpAddr: %s, version: %s, status: %d, connectionCount: %d",
-					partition, gateInfo.ClusterId, gateInfo.WsAddr, gateInfo.TcpAddr, gateInfo.Version, gateInfo.Status, gateInfo.ConnectionCount)
+				log.Infof("groupID: %d, clusterId: %d, wsAddr: %s, tcpAddr: %s, version: %s, status: %d, connectionCount: %d",
+					groupID, gateInfo.ClusterId, gateInfo.WsAddr, gateInfo.TcpAddr, gateInfo.Version, gateInfo.Status, gateInfo.ConnectionCount)
 			}
 			gateInfos.RUnlock()
 		}
@@ -68,7 +71,7 @@ func (g *GateInfos) addGate(gateInfo *GateInfo) {
 }
 
 type GateInfo struct {
-	Partition       int64
+	GroupID         int64
 	ClusterId       int64
 	WsAddr          string
 	TcpAddr         string
@@ -77,13 +80,13 @@ type GateInfo struct {
 	ConnectionCount int64
 }
 
-func GetGateInfos(partition int64) *GateInfos {
+func GetGateInfos(groupID int64) *GateInfos {
 	gatesMutex.RLock()
-	gateInfos := gateContext[partition]
+	gateInfos := gateContext[groupID]
 	gatesMutex.RUnlock()
 	if gateInfos == nil {
 		gatesMutex.Lock()
-		gateInfos = gateContext[partition]
+		gateInfos = gateContext[groupID]
 		if gateInfos != nil {
 			gatesMutex.Unlock()
 			return gateInfos
@@ -92,7 +95,7 @@ func GetGateInfos(partition int64) *GateInfos {
 			Gates:      make(map[int64]*GateInfo),
 			ClusterIds: make([]int64, 0),
 		}
-		gateContext[partition] = gateInfos
+		gateContext[groupID] = gateInfos
 		gatesMutex.Unlock()
 	}
 
@@ -110,15 +113,15 @@ func FreshGateInfo(gateName, groupName string) {
 		log.Warnf("select %s|%s server error:%s", groupName, gateName, err.Error())
 	}
 
-	partition, err := strconv.ParseInt(groupName, 10, 64)
+	groupID, err := strconv.ParseInt(groupName, 10, 64)
 	if err != nil {
-		log.Errorf("gate partition is not int: %s", groupName)
+		log.Errorf("gate groupID is not int: %s", groupName)
 		return
 	}
 
 	var existingInstances = make(map[int64]bool)
 
-	gateInfos := GetGateInfos(partition)
+	gateInfos := GetGateInfos(groupID)
 	for _, info := range gateInfos.Gates {
 		existingInstances[info.ClusterId] = true
 	}
@@ -163,7 +166,7 @@ func FreshGateInfo(gateName, groupName string) {
 		gateInfo := gateInfos.getGate(clusterId)
 		if gateInfo == nil {
 			gateInfo = &GateInfo{
-				Partition: partition,
+				GroupID:   groupID,
 				ClusterId: clusterId,
 				WsAddr:    wsAddr,
 				TcpAddr:   tcpAddr,
@@ -192,11 +195,12 @@ func FreshGateInfo(gateName, groupName string) {
 }
 
 func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
-	gateInfos := GetGateInfos(partition)
+	groupId := regionGroupMap[partition]
+	gateInfos := GetGateInfos(groupId)
 
 	var previousGateInfo GateInfo
 	err := cache.GetHashField(entityGateInfoCacheKey, utils.ToString(entityID), &previousGateInfo)
-	if err == nil && previousGateInfo.Partition == partition {
+	if err == nil && previousGateInfo.GroupID == groupId {
 		newGateInfo := gateInfos.getGate(previousGateInfo.ClusterId)
 		if newGateInfo != nil {
 			return newGateInfo
@@ -214,10 +218,26 @@ func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	return newGateInfo
 }
 
-func GetGateInfo(partition int64, clusterID int64) *GateInfo {
-	gateInfos := GetGateInfos(partition)
+func GetGateInfo(groupID int64, clusterID int64) *GateInfo {
+	gateInfos := GetGateInfos(groupID)
 	if gateInfos == nil {
 		return nil
 	}
 	return gateInfos.getGate(clusterID)
+}
+
+func InitRegionClusterMap() {
+	for groupName, regions := range config.GetConfig().Gate.GroupInfos {
+		groupId, err := strconv.ParseInt(groupName, 10, 64)
+		if err != nil {
+			log.Panicf("groupName is not int: %s", groupName)
+		}
+		for _, regionStr := range regions {
+			region, err := strconv.ParseInt(regionStr, 10, 64)
+			if err != nil {
+				log.Panicf("region is not int: %s", regionStr)
+			}
+			regionGroupMap[region] = groupId
+		}
+	}
 }
