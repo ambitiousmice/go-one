@@ -1,8 +1,6 @@
 package pktconn
 
-import (
-	"github.com/golang/protobuf/proto"
-)
+import "google.golang.org/protobuf/proto"
 
 // PbMsgPacker packs and unpacks message in MessagePack format
 type PbMsgPacker struct{}

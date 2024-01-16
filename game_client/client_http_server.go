@@ -130,6 +130,16 @@ func httpHandler(c *gin.Context) {
 		return
 	}
 
+	if req.Cmd == uint16(120) {
+		ClientContext[req.PID].Run()
+		log.Infof("客户端重连")
+		c.JSON(http.StatusOK, gin.H{
+			"code": "0",
+			"msg":  "success",
+		})
+		return
+	}
+
 	if cmdParamContext[req.Cmd] != nil {
 		reqData := reflect.New(cmdParamContext[req.Cmd]).Interface().(proto.Message)
 

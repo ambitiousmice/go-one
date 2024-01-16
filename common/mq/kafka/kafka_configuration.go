@@ -5,16 +5,18 @@ import (
 	"errors"
 	"github.com/IBM/sarama"
 	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pktconn"
 	"strings"
 )
 
 var consumerHandlerContext = make(map[string]sarama.ConsumerGroupHandler)
 
 type ProducerConfig struct {
-	Brokers  string `yaml:"brokers"`
-	RetryMax int    `yaml:"retry-max"`
-	Version  string `yaml:"version"`
-	Sync     bool   `yaml:"sync"`
+	Brokers   string `yaml:"brokers"`
+	RetryMax  int    `yaml:"retry-max"`
+	Version   string `yaml:"version"`
+	Sync      bool   `yaml:"sync"`
+	MsgPacker string `yaml:"msg-packer"`
 }
 
 type ConsumerConfig struct {
@@ -31,6 +33,8 @@ func RegisterConsumerHandler(name string, handler sarama.ConsumerGroupHandler) {
 
 var Producer IProducer
 
+var msgPacker pktconn.MsgPacker
+
 func InitProducer(producerConfig ProducerConfig) {
 	if producerConfig.Brokers == "" {
 		return
@@ -40,6 +44,11 @@ func InitProducer(producerConfig ProducerConfig) {
 		Producer = NewSyncProducer(producerConfig)
 	} else {
 		Producer = NewAsyncProducer(producerConfig)
+	}
+	if producerConfig.MsgPacker == "pb" {
+		msgPacker = pktconn.PbMsgPacker{}
+	} else {
+		msgPacker = pktconn.JSONMsgPacker{}
 	}
 }
 

@@ -3,7 +3,6 @@ package kafka
 import (
 	"github.com/IBM/sarama"
 	"github.com/ambitiousmice/go-one/common/log"
-	"github.com/ambitiousmice/go-one/common/pktconn"
 	"strings"
 )
 
@@ -34,7 +33,7 @@ func NewSyncProducer(producerConfig ProducerConfig) IProducer {
 }
 
 func (p *SyncProducer) SendMessage(topic, key string, value any) {
-	byteValue, err := pktconn.MSG_PACKER.PackMsg(value, nil)
+	byteValue, err := msgPacker.PackMsg(value, nil)
 	if err != nil {
 		log.Warnf("pack message error(%v)", err)
 		return
@@ -84,7 +83,7 @@ func NewAsyncProducer(producerConfig ProducerConfig) IProducer {
 }
 
 func (p *AsyncProducer) SendMessage(topic, key string, value any) {
-	byteValue, err := pktconn.MSG_PACKER.PackMsg(value, nil)
+	byteValue, err := msgPacker.PackMsg(value, nil)
 	if err != nil {
 		log.Warnf("pack message error(%v)", err)
 		return
