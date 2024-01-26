@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ambitiousmice/go-one/common/json"
 	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/utils"
 	"strings"
 	"time"
 
@@ -83,6 +84,66 @@ func ExecuteLuaScript(script string, keys []string, args []any) (any, error) {
 	return RedisClient.ExecuteLuaScript(script, keys, args)
 }
 
+// 添加一个元素, zset与set最大的区别就是每个元素都有一个score，因此有个排序的辅助功能;  zadd
+func ZSetAdd(key string, value string, score float64) error {
+	return RedisClient.ZSetAdd(key, value, score)
+}
+
+// 删除元素 zrem
+func ZSetRemove(key string, value string) error {
+	return RedisClient.ZSetRemove(key, value)
+}
+
+// score的增加or减少 zincrby
+func ZSetIncrScore(key string, value string, score float64) (float64, error) {
+	return RedisClient.ZSetIncrScore(key, value, score)
+}
+
+// 查询value对应的score   zscore
+func ZSetScore(key string, value string) (float64, error) {
+	return RedisClient.ZSetScore(key, value)
+}
+
+// 判断value在zset中的排名  zrank
+func ZSetRankAsc(key string, value string) (int64, error) {
+	return RedisClient.ZSetRankAsc(key, value)
+}
+
+// 判断value在zset中的排名  zrank
+func ZSetRankDesc(key string, value string) (int64, error) {
+	return RedisClient.ZSetRankDesc(key, value)
+}
+
+// 返回集合的长度
+func ZSetSize(key string) (int64, error) {
+	return RedisClient.ZSetSize(key)
+}
+
+// 询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  zrange
+func ZSetRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return RedisClient.ZSetRangeWithScore(key, start, end)
+}
+
+// 询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  倒序
+func ZSetRevRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return RedisClient.ZSetRevRangeWithScore(key, start, end)
+}
+
+// 询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  倒序
+func ZSetRevRange(key string, start int64, end int64) ([]string, error) {
+	return RedisClient.ZSetRevRange(key, start, end)
+}
+
+// 询集合中指定顺序的值， 0 -1 表示获取全部的集合内容
+func ZSetRange(key string, start int64, end int64) ([]string, error) {
+	return RedisClient.ZSetRange(key, start, end)
+}
+
+// 询集合中指定score下的value
+func ZSetRangeByScore(key string, min float64, max float64) ([]string, error) {
+	return RedisClient.ZSetRangeByScore(key, min, max)
+}
+
 // IRedisClient 是通用的 Redis 客户端接口
 type IRedisClient interface {
 	Close()
@@ -94,6 +155,28 @@ type IRedisClient interface {
 	SetHashField(key, field, value string) error
 	GetHashField(key, field string) (string, error)
 	ExecuteLuaScript(script string, keys []string, args []any) (any, error)
+
+	//添加一个元素, zset与set最大的区别就是每个元素都有一个score，因此有个排序的辅助功能;  zadd
+	ZSetAdd(key string, value string, score float64) error
+	//删除元素 zrem
+	ZSetRemove(key string, value string) error
+	//score的增加or减少 zincrby
+	ZSetIncrScore(key string, value string, score float64) (float64, error)
+	//查询value对应的score   zscore
+	ZSetScore(key string, value string) (float64, error)
+	//判断value在zset中的排名  zrank
+	ZSetRankAsc(key string, value string) (int64, error)
+	//判断value在zset中的排名  zrank
+	ZSetRankDesc(key string, value string) (int64, error)
+	//返回集合的长度
+	ZSetSize(key string) (int64, error)
+	//询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  zrange
+	ZSetRangeWithScore(key string, start int64, end int64) ([]redis.Z, error)
+	//询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  倒序
+	ZSetRevRangeWithScore(key string, start int64, end int64) ([]redis.Z, error)
+	ZSetRevRange(key string, start int64, end int64) ([]string, error)
+	ZSetRange(key string, start int64, end int64) ([]string, error)
+	ZSetRangeByScore(key string, min float64, max float64) ([]string, error)
 }
 
 type RedisConfig struct {
@@ -115,6 +198,60 @@ type SingleNodeRedisClient struct {
 	client *redis.Client
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *SingleNodeRedisClient) ZSetAdd(key string, value string, score float64) error {
+	return r.client.ZAdd(r.ctx, key, redis.Z{
+		Score:  score,
+		Member: value,
+	}).Err()
+}
+
+func (r *SingleNodeRedisClient) ZSetRemove(key string, value string) error {
+	return r.client.ZRem(r.ctx, key, value).Err()
+}
+
+func (r *SingleNodeRedisClient) ZSetIncrScore(key string, value string, score float64) (float64, error) {
+	return r.client.ZIncrBy(r.ctx, key, score, value).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetScore(key string, value string) (float64, error) {
+	return r.client.ZScore(r.ctx, key, value).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRankAsc(key string, value string) (int64, error) {
+	return r.client.ZRank(r.ctx, key, value).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRankDesc(key string, value string) (int64, error) {
+	return r.client.ZRevRank(r.ctx, key, value).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetSize(key string) (int64, error) {
+	return r.client.ZCard(r.ctx, key).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRevRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRevRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRevRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRevRange(r.ctx, key, start, end).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRange(r.ctx, key, start, end).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRangeByScore(key string, min float64, max float64) ([]string, error) {
+	return r.client.ZRangeByScore(r.ctx, key, &redis.ZRangeBy{
+		Min: utils.ToString(min),
+		Max: utils.ToString(max),
+	}).Result()
 }
 
 // NewSingleNodeRedisClient 创建一个新的单机模式 Redis 客户端
@@ -191,6 +328,60 @@ type SentinelRedisClient struct {
 	cancel context.CancelFunc
 }
 
+func (r *SentinelRedisClient) ZSetAdd(key string, value string, score float64) error {
+	return r.client.ZAdd(r.ctx, key, redis.Z{
+		Score:  score,
+		Member: value,
+	}).Err()
+}
+
+func (r *SentinelRedisClient) ZSetRemove(key string, value string) error {
+	return r.client.ZRem(r.ctx, key, value).Err()
+}
+
+func (r *SentinelRedisClient) ZSetIncrScore(key string, value string, score float64) (float64, error) {
+	return r.client.ZIncrBy(r.ctx, key, score, value).Result()
+}
+
+func (r *SentinelRedisClient) ZSetScore(key string, value string) (float64, error) {
+	return r.client.ZScore(r.ctx, key, value).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRankAsc(key string, value string) (int64, error) {
+	return r.client.ZRank(r.ctx, key, value).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRankDesc(key string, value string) (int64, error) {
+	return r.client.ZRevRank(r.ctx, key, value).Result()
+}
+
+func (r *SentinelRedisClient) ZSetSize(key string) (int64, error) {
+	return r.client.ZCard(r.ctx, key).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRevRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRevRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRevRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRevRange(r.ctx, key, start, end).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRange(r.ctx, key, start, end).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRangeByScore(key string, min float64, max float64) ([]string, error) {
+	return r.client.ZRangeByScore(r.ctx, key, &redis.ZRangeBy{
+		Min: utils.ToString(min),
+		Max: utils.ToString(max),
+	}).Result()
+}
+
 // NewSentinelRedisClient 创建一个新的哨兵模式 Redis 客户端
 func NewSentinelRedisClient() (*SentinelRedisClient, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -265,6 +456,62 @@ type ClusterRedisClient struct {
 	client *redis.ClusterClient
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *ClusterRedisClient) ZSetAdd(key string, value string, score float64) error {
+
+	return r.client.ZAdd(r.ctx, key, redis.Z{
+		Score:  score,
+		Member: value,
+	}).Err()
+}
+
+func (r *ClusterRedisClient) ZSetRemove(key string, value string) error {
+
+	return r.client.ZRem(r.ctx, key, value).Err()
+}
+
+func (r *ClusterRedisClient) ZSetIncrScore(key string, value string, score float64) (float64, error) {
+	return r.client.ZIncrBy(r.ctx, key, score, value).Result()
+}
+
+func (r *ClusterRedisClient) ZSetScore(key string, value string) (float64, error) {
+	return r.client.ZScore(r.ctx, key, value).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRankAsc(key string, value string) (int64, error) {
+	return r.client.ZRank(r.ctx, key, value).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRankDesc(key string, value string) (int64, error) {
+	return r.client.ZRevRank(r.ctx, key, value).Result()
+}
+
+func (r *ClusterRedisClient) ZSetSize(key string) (int64, error) {
+	return r.client.ZCard(r.ctx, key).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRevRangeWithScore(key string, start int64, end int64) ([]redis.Z, error) {
+	return r.client.ZRevRangeWithScores(r.ctx, key, start, end).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRevRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRevRange(r.ctx, key, start, end).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRange(key string, start int64, end int64) ([]string, error) {
+	return r.client.ZRange(r.ctx, key, start, end).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRangeByScore(key string, min float64, max float64) ([]string, error) {
+	return r.client.ZRangeByScore(r.ctx, key, &redis.ZRangeBy{
+		Min: utils.ToString(min),
+		Max: utils.ToString(max),
+	}).Result()
 }
 
 // NewClusterRedisClient 创建一个新的集群模式 Redis 客户端
