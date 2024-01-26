@@ -32,6 +32,14 @@ func InitRedis(c *RedisConfig) {
 	log.Infof("redis client init success,addr:%s", c.Addr)
 }
 
+func Gets(key string) (string, error) {
+	return RedisClient.Get(key)
+}
+
+func Sets(key string, value string, expiration time.Duration) error {
+	return RedisClient.Set(key, value, expiration)
+}
+
 func Get(key string, v any) error {
 	value, err := RedisClient.Get(key)
 	if err == nil {
@@ -144,6 +152,15 @@ func ZSetRangeByScore(key string, min float64, max float64) ([]string, error) {
 	return RedisClient.ZSetRangeByScore(key, min, max)
 }
 
+func ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
+	return RedisClient.ZSetRankAscWithScore(key, value)
+}
+
+// 判断value在zset中的排名  zrank
+func ZSetRankDescWithScore(key string, value string) (redis.RankScore, error) {
+	return RedisClient.ZSetRankDescWithScore(key, value)
+}
+
 // IRedisClient 是通用的 Redis 客户端接口
 type IRedisClient interface {
 	Close()
@@ -168,6 +185,11 @@ type IRedisClient interface {
 	ZSetRankAsc(key string, value string) (int64, error)
 	//判断value在zset中的排名  zrank
 	ZSetRankDesc(key string, value string) (int64, error)
+
+	//判断value在zset中的排名  zrank
+	ZSetRankAscWithScore(key string, value string) (redis.RankScore, error)
+	//判断value在zset中的排名  zrank
+	ZSetRankDescWithScore(key string, value string) (redis.RankScore, error)
 	//返回集合的长度
 	ZSetSize(key string) (int64, error)
 	//询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  zrange
@@ -198,6 +220,14 @@ type SingleNodeRedisClient struct {
 	client *redis.Client
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *SingleNodeRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRankWithScore(r.ctx, key, value).Result()
+}
+
+func (r *SingleNodeRedisClient) ZSetRankDescWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRevRankWithScore(r.ctx, key, value).Result()
 }
 
 func (r *SingleNodeRedisClient) ZSetAdd(key string, value string, score float64) error {
@@ -328,6 +358,14 @@ type SentinelRedisClient struct {
 	cancel context.CancelFunc
 }
 
+func (r *SentinelRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRankWithScore(r.ctx, key, value).Result()
+}
+
+func (r *SentinelRedisClient) ZSetRankDescWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRevRankWithScore(r.ctx, key, value).Result()
+}
+
 func (r *SentinelRedisClient) ZSetAdd(key string, value string, score float64) error {
 	return r.client.ZAdd(r.ctx, key, redis.Z{
 		Score:  score,
@@ -456,6 +494,14 @@ type ClusterRedisClient struct {
 	client *redis.ClusterClient
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *ClusterRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRankWithScore(r.ctx, key, value).Result()
+}
+
+func (r *ClusterRedisClient) ZSetRankDescWithScore(key string, value string) (redis.RankScore, error) {
+	return r.client.ZRevRankWithScore(r.ctx, key, value).Result()
 }
 
 func (r *ClusterRedisClient) ZSetAdd(key string, value string, score float64) error {
