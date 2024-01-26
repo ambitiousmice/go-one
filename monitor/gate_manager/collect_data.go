@@ -1,21 +1,22 @@
 package gate_manager
 
 import (
+	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/monitor/util/gin_util"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func CollectData(c *gin.Context) {
-	partition, err := gin_util.GetQueryInt(c, "partition")
+	partition, err := gin_util.GetQueryInt(c, consts.GroupId)
 	if err != nil {
 		return
 	}
-	clusterID, err := gin_util.GetQueryInt(c, "clusterID")
+	clusterID, err := gin_util.GetQueryInt(c, consts.ClusterId)
 	if err != nil {
 		return
 	}
-	connectionCount, err := gin_util.GetQueryInt(c, "connectionCount")
+	connectionCount, err := gin_util.GetQueryInt(c, consts.ConnectionCount)
 	if err != nil {
 		return
 	}

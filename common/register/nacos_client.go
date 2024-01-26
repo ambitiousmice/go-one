@@ -81,9 +81,10 @@ func Run(config NacosConf) {
 	instance := config.Instance
 
 	if len(instance.GroupName) != 0 {
-		instance.Metadata[consts.Partition] = instance.GroupName
+		instance.Metadata[consts.GroupId] = instance.GroupName
 		instance.Metadata[consts.ClusterId] = instance.ClusterName
 	}
+
 	//Register
 	registerServiceInstance(namingClient, vo.RegisterInstanceParam{
 		Ip:          instance.Ip,

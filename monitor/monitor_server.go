@@ -19,6 +19,8 @@ func main() {
 
 	config.InitConfig()
 
+	gate_manager.Init()
+
 	router := gin.Default()
 
 	gin.SetMode(gin.ReleaseMode)

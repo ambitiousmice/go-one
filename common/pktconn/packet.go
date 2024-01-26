@@ -510,3 +510,17 @@ func (p *Packet) ReadStringList() []string {
 	}
 	return list
 }
+
+/*func (p *Packet) AddInt64AtPosition(position int, value int64) {
+	// Check if the position is within the bounds of the slice
+	if position < 0 || position > len(p.bytes) {
+		log.Panic("position is out of bounds")
+	}
+
+	p.extendPayload(8)
+	// Shift the elements to the right to make space for the int64
+	p.bytes = append(p.bytes[:position+8], p.bytes[position:]...)
+
+	// Write the int64 at the specified position
+	binary.LittleEndian.PutUint64(p.bytes[position:], uint64(value))
+}*/

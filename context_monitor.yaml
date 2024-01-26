@@ -9,7 +9,12 @@ nacos:
       "version": 1.0
 
 gate:
-  name: gate
+  name: frpc-gate
+  groupInfos:
+    -
+      name: 1
+      regions:
+        - 1
   groupNames:
     - 1
 
