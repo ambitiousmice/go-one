@@ -161,6 +161,27 @@ func ZSetRankDescWithScore(key string, value string) (redis.RankScore, error) {
 	return RedisClient.ZSetRankDescWithScore(key, value)
 }
 
+// 分布式锁功能
+func SetNx(key string, value string, expiration time.Duration) (bool, error) {
+	return RedisClient.SetNx(key, value, expiration)
+}
+
+func Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
+	return RedisClient.Scan(cursor, match, count)
+}
+
+func ZRemRangeByRank(key string, start, stop int64) (int64, error) {
+	return RedisClient.ZRemRangeByRank(key, start, stop)
+}
+
+func SAdd(key string, members ...interface{}) (int64, error) {
+	return RedisClient.SAdd(key, members)
+}
+
+func SIsMember(key string, member interface{}) (bool, error) {
+	return RedisClient.SIsMember(key, member)
+}
+
 // IRedisClient 是通用的 Redis 客户端接口
 type IRedisClient interface {
 	Close()
@@ -199,6 +220,14 @@ type IRedisClient interface {
 	ZSetRevRange(key string, start int64, end int64) ([]string, error)
 	ZSetRange(key string, start int64, end int64) ([]string, error)
 	ZSetRangeByScore(key string, min float64, max float64) ([]string, error)
+
+	ZRemRangeByRank(key string, start, stop int64) (int64, error)
+
+	SetNx(key, value string, expiration time.Duration) (bool, error)
+	Scan(cursor uint64, match string, count int64) ([]string, uint64, error)
+
+	SAdd(key string, members ...interface{}) (int64, error)
+	SIsMember(key string, member interface{}) (bool, error)
 }
 
 type RedisConfig struct {
@@ -220,6 +249,26 @@ type SingleNodeRedisClient struct {
 	client *redis.Client
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *SingleNodeRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
+	return r.client.ZRemRangeByRank(r.ctx, key, start, stop).Result()
+}
+
+func (r *SingleNodeRedisClient) SAdd(key string, members ...interface{}) (int64, error) {
+	return r.client.SAdd(r.ctx, key, members).Result()
+}
+
+func (r *SingleNodeRedisClient) SIsMember(key string, member interface{}) (bool, error) {
+	return r.client.SIsMember(r.ctx, key, member).Result()
+}
+
+func (r *SingleNodeRedisClient) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
+	return r.client.Scan(r.ctx, cursor, match, count).Result()
+}
+
+func (r *SingleNodeRedisClient) SetNx(key, value string, expiration time.Duration) (bool, error) {
+	return r.client.SetNX(r.ctx, key, value, expiration).Result()
 }
 
 func (r *SingleNodeRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
@@ -358,6 +407,26 @@ type SentinelRedisClient struct {
 	cancel context.CancelFunc
 }
 
+func (r *SentinelRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
+	return r.client.ZRemRangeByRank(r.ctx, key, start, stop).Result()
+}
+
+func (r *SentinelRedisClient) SAdd(key string, members ...interface{}) (int64, error) {
+	return r.client.SAdd(r.ctx, key, members).Result()
+}
+
+func (r *SentinelRedisClient) SIsMember(key string, member interface{}) (bool, error) {
+	return r.client.SIsMember(r.ctx, key, member).Result()
+}
+
+func (r *SentinelRedisClient) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
+	return r.client.Scan(r.ctx, cursor, match, count).Result()
+}
+
+func (r *SentinelRedisClient) SetNx(key, value string, expiration time.Duration) (bool, error) {
+	return r.client.SetNX(r.ctx, key, value, expiration).Result()
+}
+
 func (r *SentinelRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {
 	return r.client.ZRankWithScore(r.ctx, key, value).Result()
 }
@@ -494,6 +563,26 @@ type ClusterRedisClient struct {
 	client *redis.ClusterClient
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *ClusterRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
+	return r.client.ZRemRangeByRank(r.ctx, key, start, stop).Result()
+}
+
+func (r *ClusterRedisClient) SAdd(key string, members ...interface{}) (int64, error) {
+	return r.client.SAdd(r.ctx, key, members).Result()
+}
+
+func (r *ClusterRedisClient) SIsMember(key string, member interface{}) (bool, error) {
+	return r.client.SIsMember(r.ctx, key, member).Result()
+}
+
+func (r *ClusterRedisClient) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
+	return r.client.Scan(r.ctx, cursor, match, count).Result()
+}
+
+func (r *ClusterRedisClient) SetNx(key, value string, expiration time.Duration) (bool, error) {
+	return r.client.SetNX(r.ctx, key, value, expiration).Result()
 }
 
 func (r *ClusterRedisClient) ZSetRankAscWithScore(key string, value string) (redis.RankScore, error) {

@@ -38,6 +38,7 @@ type GameServer struct {
 	status                  uint8
 	checkHeartbeatsInterval int
 	gateTimeout             time.Duration
+	cronTaskMap             map[string]cron.EntryID
 }
 
 func NewGameServer() *GameServer {
@@ -56,6 +57,7 @@ func NewGameServer() *GameServer {
 		cron:                    crontab,
 		checkHeartbeatsInterval: gameConfig.Server.HeartbeatCheckInterval,
 		gateTimeout:             time.Second * time.Duration(gameConfig.Server.GateTimeout),
+		cronTaskMap:             map[string]cron.EntryID{},
 	}
 
 	if len(gameConfig.SceneManagerConfigs) == 0 {
@@ -275,4 +277,20 @@ func (gs *GameServer) SendAndRelease(gateClusterID uint8, packet *pktconn.Packet
 	if err != nil {
 		log.Errorf("%s send Game msg error: %s", gateProxy, err)
 	}
+}
+
+func (gs *GameServer) AddCronTask(taskName string, spec string, method func()) error {
+	taskID := gs.cronTaskMap[taskName]
+	if taskID != 0 {
+		delete(gs.cronTaskMap, strconv.Itoa(int(taskID)))
+	}
+
+	newTaskID, err := gs.cron.AddFunc(spec, method)
+	if err != nil {
+		return err
+	}
+
+	gs.cronTaskMap[taskName] = newTaskID
+
+	return nil
 }
