@@ -187,6 +187,26 @@ func ToFloat64(i interface{}) (num float64, err error) {
 	return
 }
 
+func ToFloat64WithOutErr(i interface{}) (num float64) {
+	switch i.(type) {
+	case string:
+		num, _ = strconv.ParseFloat(i.(string), 64)
+	case int:
+		num = float64(i.(int))
+	case int32:
+		num = float64(i.(int32))
+	case int64:
+		num = float64(i.(int64))
+	case float32:
+		num = float64(i.(float32))
+	case float64:
+		num = i.(float64)
+	default:
+		panic("该类型暂不支持")
+	}
+	return
+}
+
 // ToByteArray
 /**
  *  @Description: 转换为[]byte

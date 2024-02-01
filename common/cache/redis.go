@@ -182,6 +182,10 @@ func SIsMember(key string, member interface{}) (bool, error) {
 	return RedisClient.SIsMember(key, member)
 }
 
+func ZCount(key string, min, max string) (int64, error) {
+	return RedisClient.ZCount(key, min, max)
+}
+
 // IRedisClient 是通用的 Redis 客户端接口
 type IRedisClient interface {
 	Close()
@@ -228,6 +232,11 @@ type IRedisClient interface {
 
 	SAdd(key string, members ...interface{}) (int64, error)
 	SIsMember(key string, member interface{}) (bool, error)
+
+	ZCount(key string, min string, max string) (int64, error)
+
+	//ZRangeStore(dst string, redis.ZRangeArgs) error
+
 }
 
 type RedisConfig struct {
@@ -249,6 +258,10 @@ type SingleNodeRedisClient struct {
 	client *redis.Client
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *SingleNodeRedisClient) ZCount(key string, min string, max string) (int64, error) {
+	return r.client.ZCount(r.ctx, key, min, max).Result()
 }
 
 func (r *SingleNodeRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
@@ -407,6 +420,10 @@ type SentinelRedisClient struct {
 	cancel context.CancelFunc
 }
 
+func (r *SentinelRedisClient) ZCount(key string, min string, max string) (int64, error) {
+	return r.client.ZCount(r.ctx, key, min, max).Result()
+}
+
 func (r *SentinelRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
 	return r.client.ZRemRangeByRank(r.ctx, key, start, stop).Result()
 }
@@ -563,6 +580,10 @@ type ClusterRedisClient struct {
 	client *redis.ClusterClient
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *ClusterRedisClient) ZCount(key string, min string, max string) (int64, error) {
+	return r.client.ZCount(r.ctx, key, min, max).Result()
 }
 
 func (r *ClusterRedisClient) ZRemRangeByRank(key string, start, stop int64) (int64, error) {
