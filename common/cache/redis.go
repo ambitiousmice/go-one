@@ -174,12 +174,22 @@ func ZRemRangeByRank(key string, start, stop int64) (int64, error) {
 	return RedisClient.ZRemRangeByRank(key, start, stop)
 }
 
-func SAdd(key string, members ...interface{}) (int64, error) {
-	return RedisClient.SAdd(key, members)
+func SAddOne(key string, member interface{}) (int64, error) {
+	value, err := json.MarshalToString(member)
+	if err == nil {
+		return RedisClient.SAdd(key, value)
+	} else {
+		return 0, err
+	}
 }
 
 func SIsMember(key string, member interface{}) (bool, error) {
-	return RedisClient.SIsMember(key, member)
+	value, err := json.MarshalToString(member)
+	if err == nil {
+		return RedisClient.SIsMember(key, value)
+	} else {
+		return false, err
+	}
 }
 
 func ZCount(key string, min, max string) (int64, error) {
