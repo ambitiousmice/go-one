@@ -155,13 +155,22 @@ func (m *Mapper) FindArray(filter bson.M, result any) error {
 	return err
 }
 
+func (m *Mapper) GetClient() *qmgo.Collection {
+	return m.client
+}
+
 // FindPage 分页查询文档
-func (m *Mapper) FindPage(filter bson.M, pageNum, pageSize int64, results []any) error {
+// For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
+func (m *Mapper) FindPage(filter bson.M, pageNum, pageSize int64, results any, sort ...string) error {
 	// 计算要跳过的文档数量
 	skip := (pageNum) * pageSize
 
 	// 执行查询
-	err := m.client.Find(context.Background(), filter).Skip(skip).Limit(pageSize).All(&results)
+	find := m.client.Find(context.Background(), filter)
+	if sort != nil && len(sort) > 0 {
+		find = find.Sort(sort...)
+	}
+	err := find.Skip(skip).Limit(pageSize).All(results)
 	if errors.Is(err, qmgo.ErrNoSuchDocuments) {
 		return nil
 	}
