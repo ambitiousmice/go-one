@@ -45,3 +45,7 @@ func NextEntityID() int64 {
 func NextID() int64 {
 	return idGenerator.NextID()
 }
+
+func NextIDStr() string {
+	return idGenerator.NextIDStr()
+}
