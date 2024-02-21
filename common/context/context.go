@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/ambitiousmice/go-one/common/cache"
 	"github.com/ambitiousmice/go-one/common/db/mongo"
+	"github.com/ambitiousmice/go-one/common/db/mysql"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/mq/kafka"
 	"github.com/ambitiousmice/go-one/common/pool"
@@ -44,6 +45,7 @@ func Init() {
 	kafka.InitConsumer(oneConfig.KafkaConsumerConfigs)
 
 	mongo.InitMongo(&oneConfig.MongoDBConfig)
+	mysql.InitMysql(&oneConfig.MysqlConfig)
 
 	cache.InitRedis(&oneConfig.RedisConfig)
 

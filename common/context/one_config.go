@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/ambitiousmice/go-one/common/cache"
 	"github.com/ambitiousmice/go-one/common/db/mongo"
+	"github.com/ambitiousmice/go-one/common/db/mysql"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/mq/kafka"
 	"github.com/ambitiousmice/go-one/common/pool"
@@ -19,4 +20,5 @@ type OneConfig struct {
 	RedisConfig          cache.RedisConfig      `yaml:"redis"`
 	PprofHost            string                 `yaml:"pprof-host"`
 	PoolConfig           pool.Config            `yaml:"pool-config"`
+	MysqlConfig          mysql.Config           `yaml:"mysql"`
 }

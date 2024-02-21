@@ -196,6 +196,9 @@ func FreshGateInfo(gateName, groupName string) {
 
 func ChooseGateInfo(partition int64, entityID int64) *GateInfo {
 	groupId := regionGroupMap[partition]
+	if groupId == 0 {
+		log.Warnf("set entity gate cache error")
+	}
 	gateInfos := GetGateInfos(groupId)
 
 	var previousGateInfo GateInfo
