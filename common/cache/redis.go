@@ -196,10 +196,25 @@ func ZCount(key string, min, max string) (int64, error) {
 	return RedisClient.ZCount(key, min, max)
 }
 
+func Incr(key string) (int64, error) {
+	return RedisClient.Incr(key)
+}
+
+func Exists(key string) (bool, error) {
+	result, err := RedisClient.Exists(key)
+	if err != nil {
+		return false, err
+	}
+	return result == 1, err
+}
+
 // IRedisClient 是通用的 Redis 客户端接口
 type IRedisClient interface {
 	Close()
 	Set(key, value string, expiration time.Duration) error
+
+	Incr(key string) (int64, error)
+	Exists(key string) (int64, error)
 	Get(key string) (string, error)
 	Delete(key string) error
 	AddToSortedSet(key string, members ...redis.Z) error
@@ -268,6 +283,14 @@ type SingleNodeRedisClient struct {
 	client *redis.Client
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *SingleNodeRedisClient) Incr(key string) (int64, error) {
+	return r.client.Incr(r.ctx, key).Result()
+}
+
+func (r *SingleNodeRedisClient) Exists(key string) (int64, error) {
+	return r.client.Exists(r.ctx, key).Result()
 }
 
 func (r *SingleNodeRedisClient) ZCount(key string, min string, max string) (int64, error) {
@@ -430,6 +453,14 @@ type SentinelRedisClient struct {
 	cancel context.CancelFunc
 }
 
+func (r *SentinelRedisClient) Incr(key string) (int64, error) {
+	return r.client.Incr(r.ctx, key).Result()
+}
+
+func (r *SentinelRedisClient) Exists(key string) (int64, error) {
+	return r.client.Exists(r.ctx, key).Result()
+}
+
 func (r *SentinelRedisClient) ZCount(key string, min string, max string) (int64, error) {
 	return r.client.ZCount(r.ctx, key, min, max).Result()
 }
@@ -590,6 +621,14 @@ type ClusterRedisClient struct {
 	client *redis.ClusterClient
 	ctx    context.Context
 	cancel context.CancelFunc
+}
+
+func (r *ClusterRedisClient) Incr(key string) (int64, error) {
+	return r.client.Incr(r.ctx, key).Result()
+}
+
+func (r *ClusterRedisClient) Exists(key string) (int64, error) {
+	return r.client.Exists(r.ctx, key).Result()
 }
 
 func (r *ClusterRedisClient) ZCount(key string, min string, max string) (int64, error) {
