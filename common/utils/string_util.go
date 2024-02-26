@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"unsafe"
 )
@@ -222,4 +223,13 @@ func ToByteArray(i interface{}) (b []byte) {
 		panic("该类型暂不支持")
 	}
 	return
+}
+
+func ByteArrayToJsonStruct(b []byte, i interface{}) (interface{}, error) {
+	err := json.Unmarshal(b, &i)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return nil, err
+	}
+	return i, nil
 }
