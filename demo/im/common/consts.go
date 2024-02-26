@@ -10,3 +10,5 @@ const (
 )
 
 const KafkaConsumerHandlerNameChat = "chat"
+
+const KafkaConsumerHandlerNameMall = "mall"
