@@ -5,6 +5,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/mq/kafka"
+	"github.com/ambitiousmice/go-one/gate/mq"
 )
 
 func init() {
@@ -34,6 +35,9 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			switch message.Topic {
 			case consts.GateBroadcastTopic:
 				BroadcastMsgHandler(message)
+			case mq.GateSyncPlayer:
+				//找到用户
+				ReceiveLoginSyncNotifyHandler(message)
 			}
 
 			log.Infof("gate kafka message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)

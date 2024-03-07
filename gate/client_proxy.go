@@ -9,6 +9,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/pktconn"
 	"github.com/ambitiousmice/go-one/gate/dispatcher"
+	"github.com/ambitiousmice/go-one/gate/mq/kafka"
 	"github.com/robfig/cron/v3"
 	"net"
 	"time"
@@ -164,6 +165,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	}
 
 	cp.entityID = loginResult.EntityID
+	//
 
 	oldCP := gateServer.getClientProxy(cp.entityID)
 	if oldCP != nil {
@@ -171,6 +173,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 		oldCP.CloseAll()
 	}
 
+	kafka.SendGateLoginSyncNotify(cp.entityID, cp.clientID)
 	cp.game = param.Game
 
 	cp.region = loginResult.Region

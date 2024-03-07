@@ -364,3 +364,6 @@ func (gs *GateServer) Broadcast(msg any) {
 		proxy.SendMsg(common_proto.BroadcastFromServer, msg)
 	}
 }
+func GetGateServer() *GateServer {
+	return gateServer
+}
