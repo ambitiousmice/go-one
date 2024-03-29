@@ -44,5 +44,7 @@ func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req 
 		p.SendCommonErrorMsg("invalid cmd")
 		return
 	}
-	processor.Process(p, req.Param)
+	SubmitProcessorTask(entityID, func() {
+		processor.Process(p, req.Param)
+	})
 }

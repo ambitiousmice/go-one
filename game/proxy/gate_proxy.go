@@ -93,7 +93,9 @@ func (gp *GateProxy) HandleGameLogic(pkt *pktconn.Packet) {
 	gameReq := &common_proto.GameReq{}
 	pkt.ReadData(gameReq)
 	entityID := pkt.ReadInt64()
+
 	gp.gameProcessor.Process(gp, entityID, gameReq)
+
 }
 
 func (gp *GateProxy) Handle3002(pkt *pktconn.Packet) {

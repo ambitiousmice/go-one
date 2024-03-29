@@ -35,6 +35,8 @@ type GameServer struct {
 
 	GatePacketQueue chan *pktconn.Packet
 
+	GatePacketQueueMap map[int]chan *pktconn.Packet
+
 	status                  uint8
 	checkHeartbeatsInterval int
 	gateTimeout             time.Duration
@@ -49,9 +51,10 @@ func NewGameServer() *GameServer {
 	crontab := cron.New(cron.WithSeconds())
 	crontab.Start()
 	gameServer = &GameServer{
-		gateProxies:             map[string]*proxy.GateProxy{},
-		gateNodeProxies:         map[uint8][]*proxy.GateProxy{},
-		GatePacketQueue:         make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
+		gateProxies:     map[string]*proxy.GateProxy{},
+		gateNodeProxies: map[uint8][]*proxy.GateProxy{},
+		GatePacketQueue: make(chan *pktconn.Packet, consts.GameServicePacketQueueSize),
+
 		Game:                    gameConfig.Server.Game,
 		listenAddr:              gameConfig.Server.ListenAddr,
 		cron:                    crontab,
