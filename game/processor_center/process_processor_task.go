@@ -18,21 +18,23 @@ func init() {
 		dispatcherPlayerProcessors[i] = make(chan ProcessorTask, consts.GameServiceProcessorQueueSize)
 		tempI := i
 		go func() {
+			log.Infof("dispatcherPlayerProcessors[%d] start", tempI)
 			for {
 				select {
 				case task := <-dispatcherPlayerProcessors[tempI]:
 					func() {
+						log.Infof("协程执行任务Start")
 						defer func() {
 							if r := recover(); r != nil {
 								log.Errorf("handle player business,Recover from panic: %v", r)
 							}
 						}()
 						task()
+						log.Infof("协程执行任务End")
 					}()
-				default:
-					continue
 				}
 			}
+
 		}()
 	}
 }
