@@ -42,10 +42,11 @@ const (
 
 // game consts
 const (
-	GameClientPacketQueueSize  = 10000
-	GameServicePacketQueueSize = 10000
-	GateProxyWriteBufferSize   = 1024 * 1024
-	GateProxyReadBufferSize    = 1024 * 1024
+	GameServiceProcessorQueueSize = 5000
+	GameClientPacketQueueSize     = 10000
+	GameServicePacketQueueSize    = 10000
+	GateProxyWriteBufferSize      = 1024 * 1024
+	GateProxyReadBufferSize       = 1024 * 1024
 )
 
 // IDGenerator type
