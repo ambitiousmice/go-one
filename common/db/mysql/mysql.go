@@ -63,7 +63,7 @@ func InitMysql(c *Config) {
 
 func GetMysqlClient() *gorm.DB {
 	once.Do(func() {
-		// 创建 MongoDB 客户端，只会执行一次
+		// 创建 Mysql 客户端，只会执行一次
 		db, err := gorm.Open(mysql.New(config.BuildMysqlConfig()), config.BuildGormConfig())
 
 		if err != nil {
