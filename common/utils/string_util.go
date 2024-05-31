@@ -242,3 +242,17 @@ func Contains[T comparable](slice []T, value T) bool {
 	}
 	return false
 }
+
+func ContainsSlice[T comparable](slice []T, slice2 []T) bool {
+	if len(slice) == 0 || len(slice2) == 0 {
+		return false
+	}
+	for _, v := range slice2 {
+		for _, v2 := range slice {
+			if v == v2 {
+				return true
+			}
+		}
+	}
+	return false
+}
