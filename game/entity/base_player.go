@@ -9,6 +9,7 @@ import (
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/ambitiousmice/go-one/game/common"
 	"github.com/robfig/cron/v3"
+	"reflect"
 	"sync"
 )
 
@@ -164,6 +165,38 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 	packet.WriteInt64(p.EntityID)
 
 	gameServer.SendAndRelease(p.gateClusterID, packet)
+}
+
+func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{}) {
+	v := reflect.ValueOf(data)
+
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		log.Errorf("data 必须是一个指向结构体的非空指针")
+		return
+	}
+
+	v = v.Elem()
+
+	if v.Kind() != reflect.Struct {
+		log.Errorf("data 必须指向一个结构体")
+		return
+	}
+
+	codeField := v.FieldByName("code")
+
+	if !codeField.IsValid() || !codeField.CanSet() {
+		log.Error("结构体中没有可设置的 code 字段")
+		return
+	}
+
+	if codeField.Kind() != reflect.Int32 {
+		log.Error("code 字段必须是 uint16 类型")
+		return
+	}
+
+	codeField.SetInt(int64(code))
+
+	p.SendGameData(cmd, data)
 }
 
 func (p *BasePlayer) SendCreateEntity(createPlayer *BasePlayer) {
