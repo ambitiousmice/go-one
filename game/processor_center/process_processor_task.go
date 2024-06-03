@@ -23,14 +23,14 @@ func init() {
 				select {
 				case task := <-dispatcherPlayerProcessors[tempI]:
 					func() {
-						log.Infof("协程执行任务Start")
+						//log.Infof("协程执行任务Start")
 						defer func() {
 							if r := recover(); r != nil {
 								log.Errorf("handle player business,Recover from panic: %v", r)
 							}
 						}()
 						task()
-						log.Infof("协程执行任务End")
+						//log.Infof("协程执行任务End")
 					}()
 				}
 			}

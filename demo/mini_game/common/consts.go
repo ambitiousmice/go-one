@@ -1,5 +1,5 @@
 package common
 
 const (
-	SceneTypeMiniCommon = "mini_common"
+	SceneTypeMiniCommon = "lobby"
 )

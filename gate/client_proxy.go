@@ -274,6 +274,7 @@ func (cp *ClientProxy) SendHeartBeatAck() {
 }
 
 func (cp *ClientProxy) SendOffline() {
+	log.Infof("%s send offlinexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", cp)
 	cp.SendMsg(common_proto.OfflineFromServer, nil)
 }
 

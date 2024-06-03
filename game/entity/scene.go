@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/ambitiousmice/go-one/game/common"
 )
@@ -20,9 +19,10 @@ func (s *Scene) init(id int64, sceneType string, maxPlayerNum int, enableAOI boo
 	}
 	s.I.OnCreated()
 
-	s.AddCronTask("entity count", "@every 5s", func() {
+	//TODO  上线 开启
+	/*s.AddCronTask("entity count", "@every 5s", func() {
 		log.Infof("%s 最大承载人数:%d,当前人数:%d", s, s.MaxPlayerNum, s.GetPlayerCount())
-	})
+	})*/
 
 	s.StartCron()
 }
