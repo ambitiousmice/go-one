@@ -196,7 +196,29 @@ func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{
 
 	codeField.SetInt(int64(code))
 
-	p.SendGameData(cmd, data)
+	packet := pktconn.NewPacket()
+	packet.WriteUint16(common_proto.GameMethodFromClientAck)
+
+	dataByte, err := pktconn.MSG_PACKER.PackMsg(data, nil)
+	if err != nil {
+		log.Errorf("%s pack msg error: %s", p, err)
+		return
+	}
+
+	resp := &common_proto.GameResp{
+		Cmd:  int32(cmd),
+		Code: code,
+		Data: dataByte,
+	}
+
+	if resp != nil {
+		packet.AppendData(resp)
+	}
+
+	packet.WriteInt64(p.EntityID)
+
+	gameServer.SendAndRelease(p.gateClusterID, packet)
+
 }
 
 func (p *BasePlayer) SendCreateEntity(createPlayer *BasePlayer) {
