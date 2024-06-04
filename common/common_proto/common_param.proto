@@ -40,18 +40,6 @@ message GateBroadcastMsg {
   bytes data = 2;
 }
 
-// 游戏内协议
-message GameReq {
-  int32 cmd = 1;
-  bytes param = 2;
-}
-
-message GameResp {
-  int32 cmd = 1;
-  int32 code = 2;
-  bytes data = 3;
-}
-
 //===========游戏内协议==============
 
 // 加入场景

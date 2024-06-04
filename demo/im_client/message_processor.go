@@ -43,7 +43,7 @@ func (p *SubscribeRoomProcessor) Process(client *game_client.Client, param []byt
 
 			// 将时间转换为字符串，使用指定的格式
 			formattedTime := currentTime.Format("2006-01-02 15:04:05")
-			for i := 0; i < 40; i++ {
+			for i := 0; i < 10; i++ {
 				client.SendGameData(proto.PushRoomMessage, &proto.PushMessageReq{
 					RoomID: 1001,
 					Msg:    formattedTime,

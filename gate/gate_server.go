@@ -266,12 +266,14 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 	cp := pkt.Src.Proxy.(*ClientProxy)
 	cp.heartbeatTime = time.Now()
 	//entityID := cp.entityID
-	msgType := pkt.ReadUint16()
+	cmd := pkt.ReadUint16()
 
-	log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
-	switch msgType {
-	case common_proto.GameMethodFromClient:
+	log.Infof("收到客户端:%s 消息:%d", cp, cmd)
+	if cmd >= 3000 {
 		cp.ForwardByDispatcher(pkt)
+		return
+	}
+	switch cmd {
 	case common_proto.HeartbeatFromClient:
 		cp.SendHeartBeatAck()
 	case common_proto.LoginFromClient:
@@ -279,7 +281,7 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 	case common_proto.OfflineFromClient:
 		cp.CloseAll()
 	default:
-		log.Errorf("unknown message type from client: %d", msgType)
+		log.Errorf("unknown message cmd from client: %d", cmd)
 	}
 
 }

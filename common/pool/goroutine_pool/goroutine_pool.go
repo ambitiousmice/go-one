@@ -13,6 +13,7 @@ func IsEnable() bool {
 	}
 	return true
 }
+
 func Init(poolSize int) {
 	if poolSize <= 0 {
 		return

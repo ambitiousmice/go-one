@@ -172,13 +172,11 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 
 	gp := pkt.Src.Proxy.(*proxy.GateProxy)
 	gp.HeartbeatTime = time.Now()
-	msgType := pkt.ReadUint16()
+	cmd := pkt.ReadUint16()
 
-	//log.Infof("receive msg:%s 消息类型:%d", gp, msgType)
+	//log.Infof("receive msg:%s 消息:%d", gp, msgType)
 
-	switch msgType {
-	case common_proto.GameMethodFromClient:
-		gp.HandleGameLogic(pkt)
+	switch cmd {
 	case common_proto.HeartbeatFromDispatcher:
 		gp.SendHeartBeatAck()
 	case common_proto.OfflineFromClient:
@@ -190,7 +188,7 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 	case common_proto.PlayerDisconnectedFromDispatcher:
 		gp.Handle3004(pkt)
 	default:
-		log.Errorf("unknown message type from client: %d", msgType)
+		gp.HandleGameLogic(cmd, pkt)
 	}
 
 }

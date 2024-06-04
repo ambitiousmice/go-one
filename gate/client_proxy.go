@@ -106,14 +106,14 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 
 	if gameDispatcher == nil {
 		log.Errorf("gameDispatcher is nil: %s", cp)
-		cp.SendError("游戏维护中...")
+		cp.SendCommonError(consts.GameMaintenance)
 		return
 	}
 
 	err := gameDispatcher.ForwardMsg(cp.entityID, packet)
 	if err != nil {
 		log.Errorf("gameDispatcher.ForwardMsg error: %s", err)
-		cp.SendError("游戏维护中...")
+		cp.SendCommonError(consts.GameMaintenance)
 	}
 }
 
@@ -140,7 +140,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 			cp.entityID = oldCP.entityID
 		} else {
 			log.Errorf("Reconnection failed: %s", cp)
-			cp.SendError("Reconnection failed")
+			cp.SendError(common_proto.LoginFromClient, consts.ReconnectionFailed)
 			return
 		}
 
@@ -160,7 +160,7 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	loginResult, err := Login(gateServer.LoginManager, &param)
 	if err != nil || !loginResult.Success {
 		log.Errorf("Login error: %s", err)
-		cp.SendError("登录失败")
+		cp.SendError(common_proto.LoginFromClient, consts.LoginFailed)
 		return
 	}
 
@@ -246,19 +246,30 @@ func (cp *ClientProxy) removeCronTask(taskName string) {
 func (cp *ClientProxy) SendMsg(msgType uint16, msg any) {
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(msgType)
+	packet.WriteInt32(0)
 
 	if msg != nil {
 		packet.AppendData(msg)
+	} else {
+		packet.WriteUint32(0)
 	}
 
 	cp.SendAndRelease(packet)
 }
 
-func (cp *ClientProxy) SendError(error string) {
-	log.Warnf("%s send error data:%s", cp, error)
-	cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
-		Data: error,
-	})
+func (cp *ClientProxy) SendCommonError(errorCode int32) {
+	cp.SendError(common_proto.Error, errorCode)
+}
+
+func (cp *ClientProxy) SendError(cmd uint16, errorCode int32) {
+	log.Warnf("%s send error ,cmd: %d code:%s", cp, cmd, errorCode)
+	packet := pktconn.NewPacket()
+	packet.WriteUint16(cmd)
+	packet.WriteInt32(errorCode)
+
+	packet.WriteUint32(0)
+
+	cp.SendAndRelease(packet)
 }
 
 func (cp *ClientProxy) SendConnectionSuccessFromServer() {

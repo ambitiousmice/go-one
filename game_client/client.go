@@ -181,11 +181,14 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		}
 	}()
 
-	msgType := packet.ReadUint16()
-	if msgType == 1001 {
+	cmd := packet.ReadUint16()
+	code := packet.ReadInt32()
+	if cmd == 1001 {
 		log.Infof("handlePacket: %d", packet.GetPayloadLen())
 	}
-	switch msgType {
+	switch cmd {
+	case common_proto.HeartbeatFromClientAck:
+
 	case common_proto.ConnectionSuccessFromServer:
 		r := &common_proto.ConnectionSuccessFromServerResp{}
 		packet.ReadData(r)
@@ -203,30 +206,28 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		packet.ReadData(broadcastMsg)
 
 		c.BroadcastMsgHandler(broadcastMsg)
-	case common_proto.GameMethodFromClientAck:
-		gameResp := &common_proto.GameResp{}
-		packet.ReadData(gameResp)
-		if gameResp.Code != 0 {
-			log.Warnf("game handle error,code:%d", gameResp.Code)
-			return
-		}
-		processor := ProcessorContext[uint16(gameResp.Cmd)]
+	default:
+		processor := ProcessorContext[cmd]
 		if processor == nil {
 			//log.Warnf("未找到处理器,使用默认处理器:%d,resp: %s", gameResp.Cmd, string(gameResp.Data))
-			log.Warnf("未找到处理器,使用默认处理器:%d,code:%d", gameResp.Cmd, gameResp.Code)
-			DefaultProcessor(c, uint16(gameResp.Cmd), gameResp.Data)
+			log.Warnf("未找到处理器,使用默认处理器:%d,code:%d", cmd, code)
+			DefaultProcessor(c, uint16(code), packet.ReadVarBytesI())
 			return
 		}
-		processor.Process(c, gameResp.Data)
+
+		data := packet.ReadVarBytesI()
+		processor.Process(c, data)
 	}
 
 }
 
-func (c *Client) SendMsg(msgType uint16, msg interface{}) {
+func (c *Client) SendMsg(cmd uint16, msg interface{}) {
 	packet := pktconn.NewPacket()
-	packet.WriteUint16(msgType)
+	packet.WriteUint16(cmd)
 	if msg != nil {
 		packet.AppendData(msg)
+	} else {
+		packet.WriteUint32(0)
 	}
 	c.conn.Send(packet)
 	packet.Release()
@@ -243,13 +244,8 @@ func (c *Client) BroadcastMsgHandler(msg *common_proto.GateBroadcastMsg) {
 
 func (c *Client) SendGameData(cmd uint16, data any) {
 	if data == nil {
-		c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
-			Cmd: int32(cmd),
-		})
+		c.SendMsg(cmd, nil)
 	} else {
-		c.SendMsg(common_proto.GameMethodFromClient, &common_proto.GameReq{
-			Cmd:   int32(cmd),
-			Param: PackMsg(data),
-		})
+		c.SendMsg(cmd, data)
 	}
 }

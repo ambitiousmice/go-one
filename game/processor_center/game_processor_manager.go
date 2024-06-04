@@ -1,7 +1,6 @@
 package processor_center
 
 import (
-	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/game/entity"
 	"github.com/ambitiousmice/go-one/game/processor_center/base_processor"
@@ -31,24 +30,21 @@ func (gpm *GameProcessManager) RegisterProcessor(p Processor) {
 	gpm.processContext[p.GetCmd()] = p
 }
 
-func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req *common_proto.GameReq) {
+func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, cmd uint16, param []byte) {
 	p := entity.GetPlayer(entityID)
 	if p == nil {
-		log.Warnf("p:<%d> not found", entityID)
+		log.Errorf("p:<%d> not found", entityID)
 		/*p = game.AddPosition(entityID, gp.gateClusterID)
 		p.UpdateStatus(game.PlayerStatusOnline)*/
+		return
 	}
-	processor := gpm.processContext[uint16(req.Cmd)]
+	processor := gpm.processContext[cmd]
 	if processor == nil {
-		log.Errorf("player:%d send invalid cmd: %d", entityID, req.Cmd)
+		log.Errorf("player:%d send invalid cmd: %d", entityID, cmd)
 		p.SendCommonErrorMsg("invalid cmd")
 		return
 	}
-	log.Infof("Process1 Start")
 	SubmitProcessorTask(entityID, func() {
-		log.Infof("Process Start")
-		processor.Process(p, req.Param)
-		log.Infof("Process End")
+		processor.Process(p, param)
 	})
-	log.Infof("Process1 End")
 }

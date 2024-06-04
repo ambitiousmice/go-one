@@ -9,7 +9,6 @@ import (
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/ambitiousmice/go-one/game/common"
 	"github.com/robfig/cron/v3"
-	"reflect"
 	"sync"
 )
 
@@ -92,111 +91,47 @@ func (p *BasePlayer) RemoveCronTask(taskName string) {
 }
 
 func (p *BasePlayer) SendCommonErrorMsg(error string) {
-	p.SendGameMsg(&common_proto.GameResp{
-		Cmd:  common_proto.Error,
-		Code: consts.ErrorCommon,
-		Data: []byte(error),
-	})
-}
-
-func (p *BasePlayer) SendError(errorCode int32) {
-	p.SendGameMsg(&common_proto.GameResp{
-		Cmd:  common_proto.Error,
-		Code: errorCode,
-	})
-}
-
-func (p *BasePlayer) SendErrorMsg(errorCode int32, error string) {
-	p.SendGameMsg(&common_proto.GameResp{
-		Cmd:  common_proto.Error,
-		Code: errorCode,
-		Data: []byte(error),
-	})
-}
-
-func (p *BasePlayer) SendErrorData(errorCode int32, data any) {
-	resp := &common_proto.GameResp{
-		Cmd:  common_proto.Error,
-		Code: errorCode,
-	}
-	if data != nil {
-		byteData, err := pktconn.MSG_PACKER.PackMsg(data, nil)
-		if err != nil {
-			log.Errorf("%s pack error msg data error:%s", p, err)
-			return
-		}
-		resp.Data = byteData
-	}
-	p.SendGameMsg(resp)
-}
-
-func (p *BasePlayer) SendGameMsg(resp *common_proto.GameResp) {
 	packet := pktconn.NewPacket()
-	packet.WriteUint16(common_proto.GameMethodFromClientAck)
+	packet.WriteUint16(common_proto.Error)
+	//code
+	packet.WriteInt32(consts.ErrorCommon)
 
-	if resp != nil {
-		packet.AppendData(resp)
-	}
+	packet.WriteVarBytesI([]byte(error))
 
 	packet.WriteInt64(p.EntityID)
 
 	gameServer.SendAndRelease(p.gateClusterID, packet)
+}
+
+func (p *BasePlayer) SendError(cmd uint16, errorCode int32) {
+	p.SendGameCodeData(cmd, errorCode, nil)
 }
 
 func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
+	p.SendGameCodeData(cmd, 0, data)
+}
+
+func (p *BasePlayer) SendGameCodeData(cmd uint16, code int32, data interface{}) {
 	packet := pktconn.NewPacket()
-	packet.WriteUint16(common_proto.GameMethodFromClientAck)
+	packet.WriteUint16(cmd)
+	//code
+	packet.WriteInt32(code)
 
-	dataByte, err := pktconn.MSG_PACKER.PackMsg(data, nil)
-	if err != nil {
-		log.Errorf("%s pack msg error: %s", p, err)
-		return
-	}
+	if data != nil {
+		dataByte, err := pktconn.MSG_PACKER.PackMsg(data, nil)
+		if err != nil {
+			log.Errorf("%s pack msg error: %s", p, err)
+			return
+		}
 
-	resp := &common_proto.GameResp{
-		Cmd:  int32(cmd),
-		Data: dataByte,
-	}
-
-	if resp != nil {
-		packet.AppendData(resp)
+		packet.WriteVarBytesI(dataByte)
+	} else {
+		packet.WriteUint32(0)
 	}
 
 	packet.WriteInt64(p.EntityID)
 
 	gameServer.SendAndRelease(p.gateClusterID, packet)
-}
-
-func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{}) {
-	v := reflect.ValueOf(data)
-
-	if v.Kind() != reflect.Ptr || v.IsNil() {
-		log.Errorf("data 必须是一个指向结构体的非空指针")
-		return
-	}
-
-	v = v.Elem()
-
-	if v.Kind() != reflect.Struct {
-		log.Errorf("data 必须指向一个结构体")
-		return
-	}
-
-	codeField := v.FieldByName("code")
-
-	if !codeField.IsValid() || !codeField.CanSet() {
-		log.Error("结构体中没有可设置的 code 字段")
-		return
-	}
-
-	if codeField.Kind() != reflect.Int32 {
-		log.Error("code 字段必须是 uint16 类型")
-		return
-	}
-
-	codeField.SetInt(int64(code))
-
-	p.SendGameData(cmd, data)
 }
 
 func (p *BasePlayer) SendCreateEntity(createPlayer *BasePlayer) {

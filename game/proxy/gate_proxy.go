@@ -21,7 +21,7 @@ type IGameServer interface {
 }
 
 type IGameProcessor interface {
-	Process(gp *GateProxy, entityID int64, req *common_proto.GameReq)
+	Process(gp *GateProxy, entityID int64, cmd uint16, param []byte)
 }
 
 // GateProxy is a Game client connections managed by gate
@@ -89,12 +89,11 @@ func (gp *GateProxy) CloseAll() {
 
 // ============================================================================业务处理
 
-func (gp *GateProxy) HandleGameLogic(pkt *pktconn.Packet) {
-	gameReq := &common_proto.GameReq{}
-	pkt.ReadData(gameReq)
+func (gp *GateProxy) HandleGameLogic(cmd uint16, pkt *pktconn.Packet) {
+	param := pkt.ReadVarBytes()
 	entityID := pkt.ReadInt64()
 
-	gp.gameProcessor.Process(gp, entityID, gameReq)
+	gp.gameProcessor.Process(gp, entityID, cmd, param)
 
 }
 
