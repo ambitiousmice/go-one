@@ -79,7 +79,6 @@ func NewGameServer() *GameServer {
 		}
 	}
 
-	entity.RegisterSceneType(&entity.LobbyScene{})
 	entity.SetGameServer(gameServer)
 
 	return gameServer
@@ -89,11 +88,12 @@ func (gs *GameServer) Run() {
 	go network.ServeTCPForever(gs.listenAddr, gs)
 	log.Infof("心跳检测间隔:%ds,网关超时时间:%fs", gs.checkHeartbeatsInterval, gs.gateTimeout.Seconds())
 
-	gs.cron.AddFunc("@every 20s", func() {
+	//TODO  上线开启
+	/*gs.cron.AddFunc("@every 20s", func() {
 		log.Infof("当前链接数:%d", len(gs.gateProxies))
 		log.Infof("网关包队列长度:%d", len(gs.GatePacketQueue))
 		log.Infof("aoi消息队列长度:%d", entity.GetSceneMsgChannelSize())
-	})
+	})*/
 
 	gs.mainRoutine()
 }
