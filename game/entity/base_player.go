@@ -30,6 +30,7 @@ type BasePlayer struct {
 	gateClusterID uint8
 	Scene         *Scene
 	status        uint8
+	UpdateFlag    bool
 
 	aoiMutex     sync.RWMutex
 	Position     Vector3
