@@ -88,6 +88,7 @@ const (
 const (
 	ErrorCommon  = 1 // 通用错误码
 	InvalidParam = 2 // 违法的请求参数
+	ServerError  = 3 // 服务器异常
 )
 
 const (
