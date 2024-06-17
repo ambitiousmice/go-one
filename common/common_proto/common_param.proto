@@ -32,6 +32,7 @@ message LoginResp {
   int64 entityID = 1;
   string game = 2;
   int32 region = 3;
+  int32 code=4;
 }
 
 // 网关广播消息

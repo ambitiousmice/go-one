@@ -129,6 +129,12 @@ func httpHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	//
+	if req.PID == 0 && len(ClientContext) == 1 {
+		for key, _ := range ClientContext {
+			req.PID = key
+		}
+	}
 
 	if req.Cmd == uint16(120) {
 		ClientContext[req.PID].Run()
