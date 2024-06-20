@@ -172,7 +172,7 @@ func (gs *GateServer) ServeWebsocketConnection(w http.ResponseWriter, r *http.Re
 	}
 
 	netConn := network.WebSocketConn{Conn: conn}
-
+	log.Infof("websocket new connect request in")
 	go gs.handleClientConnection(netConn)
 }
 
