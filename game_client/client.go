@@ -189,11 +189,13 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 	case common_proto.Error:
 		resp := &common_proto.ErrorResp{}
 		packet.ReadData(resp)
-		log.Errorf("error: %s", utils.ToString(resp))
+		log.Infof("error: %s", utils.ToString(resp))
 	case common_proto.ConnectionSuccessFromServer:
 		r := &common_proto.ConnectionSuccessFromServerResp{}
 		packet.ReadData(r)
 		c.enterGame()
+		log.Infof("1001--ConnectionSuccessFromServer %s", utils.ToString(r))
+
 	case common_proto.LoginFromClientAck:
 		loginResp := &common_proto.LoginResp{}
 		packet.ReadData(loginResp)

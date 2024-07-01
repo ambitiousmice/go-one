@@ -283,6 +283,7 @@ func (cp *ClientProxy) SendError(error string) {
 }
 
 func (cp *ClientProxy) SendConnectionSuccessFromServer() {
+
 	cp.SendMsg(common_proto.ConnectionSuccessFromServer, &common_proto.ConnectionSuccessFromServerResp{
 		ClientID: cp.clientID,
 	})
@@ -295,7 +296,7 @@ func (cp *ClientProxy) SendHeartBeatAck() {
 }
 
 func (cp *ClientProxy) SendOffline() {
-	log.Infof("%s send offlinexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", cp)
+	log.Infof("%s send offline", cp)
 	cp.SendMsg(common_proto.OfflineFromServer, nil)
 }
 
