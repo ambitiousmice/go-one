@@ -46,8 +46,6 @@ func AddPlayer(entityID int64, region int32, gateClusterID uint8) *Player {
 }
 
 func RemovePlayer(entityID int64) {
-	log.Infof("删除用户:%d", entityID)
-
 	player := GetPlayer(entityID)
 	if player != nil && player.I != nil {
 		player.Destroy()
@@ -59,4 +57,5 @@ func RemovePlayer(entityID int64) {
 	playerMutex.Lock()
 	defer playerMutex.Unlock()
 	delete(playerMap, entityID)
+	log.Infof("删除用户:%d", entityID)
 }

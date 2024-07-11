@@ -89,5 +89,6 @@ func (p *Player) Move(moveReq *common_proto.MoveReq) {
 }
 
 func (p *Player) Destroy() {
+	p.status = common.PlayerStatusOffline
 	p.cronTab.Stop()
 }
