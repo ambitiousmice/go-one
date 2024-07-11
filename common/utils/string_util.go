@@ -235,6 +235,9 @@ func ByteArrayToJsonStruct(b []byte, i interface{}) (interface{}, error) {
 }
 
 func Contains[T comparable](slice []T, value T) bool {
+	if slice == nil || len(slice) == 0 {
+		return false
+	}
 	for _, v := range slice {
 		if v == value {
 			return true
@@ -244,7 +247,10 @@ func Contains[T comparable](slice []T, value T) bool {
 }
 
 func ContainsSlice[T comparable](slice []T, slice2 []T) bool {
-	if len(slice) == 0 || len(slice2) == 0 {
+	if slice == nil || len(slice) == 0 {
+		return false
+	}
+	if slice2 == nil || len(slice2) == 0 {
 		return false
 	}
 	for _, v := range slice2 {

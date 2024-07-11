@@ -186,14 +186,24 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		log.Infof("handlePacket: %d", packet.GetPayloadLen())
 	}
 	switch msgType {
+	case common_proto.Error:
+		resp := &common_proto.ErrorResp{}
+		packet.ReadData(resp)
+		log.Infof("error: %s", utils.ToString(resp))
 	case common_proto.ConnectionSuccessFromServer:
 		r := &common_proto.ConnectionSuccessFromServerResp{}
 		packet.ReadData(r)
 		c.enterGame()
+		log.Infof("1001--ConnectionSuccessFromServer %s", utils.ToString(r))
+
 	case common_proto.LoginFromClientAck:
 		loginResp := &common_proto.LoginResp{}
 		packet.ReadData(loginResp)
-		log.Infof("登录结果,EntityID:%d,game:%s", loginResp.EntityID, loginResp.Game)
+		if loginResp.Code == 0 {
+			log.Infof("登录结果,EntityID:%d,game:%s", loginResp.EntityID, loginResp.Game)
+		} else {
+			log.Infof("登录失败%s", utils.ToString(loginResp))
+		}
 		c.ID = loginResp.EntityID
 		c.I.OnLoginSuccess(c, loginResp)
 
@@ -208,6 +218,7 @@ func (c *Client) handlePacket(packet *pktconn.Packet) {
 		packet.ReadData(gameResp)
 		if gameResp.Code != 0 {
 			log.Warnf("game handle error,code:%d", gameResp.Code)
+			DefaultProcessor(c, uint16(gameResp.Cmd), gameResp.Data)
 			return
 		}
 		processor := ProcessorContext[uint16(gameResp.Cmd)]

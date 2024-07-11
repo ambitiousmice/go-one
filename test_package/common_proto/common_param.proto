@@ -24,6 +24,7 @@ message LoginResp {
   int64 EntityID = 1;
   string Game = 2;
   int32 Region = 3;
+  int32 code=4;
 }
 
 message GameDispatcherChannelInfoReq {

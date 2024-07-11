@@ -6,6 +6,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/cust_error"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/network"
 	"github.com/ambitiousmice/go-one/common/pktconn"
@@ -171,7 +172,7 @@ func (gs *GateServer) ServeWebsocketConnection(w http.ResponseWriter, r *http.Re
 	}
 
 	netConn := network.WebSocketConn{Conn: conn}
-
+	log.Infof("websocket new connect request in")
 	go gs.handleClientConnection(netConn)
 }
 
@@ -271,7 +272,19 @@ func (gs *GateServer) handleClientProxyPacket(pkt *pktconn.Packet) {
 	log.Infof("收到客户端:%s 消息类型:%d", cp, msgType)
 	switch msgType {
 	case common_proto.GameMethodFromClient:
-		cp.ForwardByDispatcher(pkt)
+		err := cp.ForwardByDispatcher(pkt)
+		if err != nil {
+			customErr, ok := err.(*cust_error.CustomError)
+			if ok {
+				cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
+					Code: customErr.ErrorCode,
+				})
+			} else {
+				cp.SendMsg(common_proto.Error, &common_proto.ErrorResp{
+					Code: common_proto.Game_Maintenance_Error,
+				})
+			}
+		}
 	case common_proto.HeartbeatFromClient:
 		cp.SendHeartBeatAck()
 	case common_proto.LoginFromClient:

@@ -3,10 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ambitiousmice/go-one/test_package/t"
 	"log"
-
-	"github.com/golang/protobuf/proto"
 )
 
 func main() {

@@ -183,7 +183,7 @@ func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{
 		return
 	}
 
-	codeField := v.FieldByName("code")
+	codeField := v.FieldByName("Code")
 
 	if !codeField.IsValid() || !codeField.CanSet() {
 		log.Error("结构体中没有可设置的 code 字段")
@@ -219,6 +219,7 @@ func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{
 	packet.WriteInt64(p.EntityID)
 
 	gameServer.SendAndRelease(p.gateClusterID, packet)
+	log.Infof("pid:%d send game service code: %d, code: %d", p.EntityID, cmd, code)
 
 }
 

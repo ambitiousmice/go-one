@@ -6,6 +6,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/common/context"
+	"github.com/ambitiousmice/go-one/common/cust_error"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/pktconn"
 	"github.com/ambitiousmice/go-one/gate/dispatcher"
@@ -81,7 +82,7 @@ func (cp *ClientProxy) CloseAll() {
 
 }
 
-func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
+func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) error {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Errorf("%s sendByDispatcher error: %s", cp, err.(error))
@@ -106,15 +107,17 @@ func (cp *ClientProxy) ForwardByDispatcher(packet *pktconn.Packet) {
 
 	if gameDispatcher == nil {
 		log.Errorf("gameDispatcher is nil: %s", cp)
-		cp.SendError("游戏维护中...")
-		return
+		//cp.SendError("游戏维护中...")
+		return cust_error.NewCustomError(common_proto.Game_Maintenance_Error, "游戏维护中...")
 	}
 
 	err := gameDispatcher.ForwardMsg(cp.entityID, packet)
 	if err != nil {
 		log.Errorf("gameDispatcher.ForwardMsg error: %s", err)
-		cp.SendError("游戏维护中...")
+		//cp.SendError("游戏维护中...")
+		return cust_error.NewCustomError(common_proto.Game_Maintenance_Error, "游戏维护中...")
 	}
+	return nil
 }
 
 // ============================================================================游戏协议============================================================================
@@ -123,7 +126,6 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	log.Infof("%s start login", cp)
 	if cp.entityID != 0 {
 		log.Warnf("ready enter game, but already enter game: %s", cp)
-		cp.SendEnterGameClientAck()
 		cp.NotifyNewPlayerConnection()
 		return
 	}
@@ -140,7 +142,10 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 			cp.entityID = oldCP.entityID
 		} else {
 			log.Errorf("Reconnection failed: %s", cp)
-			cp.SendError("Reconnection failed")
+			//cp.SendError("Reconnection failed")
+			cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
+				Code: common_proto.Game_Reconnect_Error,
+			})
 			return
 		}
 
@@ -160,7 +165,10 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 	loginResult, err := Login(gateServer.LoginManager, &param)
 	if err != nil || !loginResult.Success {
 		log.Errorf("Login error: %s", err)
-		cp.SendError("登录失败")
+		cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
+			Code: common_proto.Game_Login_Error,
+		})
+		//cp.SendError("登录失败")
 		return
 	}
 
@@ -186,9 +194,8 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 
 	cp.NotifyNewPlayerConnection()
 
-	cp.SendEnterGameClientAck()
-
 	log.Infof("login game success: %s", cp)
+
 }
 
 func (cp *ClientProxy) NotifyNewPlayerConnection() {
@@ -202,7 +209,21 @@ func (cp *ClientProxy) NotifyNewPlayerConnection() {
 
 	packet.AppendData(req)
 
-	cp.ForwardByDispatcher(packet)
+	err := cp.ForwardByDispatcher(packet)
+	if err != nil {
+		customErr, ok := err.(*cust_error.CustomError)
+		if ok {
+			cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
+				Code: customErr.ErrorCode,
+			})
+		} else {
+			cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
+				Code: common_proto.Game_Maintenance_Error,
+			})
+		}
+		return
+	}
+	cp.SendEnterGameClientAck()
 
 }
 
@@ -262,6 +283,7 @@ func (cp *ClientProxy) SendError(error string) {
 }
 
 func (cp *ClientProxy) SendConnectionSuccessFromServer() {
+
 	cp.SendMsg(common_proto.ConnectionSuccessFromServer, &common_proto.ConnectionSuccessFromServerResp{
 		ClientID: cp.clientID,
 	})
@@ -274,7 +296,7 @@ func (cp *ClientProxy) SendHeartBeatAck() {
 }
 
 func (cp *ClientProxy) SendOffline() {
-	log.Infof("%s send offlinexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", cp)
+	log.Infof("%s send offline", cp)
 	cp.SendMsg(common_proto.OfflineFromServer, nil)
 }
 
