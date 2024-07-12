@@ -29,7 +29,7 @@ type BasePlayer struct {
 	Region        int32
 	gateClusterID uint8
 	Scene         *Scene
-	status        uint8
+	Status        uint8
 	UpdateFlag    bool
 
 	aoiMutex     sync.RWMutex
@@ -251,7 +251,7 @@ func (p *BasePlayer) SendDestroyEntity(player *BasePlayer) {
 func (p *BasePlayer) UpdateStatus(status uint8) {
 	p.Lock()
 	defer p.Unlock()
-	p.status = status
+	p.Status = status
 }
 
 func (p *BasePlayer) OnEnterAOI(otherAoi *aoi.AOI) {
