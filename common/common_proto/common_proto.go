@@ -5,9 +5,6 @@ package common_proto
 const (
 	Error = 1 // 全局异常
 
-	Game_Reconnect_Error   = 4995 //重连失败...
-	Game_Login_Error       = 4996 //登录失败...
-	Game_Maintenance_Error = 4997 //游戏维护中...
 )
 
 // from server
@@ -15,6 +12,10 @@ const (
 	ConnectionSuccessFromServer = 1001
 	OfflineFromServer           = 1002
 	BroadcastFromServer         = 1003
+
+	Game_Reconnect_Error   = 1004 //重连失败...
+	Game_Login_Error       = 1005 //登录失败...
+	Game_Maintenance_Error = 1006 //游戏维护中...
 )
 
 // from client
