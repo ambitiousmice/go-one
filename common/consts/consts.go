@@ -98,7 +98,7 @@ const (
 
 // metadata key
 const (
-	ServiceName     = "serviceName"
+	ServerName      = "serverName"
 	GroupId         = "groupID"
 	ClusterId       = "clusterID"
 	WSAddr          = "wsAddr"
@@ -106,6 +106,13 @@ const (
 	Version         = "version"
 	Status          = "status"
 	ConnectionCount = "connectionCount"
+	Metadata        = "metadata"
+)
+
+// server data key
+const (
+	TotalMemory = "totalMemory"
+	UsageMemory = "usageMemory"
 )
 
 // gate kafka topic

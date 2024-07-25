@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/consts"
+	"github.com/ambitiousmice/go-one/common/context"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/network"
 	"github.com/ambitiousmice/go-one/common/pktconn"
 	"github.com/ambitiousmice/go-one/common/pool/goroutine_pool"
+	"github.com/ambitiousmice/go-one/common/utils"
 	"github.com/ambitiousmice/go-one/game/entity"
 	"github.com/ambitiousmice/go-one/game/processor_center"
 	"github.com/ambitiousmice/go-one/game/proxy"
 	"github.com/robfig/cron/v3"
 	"net"
+	"runtime"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -88,12 +91,51 @@ func (gs *GameServer) Run() {
 	go network.ServeTCPForever(gs.listenAddr, gs)
 	log.Infof("心跳检测间隔:%ds,网关超时时间:%fs", gs.checkHeartbeatsInterval, gs.gateTimeout.Seconds())
 
-	//TODO  上线开启
-	/*gs.cron.AddFunc("@every 20s", func() {
+	collectData := make(map[string]any)
+	groupID, err := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.GroupName, 10, 64)
+	if err != nil {
+		log.Errorf("game groupName is not int: %s ,run failed", context.GetOneConfig().Nacos.Instance.GroupName)
+		return
+	}
+	clusterId, err := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.ClusterName, 10, 64)
+	if err != nil {
+		log.Errorf("game ClusterName is not int: %s ,run failed", context.GetOneConfig().Nacos.Instance.ClusterName)
+		return
+	}
+	collectData[consts.ServerName] = context.GetOneConfig().Nacos.Instance.Service
+	collectData[consts.GroupId] = groupID
+	collectData[consts.ClusterId] = clusterId
+
+	gs.cron.AddFunc("@every 10s", func() {
 		log.Infof("当前链接数:%d", len(gs.gateProxies))
 		log.Infof("网关包队列长度:%d", len(gs.GatePacketQueue))
-		log.Infof("aoi消息队列长度:%d", entity.GetSceneMsgChannelSize())
-	})*/
+		log.Infof("场景消息队列长度:%d", entity.GetSceneMsgChannelSize())
+		log.Infof("当前在线人数:%d", entity.GetPlayerCount())
+
+		var stats runtime.MemStats
+		runtime.ReadMemStats(&stats)
+		totalMB := float64(stats.Sys) / 1024 / 1024
+		log.Infof("Total Memory: %.2f MB", totalMB)
+		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
+		log.Infof("Usage Memory: %.2f MB", memoryUsageMB)
+	})
+
+	gs.cron.AddFunc("@every 2s", func() {
+		var stats runtime.MemStats
+		runtime.ReadMemStats(&stats)
+		totalMB := float64(stats.Sys) / 1024 / 1024
+		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
+
+		collectData[consts.TotalMemory] = totalMB
+		collectData[consts.UsageMemory] = memoryUsageMB
+		collectData[consts.ConnectionCount] = entity.GetPlayerCount()
+		collectData[consts.Metadata] = context.GetOneConfig().Nacos.Instance.Metadata
+		resp := make(map[string]string)
+		err := utils.Post(GetGameConfig().Params["monitorServerCollectDataUrl"].(string), collectData, &resp)
+		if err != nil || resp["code"] != "0" {
+			log.Warnf("上报数据失败:%s", err)
+		}
+	})
 
 	gs.mainRoutine()
 }
@@ -181,8 +223,6 @@ func (gs *GameServer) handleGatePacket(pkt *pktconn.Packet) {
 		gp.HandleGameLogic(pkt)
 	case common_proto.HeartbeatFromDispatcher:
 		gp.SendHeartBeatAck()
-	case common_proto.OfflineFromClient:
-		gp.CloseAll()
 	case common_proto.GameDispatcherChannelInfoFromDispatcher:
 		gp.Handle3002(pkt)
 	case common_proto.NewPlayerConnectionFromDispatcher:

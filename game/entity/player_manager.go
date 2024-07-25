@@ -59,3 +59,7 @@ func RemovePlayer(entityID int64) {
 	delete(playerMap, entityID)
 	log.Infof("删除用户:%d", entityID)
 }
+
+func GetPlayerCount() int {
+	return len(playerMap)
+}

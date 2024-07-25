@@ -9,6 +9,10 @@ import (
 var gameConfig GameConfig
 var LocalConfig any
 
+func GetGameConfig() GameConfig {
+	return gameConfig
+}
+
 func SetLocalConfig(c any) {
 	LocalConfig = c
 }

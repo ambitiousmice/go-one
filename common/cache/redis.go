@@ -88,6 +88,14 @@ func GetHashField(key, field string, v any) error {
 	}
 }
 
+func GetHashAll(key string) (map[string]string, error) {
+	return RedisClient.GetHashAll(key)
+}
+
+func DeleteHashField(key, field string) error {
+	return RedisClient.DeleteHashField(key, field)
+}
+
 func ExecuteLuaScript(script string, keys []string, args []any) (any, error) {
 	return RedisClient.ExecuteLuaScript(script, keys, args)
 }
@@ -221,6 +229,8 @@ type IRedisClient interface {
 	GetSortedSetRange(key string, start, stop int64) ([]string, error)
 	SetHashField(key, field, value string) error
 	GetHashField(key, field string) (string, error)
+	GetHashAll(key string) (map[string]string, error)
+	DeleteHashField(key, field string) error
 	ExecuteLuaScript(script string, keys []string, args []any) (any, error)
 
 	//添加一个元素, zset与set最大的区别就是每个元素都有一个score，因此有个排序的辅助功能;  zadd
@@ -441,6 +451,16 @@ func (r *SingleNodeRedisClient) GetHashField(key, field string) (string, error) 
 	return r.client.HGet(r.ctx, key, field).Result()
 }
 
+// GetHashAll 获取 Hash 所有值
+func (r *SingleNodeRedisClient) GetHashAll(key string) (map[string]string, error) {
+	return r.client.HGetAll(r.ctx, key).Result()
+}
+
+// DeleteHashField 删除 Hash 中的字段
+func (r *SingleNodeRedisClient) DeleteHashField(key, field string) error {
+	return r.client.HDel(r.ctx, key, field).Err()
+}
+
 // ExecuteLuaScript 执行 Lua 脚本
 func (r *SingleNodeRedisClient) ExecuteLuaScript(script string, keys []string, args []any) (any, error) {
 	return r.client.Eval(r.ctx, script, keys, args...).Result()
@@ -611,6 +631,16 @@ func (r *SentinelRedisClient) GetHashField(key, field string) (string, error) {
 	return r.client.HGet(r.ctx, key, field).Result()
 }
 
+// GetHashAll 获取 Hash 所有值
+func (r *SentinelRedisClient) GetHashAll(key string) (map[string]string, error) {
+	return r.client.HGetAll(r.ctx, key).Result()
+}
+
+// DeleteHashField 删除 Hash 中的字段
+func (r *SentinelRedisClient) DeleteHashField(key, field string) error {
+	return r.client.HDel(r.ctx, key, field).Err()
+}
+
 // ExecuteLuaScript 执行 Lua 脚本
 func (r *SentinelRedisClient) ExecuteLuaScript(script string, keys []string, args []any) (any, error) {
 	return r.client.Eval(r.ctx, script, keys, args...).Result()
@@ -779,6 +809,16 @@ func (r *ClusterRedisClient) SetHashField(key, field, value string) error {
 // GetHashField 获取 Hash 中的字段值
 func (r *ClusterRedisClient) GetHashField(key, field string) (string, error) {
 	return r.client.HGet(r.ctx, key, field).Result()
+}
+
+// GetHashAll 获取 Hash 所有值
+func (r *ClusterRedisClient) GetHashAll(key string) (map[string]string, error) {
+	return r.client.HGetAll(r.ctx, key).Result()
+}
+
+// DeleteHashField 删除 Hash 中的字段
+func (r *ClusterRedisClient) DeleteHashField(key, field string) error {
+	return r.client.HDel(r.ctx, key, field).Err()
 }
 
 // ExecuteLuaScript 执行 Lua 脚本

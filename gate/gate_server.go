@@ -94,30 +94,51 @@ func (gs *GateServer) Run() {
 
 	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
 
-	collectData := make(map[string]string)
-	collectData[consts.ServiceName] = context.GetOneConfig().Nacos.Instance.Service
-	collectData[consts.GroupId] = context.GetOneConfig().Nacos.Instance.GroupName
-	collectData[consts.ClusterId] = context.GetOneConfig().Nacos.Instance.ClusterName
+	collectData := make(map[string]any)
+	groupID, err := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.GroupName, 10, 64)
+	if err != nil {
+		log.Errorf("gate groupName is not int: %s ,run failed", context.GetOneConfig().Nacos.Instance.GroupName)
+		return
+	}
+	clusterId, err := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.ClusterName, 10, 64)
+	if err != nil {
+		log.Errorf("gate ClusterName is not int: %s ,run failed", context.GetOneConfig().Nacos.Instance.ClusterName)
+		return
+	}
+	collectData[consts.ServerName] = context.GetOneConfig().Nacos.Instance.Service
+	collectData[consts.GroupId] = groupID
+	collectData[consts.ClusterId] = clusterId
 
 	gs.cron.AddFunc("@every 10s", func() {
 		log.Infof("当前在线人数:%d", len(gs.clientProxies))
 		log.Infof("客户端包队列长度:%d", len(gs.clientPacketQueue))
-
 		dispatcherClientPacketQueueLength := 0
 		for _, queue := range gs.dispatcherClientPacketQueues {
 			dispatcherClientPacketQueueLength = dispatcherClientPacketQueueLength + len(queue)
 		}
 		log.Infof("分发客户端包长度:%d", dispatcherClientPacketQueueLength)
+
 		var stats runtime.MemStats
 		runtime.ReadMemStats(&stats)
 		totalMB := float64(stats.Sys) / 1024 / 1024
 		log.Infof("Total Memory: %.2f MB", totalMB)
 		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
-		log.Infof("Memory Usage: %.2f MB", memoryUsageMB)
+		log.Infof("Usage Memory: %.2f MB", memoryUsageMB)
+	})
 
-		collectData[consts.ConnectionCount] = strconv.Itoa(len(gs.clientProxies))
-		_, err := utils.Get(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData)
-		if err != nil {
+	gs.cron.AddFunc("@every 2s", func() {
+		var stats runtime.MemStats
+		runtime.ReadMemStats(&stats)
+		totalMB := float64(stats.Sys) / 1024 / 1024
+		memoryUsageMB := float64(stats.Sys-stats.HeapReleased) / 1024 / 1024
+
+		collectData[consts.TotalMemory] = totalMB
+		collectData[consts.UsageMemory] = memoryUsageMB
+		collectData[consts.ConnectionCount] = len(gs.clientProxies)
+		collectData[consts.Metadata] = context.GetOneConfig().Nacos.Instance.Metadata
+		resp := make(map[string]string)
+		err := utils.Post(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData, &resp)
+		if err != nil || resp["code"] != "0" {
 			log.Warnf("上报数据失败:%s", err)
 		}
 	})

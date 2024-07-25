@@ -6,7 +6,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/utils"
 	"github.com/ambitiousmice/go-one/monitor/config"
-	"github.com/ambitiousmice/go-one/monitor/gate_manager"
+	"github.com/ambitiousmice/go-one/monitor/server_manager"
 	"time"
 )
 import "github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ func main() {
 
 	config.InitConfig()
 
-	gate_manager.Init()
+	server_manager.Init()
 
 	router := gin.Default()
 
@@ -29,15 +29,21 @@ func main() {
 
 	appGroup := router.Group("/app-api/monitor/gate")
 	{
-		appGroup.GET("/choose/:partition", gate_manager.ChooseGate)
-		appGroup.GET("/choose/inner", gate_manager.ChooseGateInner)
-		appGroup.GET("/choose/test", gate_manager.ChooseGateTest)
+		appGroup.GET("/choose/:partition", server_manager.ChooseGate)
+		appGroup.GET("/choose/inner", server_manager.ChooseGateInner)
+		appGroup.GET("/choose/test", server_manager.ChooseGateTest)
+	}
+
+	serverGroup := router.Group("/app-api/monitor/server")
+	{
+		serverGroup.POST("/queryServerInfo", server_manager.QueryServerInfo)
+		serverGroup.POST("/queryServerInfos", server_manager.QueryServerInfos)
 	}
 
 	gateGroup := router.Group("/gate")
 	{
-		gateGroup.GET("/collectData", gate_manager.CollectData)
-		gateGroup.POST("/broadcast", gate_manager.Broadcast)
+		gateGroup.POST("/collectData", server_manager.CollectData)
+		gateGroup.POST("/broadcast", server_manager.Broadcast)
 	}
 
 	addr := ":" + utils.ToString(context.GetOneConfig().Nacos.Instance.Port)

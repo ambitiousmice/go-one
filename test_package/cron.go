@@ -1,44 +1,57 @@
 package main
 
 import (
-	"encoding/json"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"log"
+	"github.com/ambitiousmice/go-one/common/json"
+	"github.com/ambitiousmice/go-one/common/utils"
+	"io/ioutil"
 )
 
 func main() {
-	// 创建包含100个AOISyncInfo对象的切片
-	aoiSlice := make([]*t.AOISyncInfo, 10)
-	for i := 0; i < 10; i++ {
-		aoi := &t.AOISyncInfo{
-			EntityId: int64(i),
-			X:        float32(i),
-			Y:        float32(i),
-			Z:        float32(i),
-			Yaw:      float32(i),
-			Speed:    float32(i),
+	// 定义字符串数组
+	nums := []int{56, 131, 176, 210, 176, 194, 199, 152, 103, 72}
+	for i := 0; i < len(nums); i++ {
+		strings := make([]string, nums[i])
+
+		// 按照规则生成字符串
+		for i := 0; i < len(strings); i++ {
+			strings[i] = generateFormattedString()
 		}
-		aoiSlice[i] = aoi
+
+		// 将字符串数组转换成JSON
+		jsonData, err := json.MarshalToString(strings)
+		if err != nil {
+			panic(err)
+		}
+
+		filePath := utils.ToString(i+1) + ".json"
+		err = ioutil.WriteFile(filePath, []byte(jsonData), 0644)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Output file was saved successfully in", filePath)
+		}
 	}
 
-	// 进行JSON序列化
-	jsonData, err := json.Marshal(aoiSlice)
+}
+
+// 生成格式化随机字符串的函数
+func generateFormattedString() string {
+	part1 := generateRandomString(6)  // 6个字符的随机字符串
+	part2 := generateRandomString(32) // 32个字符的随机字符串
+	part3 := generateRandomString(4)  // 4个字符的随机字符串
+
+	return part1 + "." + part2 + "." + part3
+}
+
+// 生成随机字符串的函数
+func generateRandomString(length int) string {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	jsonSize := len(jsonData)
-	println(string(jsonData))
-	// 进行Protocol Buffers序列化
-	protoData, err := proto.Marshal(&t.AOISyncInfoList{AoiSyncInfo: aoiSlice})
-	if err != nil {
-		log.Fatal(err)
-	}
-	protoSize := len(protoData)
-
-	// 计算大小差异倍数
-	ratio := float64(protoSize) / float64(jsonSize)
-
-	fmt.Printf("JSON序列化大小: %d bytes\n", jsonSize)
-	fmt.Printf("Protocol Buffers序列化大小: %d bytes\n", protoSize)
-	fmt.Printf("大小差异倍数: %.2f倍\n", ratio)
+	return hex.EncodeToString(bytes)[:length]
 }

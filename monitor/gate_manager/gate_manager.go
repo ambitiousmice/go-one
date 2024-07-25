@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+// 已废弃
+
 var gateContext = make(map[int64]*GateInfos) // gateContext: {groupID: {gates: []*GateInfo}}
 var gatesMutex = new(sync.RWMutex)
 
@@ -70,14 +72,21 @@ func (g *GateInfos) addGate(gateInfo *GateInfo) {
 	g.ClusterIds = append(g.ClusterIds, gateInfo.ClusterId)
 }
 
+func (g *GateInfos) removeGate(clusterId int64) {
+	g.Lock()
+	defer g.Unlock()
+	delete(g.Gates, clusterId)
+}
+
 type GateInfo struct {
-	GroupID         int64
-	ClusterId       int64
-	WsAddr          string
-	TcpAddr         string
-	Version         string
-	Status          int64
-	ConnectionCount int64
+	GroupID               int64
+	ClusterId             int64
+	WsAddr                string
+	TcpAddr               string
+	Version               string
+	Status                int64
+	ConnectionCount       int64
+	LastCommunicationTime int64
 }
 
 func GetGateInfos(groupID int64) *GateInfos {
@@ -137,7 +146,7 @@ func FreshGateInfo(gateName, groupName string) {
 			}
 		}
 		if !exist {
-			delete(gateInfos.Gates, clusterID)
+			gateInfos.removeGate(clusterID)
 		}
 	}
 
@@ -166,12 +175,13 @@ func FreshGateInfo(gateName, groupName string) {
 		gateInfo := gateInfos.getGate(clusterId)
 		if gateInfo == nil {
 			gateInfo = &GateInfo{
-				GroupID:   groupID,
-				ClusterId: clusterId,
-				WsAddr:    wsAddr,
-				TcpAddr:   tcpAddr,
-				Version:   version,
-				Status:    status,
+				GroupID:               groupID,
+				ClusterId:             clusterId,
+				WsAddr:                wsAddr,
+				TcpAddr:               tcpAddr,
+				Version:               version,
+				Status:                status,
+				LastCommunicationTime: time.Now().UnixMilli(),
 			}
 			gateInfos.addGate(gateInfo)
 		} else {
@@ -179,6 +189,7 @@ func FreshGateInfo(gateName, groupName string) {
 			gateInfo.TcpAddr = tcpAddr
 			gateInfo.Version = version
 			gateInfo.Status = status
+			gateInfo.LastCommunicationTime = time.Now().UnixMilli()
 		}
 	}
 

@@ -27,7 +27,7 @@ func ReceiveLoginSyncNotifyHandler(msg *sarama.ConsumerMessage) {
 		log.Errorf("unpack gate kafka message error(%v)", err)
 		return
 	}
-	log.Infof("mq toipc:GateSyncPlayer resolve result：%s", jsonStruct)
+	log.Infof("mq topic:GateSyncPlayer resolve result：%s", jsonStruct)
 
 	gateServer := GetGateServer()
 	if gateServer != nil {

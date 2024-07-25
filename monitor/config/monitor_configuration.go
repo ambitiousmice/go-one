@@ -26,6 +26,7 @@ func InitConfig() {
 }
 
 type Gate struct {
-	Name       string              `yaml:"name"`
-	GroupInfos map[string][]string `yaml:"groupInfos"` // groupID -> [regionID1, regionID2]
+	Name                      string              `yaml:"name"`
+	CommunicationTimeoutValue int64               `yaml:"communicationTimeoutValue"`
+	GroupInfos                map[string][]string `yaml:"groupInfos"` // groupID -> [regionID1, regionID2]
 }
