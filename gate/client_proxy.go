@@ -164,6 +164,15 @@ func (cp *ClientProxy) Login(packet *pktconn.Packet) {
 
 	loginResult, err := Login(gateServer.LoginManager, &param)
 	if err != nil || !loginResult.Success {
+		if err != nil {
+			customErr, ok := err.(*cust_error.CustomError)
+			if ok {
+				cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
+					Code: customErr.ErrorCode,
+				})
+				return
+			}
+		}
 		log.Errorf("Login error: %s", err)
 		cp.SendMsg(common_proto.LoginFromClientAck, &common_proto.LoginResp{
 			Code: common_proto.Game_Login_Error,
