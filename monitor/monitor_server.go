@@ -7,6 +7,9 @@ import (
 	"github.com/ambitiousmice/go-one/common/utils"
 	"github.com/ambitiousmice/go-one/monitor/config"
 	"github.com/ambitiousmice/go-one/monitor/server_manager"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 import "github.com/gin-gonic/gin"
@@ -18,6 +21,8 @@ func main() {
 	context.Init()
 
 	config.InitConfig()
+
+	setupSignals()
 
 	server_manager.Init()
 
@@ -63,4 +68,22 @@ func timeoutMiddleware() gin.HandlerFunc {
 			c.Next()
 		}),
 	)
+}
+
+func setupSignals() {
+	log.Infof("Setup signals ...")
+	var signalChan = make(chan os.Signal, 1)
+	signal.Ignore(syscall.Signal(10), syscall.Signal(12), syscall.SIGPIPE, syscall.SIGHUP)
+	signal.Notify(signalChan, syscall.SIGTERM)
+
+	go func() {
+		for {
+			sig := <-signalChan
+			if sig == syscall.SIGTERM {
+				os.Exit(0)
+			} else {
+				log.Errorf("unexpected signal: %s", sig)
+			}
+		}
+	}()
 }

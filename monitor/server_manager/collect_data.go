@@ -13,6 +13,7 @@ type ServerDataReq struct {
 	ConnectionCount int64
 	TotalMemory     float64
 	UsageMemory     float64
+	Status          int32
 	Metadata        map[string]string
 }
 
@@ -30,8 +31,9 @@ func CollectData(c *gin.Context) {
 		ConnectionCount:       req.ConnectionCount,
 		TotalMemory:           req.TotalMemory,
 		UsageMemory:           req.UsageMemory,
-		LastCommunicationTime: time.Now().UnixMilli(),
+		Status:                req.Status,
 		Metadata:              req.Metadata,
+		LastCommunicationTime: time.Now().UnixMilli(),
 	}
 
 	AddServer(serverInfo)

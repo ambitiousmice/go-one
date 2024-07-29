@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// 定义字符串数组
-	nums := []int{56, 131, 176, 210, 176, 194, 199, 152, 103, 72}
+	nums := []int{56, 131, 176, 210, 176, 320, 563, 742, 421, 312}
 	for i := 0; i < len(nums); i++ {
 		strings := make([]string, nums[i])
 

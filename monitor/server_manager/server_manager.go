@@ -2,6 +2,7 @@ package server_manager
 
 import (
 	"github.com/ambitiousmice/go-one/common/cache"
+	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/common/json"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/utils"
@@ -51,7 +52,7 @@ type ServerInfo struct {
 	LastCommunicationTime int64
 	TotalMemory           float64
 	UsageMemory           float64
-	Status                int8
+	Status                int32
 	Metadata              map[string]string
 }
 
@@ -88,6 +89,13 @@ func FreshServerInfo() {
 			cache.DeleteHashField(serverInfosCacheKey, serverInfo.ServerName+"_"+utils.ToString(serverInfo.GroupID)+"_"+utils.ToString(serverInfo.ClusterId))
 			continue
 		}
+
+		if serverInfo.Status != consts.ServiceOnline {
+			log.Warnf("server :%s,%d,%d,status:%d .  is offline", serverInfo.ServerName, serverInfo.GroupID, serverInfo.ClusterId)
+			cache.DeleteHashField(serverInfosCacheKey, serverInfo.ServerName+"_"+utils.ToString(serverInfo.GroupID)+"_"+utils.ToString(serverInfo.ClusterId))
+			continue
+		}
+
 		tempServerMap[serverInfo.ServerName+"_"+utils.ToString(serverInfo.GroupID)+"_"+utils.ToString(serverInfo.ClusterId)] = &serverInfo
 
 		serverInfoStr, _ := json.MarshalToString(serverInfo)

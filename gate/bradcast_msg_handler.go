@@ -29,7 +29,6 @@ func ReceiveLoginSyncNotifyHandler(msg *sarama.ConsumerMessage) {
 	}
 	log.Infof("mq topic:GateSyncPlayer resolve result：%s", jsonStruct)
 
-	gateServer := GetGateServer()
 	if gateServer != nil {
 		oldCP := gateServer.getClientProxy(m.EntityID)
 		if oldCP != nil && oldCP.clientID != m.ClientID {

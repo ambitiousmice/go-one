@@ -51,13 +51,13 @@ func RemovePlayer(entityID int64) {
 		player.Destroy()
 		player.I.OnDestroy()
 	} else {
-		log.Infof("删除用户:%d,不存在", entityID)
+		log.Infof("移除用户:%d,不存在", entityID)
 		return
 	}
 	playerMutex.Lock()
 	defer playerMutex.Unlock()
 	delete(playerMap, entityID)
-	log.Infof("删除用户:%d", entityID)
+	log.Infof("移除用户:%d", entityID)
 }
 
 func GetPlayerCount() int {
