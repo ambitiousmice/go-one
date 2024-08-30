@@ -27,7 +27,7 @@ func RunHttpServer() {
 		gateGroup.POST("/cmd", httpHandler)
 	}
 
-	addr := ":18888"
+	addr := ":28888"
 	log.Infof("server run with:%s", addr)
 	err := router.Run(addr)
 	if err != nil {

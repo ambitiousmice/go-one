@@ -31,6 +31,9 @@ type serverConfig struct {
 	Websocket       bool   `yaml:"websocket"`
 	ServerHost      string `yaml:"server-host"`
 	ClientNum       int    `yaml:"client_num"`
+	ApiUrl          string `yaml:"api-url"`
+	ApiToken        string `yaml:"api-token"`
+	DataPath        string `yaml:"data-path"`
 }
 
 func InitConfig() error {

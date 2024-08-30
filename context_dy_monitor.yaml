@@ -1,15 +1,17 @@
 nacos:
   host: 192.168.1.28:8848
+  namespace: 19b0016f-ddcb-4357-9f11-f50d9c432027
   instance:
     ip: 192.168.1.28
-    port: 8888
+    port: 18888
     service: monitor
+    groupName: 1
     clusterName: 1
     metadata:
       "version": 1.0
 
 gate:
-  name: frpc-gate
+  name: dy_small_play-gate
   groupInfos:
     -
       name: 1
