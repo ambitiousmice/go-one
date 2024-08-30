@@ -3,6 +3,7 @@ package processor_center
 import (
 	"github.com/ambitiousmice/go-one/common/common_proto"
 	"github.com/ambitiousmice/go-one/common/log"
+	"github.com/ambitiousmice/go-one/common/pool/fixed_channel_pool"
 	"github.com/ambitiousmice/go-one/game/entity"
 	"github.com/ambitiousmice/go-one/game/processor_center/base_processor"
 	"github.com/ambitiousmice/go-one/game/proxy"
@@ -44,11 +45,7 @@ func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req 
 		p.SendCommonErrorMsg("invalid cmd")
 		return
 	}
-	//log.Infof("Process1 Start")
-	SubmitProcessorTask(entityID, func() {
-		//log.Infof("Process Start")
+	fixed_channel_pool.Submit(entityID, func() {
 		processor.Process(p, req.Param)
-		//log.Infof("Process End")
 	})
-	//log.Infof("Process1 End")
 }

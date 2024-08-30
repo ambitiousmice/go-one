@@ -26,6 +26,10 @@ func (p *MiniPlayer) OnClientDisconnected() {
 	p.LeaveScene()
 }
 
+func (p *MiniPlayer) UpdateData() {
+
+}
+
 func (p *MiniPlayer) OnJoinScene() {
 
 	log.Infof("%s join %s", p, p.Scene)

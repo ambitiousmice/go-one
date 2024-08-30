@@ -26,6 +26,10 @@ func (p *Player) OnClientDisconnected() {
 	p.LeaveScene()
 }
 
+func (p *Player) UpdateData() {
+
+}
+
 func (p *Player) OnJoinScene() {
 
 	log.Infof("%s join %s", p, p.Scene)

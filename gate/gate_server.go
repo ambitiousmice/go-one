@@ -16,9 +16,12 @@ import (
 	"github.com/robfig/cron/v3"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/xtaci/kcp-go"
@@ -43,7 +46,7 @@ type GateServer struct {
 	clientPacketQueue            chan *pktconn.Packet
 	dispatcherClientPacketQueues []chan *pktconn.Packet
 
-	status                  uint8
+	status                  int32
 	checkHeartbeatsInterval int
 	clientTimeout           time.Duration
 
@@ -92,8 +95,14 @@ func (gs *GateServer) Run() {
 	go gs.serveKCP(gs.listenAddr)
 	go network.ServeWebsocket(gs.websocketListenAddr, gs)
 
-	log.Infof("心跳检测间隔:%ds,客户端超时时间:%fs", gs.checkHeartbeatsInterval, gs.clientTimeout.Seconds())
+	runServerCronTask()
 
+	setupSignals()
+
+	gs.mainRoutine()
+}
+
+func runServerCronTask() {
 	collectData := make(map[string]any)
 	groupID, err := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.GroupName, 10, 64)
 	if err != nil {
@@ -109,11 +118,11 @@ func (gs *GateServer) Run() {
 	collectData[consts.GroupId] = groupID
 	collectData[consts.ClusterId] = clusterId
 
-	gs.cron.AddFunc("@every 10s", func() {
-		log.Infof("当前在线人数:%d", len(gs.clientProxies))
-		log.Infof("客户端包队列长度:%d", len(gs.clientPacketQueue))
+	gateServer.cron.AddFunc("@every 10s", func() {
+		log.Infof("当前在线人数:%d", len(gateServer.clientProxies))
+		log.Infof("客户端包队列长度:%d", len(gateServer.clientPacketQueue))
 		dispatcherClientPacketQueueLength := 0
-		for _, queue := range gs.dispatcherClientPacketQueues {
+		for _, queue := range gateServer.dispatcherClientPacketQueues {
 			dispatcherClientPacketQueueLength = dispatcherClientPacketQueueLength + len(queue)
 		}
 		log.Infof("分发客户端包长度:%d", dispatcherClientPacketQueueLength)
@@ -126,7 +135,7 @@ func (gs *GateServer) Run() {
 		log.Infof("Usage Memory: %.2f MB", memoryUsageMB)
 	})
 
-	gs.cron.AddFunc("@every 2s", func() {
+	gateServer.cron.AddFunc("@every 2s", func() {
 		var stats runtime.MemStats
 		runtime.ReadMemStats(&stats)
 		totalMB := float64(stats.Sys) / 1024 / 1024
@@ -134,7 +143,8 @@ func (gs *GateServer) Run() {
 
 		collectData[consts.TotalMemory] = totalMB
 		collectData[consts.UsageMemory] = memoryUsageMB
-		collectData[consts.ConnectionCount] = len(gs.clientProxies)
+		collectData[consts.ConnectionCount] = len(gateServer.clientProxies)
+		collectData[consts.Status] = gateServer.status
 		collectData[consts.Metadata] = context.GetOneConfig().Nacos.Instance.Metadata
 		resp := make(map[string]string)
 		err := utils.Post(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData, &resp)
@@ -142,12 +152,32 @@ func (gs *GateServer) Run() {
 			log.Warnf("上报数据失败:%s", err)
 		}
 	})
+}
 
-	gs.mainRoutine()
+func setupSignals() {
+	log.Infof("Setup signals ...")
+	var signalChan = make(chan os.Signal, 1)
+	signal.Ignore(syscall.Signal(10), syscall.Signal(12), syscall.SIGPIPE, syscall.SIGHUP)
+	signal.Notify(signalChan, syscall.SIGTERM)
+
+	go func() {
+		for {
+			sig := <-signalChan
+			if sig == syscall.SIGTERM {
+
+				gateServer.terminate()
+
+				os.Exit(0)
+			} else {
+				log.Errorf("unexpected signal: %s", sig)
+			}
+		}
+	}()
 }
 
 func (gs *GateServer) mainRoutine() {
 	// 启动goroutine监听clientPacketQueue
+	gs.status = consts.ServiceOnline
 	go func() {
 		for {
 			select {
@@ -231,7 +261,7 @@ func (gs *GateServer) handleKCPConn(conn *kcp.UDPSession) {
 
 func (gs *GateServer) handleClientConnection(conn net.Conn) {
 
-	if gs.status == consts.ServiceTerminating {
+	if gs.status != consts.ServiceOnline {
 		conn.Close()
 		return
 	}
@@ -340,7 +370,28 @@ func (gs *GateServer) handleDispatcherPacket(packet *pktconn.Packet) {
 }
 
 func (gs *GateServer) terminate() {
+	if gs.status == consts.ServiceTerminating || gs.status == consts.ServiceTerminated {
+		return
+	}
+
 	gs.status = consts.ServiceTerminating
+	log.Infof("gate service terminating...")
+
+	collectData := make(map[string]any)
+	groupID, _ := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.GroupName, 10, 64)
+	clusterId, _ := strconv.ParseInt(context.GetOneConfig().Nacos.Instance.ClusterName, 10, 64)
+	collectData[consts.ServerName] = context.GetOneConfig().Nacos.Instance.Service
+	collectData[consts.GroupId] = groupID
+	collectData[consts.ClusterId] = clusterId
+	collectData[consts.Status] = gs.status
+	resp := make(map[string]string)
+
+	err := utils.Post(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData, &resp)
+	if err != nil || resp["code"] != "0" {
+		log.Warnf("停服上报数据失败:%s", err)
+	}
+
+	log.Infof("gate service terminating info report to monitor success")
 
 	for _, cp := range gs.tempClientProxies {
 		cp.CloseAll()
@@ -350,7 +401,20 @@ func (gs *GateServer) terminate() {
 		cp.CloseAll()
 	}
 
+	// TODO 处理通道信息
+
 	gs.status = consts.ServiceTerminated
+
+	collectData[consts.Status] = gs.status
+
+	err = utils.Post(GetGateConfig().Params["monitorServerCollectDataUrl"].(string), collectData, &resp)
+	if err != nil || resp["code"] != "0" {
+		log.Warnf("停服上报数据失败:%s", err)
+	}
+
+	log.Infof("gate service terminated info report to monitor success")
+
+	log.Infof("gate service terminated")
 }
 
 func (gs *GateServer) addTempClientProxy(cp *ClientProxy) {

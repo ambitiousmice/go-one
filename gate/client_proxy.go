@@ -25,6 +25,7 @@ type ClientProxy struct {
 	clusterID uint8
 	region    int32
 
+	status        uint8
 	heartbeatTime time.Time
 	cron          *cron.Cron
 	cronMap       map[string]cron.EntryID
@@ -237,7 +238,7 @@ func (cp *ClientProxy) NotifyNewPlayerConnection() {
 }
 
 func (cp *ClientProxy) HeartbeatTimeout() {
-	log.Infof("客户端:%s 超时", cp)
+	log.Infof("客户端:%s 心跳超时", cp)
 
 	cp.CloseAll()
 }
