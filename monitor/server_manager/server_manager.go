@@ -91,7 +91,7 @@ func FreshServerInfo() {
 		}
 
 		if serverInfo.Status != consts.ServiceOnline {
-			log.Warnf("server :%s,%d,%d,status:%d .  is offline", serverInfo.ServerName, serverInfo.GroupID, serverInfo.ClusterId)
+			log.Warnf("server :%s,%d,%d,status:%d .  is offline", serverInfo.ServerName, serverInfo.GroupID, serverInfo.ClusterId, serverInfo.Status)
 			cache.DeleteHashField(serverInfosCacheKey, serverInfo.ServerName+"_"+utils.ToString(serverInfo.GroupID)+"_"+utils.ToString(serverInfo.ClusterId))
 			continue
 		}
