@@ -2,7 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"encoding/json"
+	"github.com/ambitiousmice/go-one/common/json"
+	"github.com/ambitiousmice/go-one/common/log"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,7 +21,8 @@ func Post(url string, param interface{}, respData interface{}) error {
 		return err
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)  // 读取请求结果
+	body, _ := ioutil.ReadAll(resp.Body) // 读取请求结果
+	log.Info("url:" + url + " ----------- resp:" + string(body))
 	err = json.Unmarshal(body, &respData) // 将string 格式转成json格式
 
 	if err != nil {
