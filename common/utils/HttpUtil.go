@@ -24,7 +24,6 @@ func Post(url string, param interface{}, respData interface{}) error {
 	body, _ := ioutil.ReadAll(resp.Body) // 读取请求结果
 	log.Info("url:" + url + " ----------- resp:" + string(body))
 	err = json.Unmarshal(body, &respData) // 将string 格式转成json格式
-
 	if err != nil {
 		return err
 	}
