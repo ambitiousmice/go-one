@@ -126,11 +126,14 @@ func (gp *GateProxy) Handle3003(pkt *pktconn.Packet) {
 	pkt.ReadData(req)
 
 	p := entity.GetPlayer(req.EntityID)
+
 	if p == nil {
+		log.Debugf("收到新玩家连接:%d", req.EntityID)
 		p = entity.AddPlayer(req.EntityID, req.Region, gp.GateClusterID)
 		p.UpdateStatus(common.PlayerStatusOnline)
 		p.JoinScene(common.SceneTypeLobby, 0)
 	} else {
+		log.Debugf("收到老玩家重连:%d", req.EntityID)
 		p.UpdateStatus(common.PlayerStatusOnline)
 		p.ReJoinScene()
 	}

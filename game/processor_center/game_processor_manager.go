@@ -46,6 +46,7 @@ func (gpm *GameProcessManager) Process(gp *proxy.GateProxy, entityID int64, req 
 		return
 	}
 	fixed_channel_pool.Submit(entityID, func() {
+		log.Infof("player:%d send cmd: %d", entityID, req.Cmd)
 		processor.Process(p, req.Param)
 	})
 }

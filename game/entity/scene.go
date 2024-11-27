@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/ambitiousmice/go-one/game/common"
 )
@@ -56,6 +57,8 @@ func (s *Scene) join(player *Player) {
 }
 
 func (s *Scene) leave(player *Player) {
+	log.Infof("OnLeft1")
+
 	s.I.OnLeft(player)
 
 	if s.aoiMgr != nil {

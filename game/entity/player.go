@@ -2,7 +2,9 @@ package entity
 
 import (
 	"github.com/ambitiousmice/go-one/common/common_proto"
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/game/common"
+	"reflect"
 )
 
 type Player struct {
@@ -56,11 +58,15 @@ func (p *Player) ReJoinScene() {
 
 func (p *Player) LeaveScene() {
 	scene := p.Scene
+
 	if scene == nil {
+		log.Infof("%s leave scene ", p.EntityID)
 		return
 	}
-
+	log.Infof("%d leave scene %s", p.EntityID, reflect.TypeOf(scene))
 	scene.leave(p)
+	log.Infof("scene.leave")
+
 }
 
 func (p *Player) Move(moveReq *common_proto.MoveReq) {

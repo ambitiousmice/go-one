@@ -6,6 +6,7 @@ import (
 	"github.com/ambitiousmice/go-one/common/consts"
 	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/common/pktconn"
+	"github.com/ambitiousmice/go-one/common/utils/json"
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/ambitiousmice/go-one/game/common"
 	"github.com/robfig/cron/v3"
@@ -145,6 +146,11 @@ func (p *BasePlayer) SendGameMsg(resp *common_proto.GameResp) {
 }
 
 func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
+	datastr := "nil"
+	if data != nil {
+		datastr, _ = json.ToString(data)
+	}
+	log.Infof("%s send game data cmd: %d data: %s", p.EntityID, cmd, datastr)
 	packet := pktconn.NewPacket()
 	packet.WriteUint16(common_proto.GameMethodFromClientAck)
 
@@ -169,6 +175,9 @@ func (p *BasePlayer) SendGameData(cmd uint16, data interface{}) {
 }
 
 func (p *BasePlayer) SendGameServiceCode(cmd uint16, code int32, data interface{}) {
+
+	log.Infof("%s SendGameServiceCode cmd: %d code: %d", p.EntityID, cmd, code)
+
 	v := reflect.ValueOf(data)
 
 	if v.Kind() != reflect.Ptr || v.IsNil() {

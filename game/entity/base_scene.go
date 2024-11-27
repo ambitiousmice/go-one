@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"github.com/ambitiousmice/go-one/common/log"
 	"github.com/ambitiousmice/go-one/game/aoi"
 	"github.com/robfig/cron/v3"
 	"sync"
@@ -59,10 +60,15 @@ func (br *BaseScene) AddPlayer(player *Player) {
 }
 
 func (br *BaseScene) RemovePlayer(player *Player) {
+	log.Infof("RemovePlayer1")
+
 	br.mutex.Lock()
+	log.Infof("RemovePlayer2")
+
 	defer br.mutex.Unlock()
 
 	delete(br.players, player.EntityID)
+	log.Infof("RemovePlayer3")
 
 }
 
