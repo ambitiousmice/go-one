@@ -175,7 +175,7 @@ func (sm *SceneManager) matchSceneMax() *Scene {
 		room := sm.scenes[sceneID]
 		if room != nil {
 			playerCount := room.GetPlayerCount()
-			if playerCount < room.MaxPlayerNum && playerCount > maxPlayers {
+			if playerCount < room.MaxPlayerNum && playerCount >= maxPlayers {
 				maxPlayers = playerCount
 				maxScene = room
 			}
